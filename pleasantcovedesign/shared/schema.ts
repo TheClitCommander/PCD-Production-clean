@@ -190,6 +190,7 @@ export interface ProjectMessage {
   senderName: string;
   content: string;
   attachments?: string[]; // Array of file URLs
+  readAt?: string; // When the message was read by recipient
   createdAt?: string;
   updatedAt?: string;
 }

@@ -25,6 +25,7 @@ interface Message {
   senderName: string
   senderType: 'client' | 'admin'
   createdAt: string
+  readAt?: string
   attachments?: string[]
 }
 
@@ -225,6 +226,33 @@ const Inbox: React.FC = () => {
         return newConversations.sort((a, b) => 
           new Date(b.lastMessageTime).getTime() - new Date(a.lastMessageTime).getTime()
         );
+      });
+    });
+    
+    // Listen for read receipts
+    socket.on('messagesRead', (data: { projectToken: string, messageIds: number[], readAt: string }) => {
+      console.log('📖 [READ_RECEIPT] Messages marked as read:', data);
+      
+      setConversations(prevConversations => {
+        return prevConversations.map(conv => {
+          if (conv.projectToken === data.projectToken) {
+            // Update read status for messages in this conversation
+            const updatedMessages = conv.messages.map(msg => {
+              if (data.messageIds.includes(msg.id)) {
+                return { ...msg, readAt: data.readAt };
+              }
+              return msg;
+            });
+            
+            // Also update selected conversation if it matches
+            if (selectedConversationRef.current?.projectToken === data.projectToken) {
+              setSelectedConversation(prev => prev ? { ...prev, messages: updatedMessages } : null);
+            }
+            
+            return { ...conv, messages: updatedMessages };
+          }
+          return conv;
+        });
       });
     });
 
@@ -981,6 +1009,15 @@ const Inbox: React.FC = () => {
                         message.senderType === 'admin' ? 'text-primary-100' : 'text-muted'
                       }`}>
                         {formatTime(message.createdAt)} • {message.senderName}
+                        {message.senderType === 'admin' && (
+                          <span className="ml-2">
+                            {message.readAt ? (
+                              <span className="text-blue-400" title={`Read at ${formatTime(message.readAt)}`}>✓✓</span>
+                            ) : (
+                              <span className="text-gray-400" title="Delivered">✓</span>
+                            )}
+                          </span>
+                        )}
                       </p>
                     </div>
                   </div>

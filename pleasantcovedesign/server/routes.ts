@@ -3517,6 +3517,45 @@ export async function registerRoutes(app: Express, io: any) {
     }
   });
 
+  // Mark messages as read
+  app.post("/api/public/project/:token/messages/read", async (req: Request, res: Response) => {
+    try {
+      const { token } = req.params;
+      const { messageIds } = req.body;
+      
+      if (!messageIds || !Array.isArray(messageIds)) {
+        return res.status(400).json({ error: "messageIds array required" });
+      }
+      
+      console.log(`📖 [MARK_READ] Marking messages as read:`, { token, messageIds });
+      
+      // Get project by token
+      const project = await storage.getProjectByAccessToken(token);
+      if (!project) {
+        return res.status(404).json({ error: "Project not found" });
+      }
+      
+      const readAt = new Date().toISOString();
+      
+      // Update messages as read
+      for (const messageId of messageIds) {
+        await storage.markMessageAsRead(messageId, readAt);
+      }
+      
+      // Broadcast read status to admin
+      io.to('admin-room').emit('messagesRead', {
+        projectToken: token,
+        messageIds,
+        readAt
+      });
+      
+      res.json({ success: true, readAt });
+    } catch (error) {
+      console.error("Failed to mark messages as read:", error);
+      res.status(500).json({ error: "Failed to mark messages as read" });
+    }
+  });
+
   // ===================
   // ADMIN BYPASS ROUTES (No Authentication Required for Local Development)
   // ===================

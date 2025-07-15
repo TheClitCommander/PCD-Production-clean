@@ -2064,6 +2064,27 @@
                 });
             }
 
+            async markMessagesAsRead(messageIds) {
+                if (!messageIds || messageIds.length === 0) return;
+                
+                try {
+                    const url = `${this.config.backendUrl}/api/public/project/${this.projectToken}/messages/read`;
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ messageIds })
+                    });
+                    
+                    if (response.ok) {
+                        console.log('✅ [READ_RECEIPT] Marked messages as read:', messageIds);
+                    }
+                } catch (error) {
+                    console.error('❌ [READ_RECEIPT] Failed to mark messages as read:', error);
+                }
+            }
+
             async loadMessages() {
                 console.log('📥 [MESSAGES] Loading conversation history...');
                 
@@ -2132,9 +2153,15 @@
                         container.appendChild(loadingDiv);
                     }
                     
-                    // Display messages
+                    // Display messages and collect unread admin messages
+                    const unreadAdminMessageIds = [];
                     messages.forEach((msg, index) => {
                         this.addMessageToUI(msg, false); // Don't scroll for each message during bulk load
+                        
+                        // Track unread admin messages
+                        if (msg.senderType === 'admin' && !msg.readAt && msg.id) {
+                            unreadAdminMessageIds.push(msg.id);
+                        }
                         
                         // If this is one of the last 5 messages, add a visual indicator
                         if (index >= messages.length - 5) {
@@ -2144,6 +2171,12 @@
                             }
                         }
                     });
+                    
+                    // Mark admin messages as read
+                    if (unreadAdminMessageIds.length > 0) {
+                        console.log('📖 [READ_RECEIPT] Marking admin messages as read:', unreadAdminMessageIds);
+                        this.markMessagesAsRead(unreadAdminMessageIds);
+                    }
                     
                     // Remove loading indicator if present
                     if (hasLotsOfMessages && container.firstElementChild) {

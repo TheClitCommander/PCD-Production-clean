@@ -15,6 +15,9 @@ const appointmentsTable = { tableName: 'appointments' };
 const progressEntriesTable = { tableName: 'progress_entries' };
 
 export class Storage {
+  async markMessageAsRead(messageId: number, readAt: string): Promise<void> {
+    await db.update(projectMessagesTable).set({ readAt }).where({ id: messageId });
+  }
   // Business operations (legacy compatibility)
   async createBusiness(data: any): Promise<Business> {
     const results: any[] = db.insert(businessesTable).values(data).returning();

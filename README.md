@@ -1,152 +1,225 @@
-# Local Website Business Automation
+# Pleasant Cove Design - Complete Project
 
-A complete system for finding, contacting, and selling websites to small businesses in Midcoast Maine with minimal manual work.
+## 🚀 Overview
 
-## Overview
+Pleasant Cove Design is a comprehensive business automation platform for selling websites to small businesses. The system includes:
 
-This project automates the process of:
-1. Finding local businesses without websites
-2. Reaching out to them via SMS
-3. Managing leads and client information
-4. Creating and deploying websites 
+- **Admin Dashboard**: React-based UI for managing leads, clients, and projects
+- **Client Messaging Widget**: Real-time chat widget for Squarespace integration
+- **Python Automation**: Bot CLI for automating outreach and lead generation
+- **Portal System**: Client-facing portal for website management
+- **Template Builder**: Automated website generation system
 
-All with minimal manual effort. The system is designed to help you earn $350+ profit per site ($400 initial build fee - $50 Fiverr cost) plus $50/month recurring revenue.
-
-## Project Structure
+## 📁 Project Structure
 
 ```
-localwebsitebuilder/
-├── scrapers/               # Google Maps scraping tools
-├── data/                   # Business data storage
-├── outreach/               # SMS automation tools
-├── templates/              # Website templates
-├── fulfillment/            # Website building automation
-├── main.py                 # Main application entry point
-├── requirements.txt        # Python dependencies
-└── README.md               # This file
+pleasantcovedesign/
+├── pleasantcovedesign/          # Main application (currently active)
+│   ├── admin-ui/                # React admin dashboard
+│   ├── client-widget/           # Squarespace messaging widgets
+│   ├── server/                  # Node.js backend with WebSocket support
+│   └── shared/                  # Shared TypeScript schemas
+│
+├── archive/                     # Previous versions and backups
+│   ├── Pleasantcovedesign-1.1/  # Version 1.1 with launcher
+│   ├── Pleasantcovedesign-main/ # Production-ready version
+│   ├── WebsiteWizard/           # Enhanced version with file sharing
+│   └── localwebsitebuilder-broken-backup/
+│
+├── Python Automation/
+│   ├── bot_cli.py              # Main CLI interface
+│   ├── outreach/               # SMS automation
+│   ├── scrapers/               # Lead generation scrapers
+│   ├── fulfillment/            # Website builder
+│   └── communication/          # Messaging templates
+│
+├── portal/                     # Flask-based client portal
+│   ├── app.py                 # Main Flask application
+│   ├── templates/             # HTML templates
+│   └── static/                # CSS/JS assets
+│
+└── templates/                 # Website templates
+    └── basic_service_template/
 ```
 
-## Setup Instructions
+## 🔧 How It All Works Together
 
-### 1. Install Dependencies
+### 1. **Lead Generation Flow**
+```
+Google Maps Scraper → CSV Data → Bot CLI → SMS Outreach → Squarespace Form
+```
+
+### 2. **Client Onboarding**
+```
+Squarespace Webhook → Backend API → Admin Dashboard → Project Creation
+```
+
+### 3. **Communication System**
+```
+Client Widget ↔ WebSocket Server ↔ Admin Inbox
+```
+
+### 4. **Website Fulfillment**
+```
+Admin Dashboard → Template Selection → Website Builder → Client Portal
+```
+
+## 🚀 Quick Start
+
+### Running the Main Application
 
 ```bash
-pip install -r requirements.txt
+cd pleasantcovedesign
+npm install
+npm start
 ```
 
-### 2. Configure Environment Variables
+This starts:
+- Admin UI: http://localhost:5173
+- Backend API: http://localhost:3000
+- WebSocket Server: ws://localhost:3000
 
-Create a `.env` file in the root directory with the following variables:
-
-```
-# Twilio credentials for SMS
-TWILIO_ACCOUNT_SID=your_twilio_sid
-TWILIO_AUTH_TOKEN=your_twilio_auth_token
-TWILIO_PHONE_NUMBER=your_twilio_phone_number
-
-# Your business information
-YOUR_NAME=Your Name
-YOUR_EMAIL=your_email@example.com
-YOUR_PHONE=your_phone_number
-```
-
-### 3. Chrome WebDriver
-
-The scraper uses Selenium with Chrome. Make sure you have Chrome installed and the appropriate ChromeDriver for your Chrome version.
-
-## Usage Guide
-
-### Step 1: Find Businesses Without Websites
+### Running the Python Automation
 
 ```bash
-python scrapers/google_maps_scraper.py
+python bot_cli.py
 ```
 
-This will:
-- Scrape Google Maps for businesses in Midcoast Maine
-- Save raw data to the `data/` directory as CSV files
+Available commands:
+- `scrape` - Scrape leads from Google Maps
+- `import` - Import CSV data
+- `outreach` - Send SMS campaigns
+- `status` - View campaign status
+- `export` - Export data
 
-### Step 2: Process Business Data
+### Running the Client Portal
 
 ```bash
-python data/process_data.py
+cd portal
+python app.py
 ```
 
-This will:
-- Combine all scraped data files
-- Remove businesses with websites
-- Remove duplicates
-- Create a clean lead list in `data/clean_leads.csv`
-- Generate a JSON file for outreach automation
+Portal runs on: http://localhost:5000
 
-### Step 3: Automated SMS Outreach
+## 🔌 Key Integrations
 
+### Squarespace Integration
+1. Add messaging widget to Code Injection
+2. Configure webhook URL: `https://your-domain.com/api/new-lead`
+3. Widget automatically detects logged-in members
+
+### SMS Integration (Twilio)
+```python
+# Configure in .env
+TWILIO_ACCOUNT_SID=your_sid
+TWILIO_AUTH_TOKEN=your_token
+TWILIO_PHONE_NUMBER=+1234567890
+```
+
+### File Storage (Cloudflare R2)
 ```bash
-# Test mode (simulation)
-python outreach/sms_automation.py --test
-
-# Live mode with limited number of messages
-python outreach/sms_automation.py --limit 5
-
-# Full campaign
-python outreach/sms_automation.py
+# Configure in .env
+R2_ACCOUNT_ID=your_account_id
+R2_ACCESS_KEY_ID=your_key_id
+R2_SECRET_ACCESS_KEY=your_secret
+R2_BUCKET_NAME=your_bucket
 ```
 
-### Step 4: Client Information Collection
+## 📊 Database Schema
 
-Use the included client information form:
+The system uses SQLite for development and PostgreSQL for production:
 
+- **Companies**: Business leads and clients
+- **Projects**: Active website projects
+- **Messages**: Chat conversations
+- **Appointments**: Scheduling data
+- **Progress**: Project milestones
+
+## 🛠️ Development Workflow
+
+1. **Scrape Leads**: Use bot CLI to find potential clients
+2. **Send Outreach**: Automated SMS campaigns
+3. **Handle Responses**: Webhook captures form submissions
+4. **Manage in Dashboard**: View leads, convert to projects
+5. **Communicate**: Real-time chat with clients
+6. **Build Website**: Use templates or custom designs
+7. **Deploy**: Client portal for ongoing management
+
+## 🔒 Security Features
+
+- Token-based authentication for admin access
+- Member ID verification for client widgets
+- Encrypted file storage
+- Rate limiting on API endpoints
+- CORS protection
+
+## 📱 Mobile Support
+
+- Responsive admin dashboard
+- Mobile-optimized client widget
+- Touch-friendly file uploads
+- PWA capabilities
+
+## 🚨 Important Files
+
+### Critical Widget Code
+- `/pleasantcovedesign/client-widget/messaging-widget-unified.html` - Main working widget
+- `/pleasantcovedesign/GOLDEN_BACKUP_DO_NOT_TOUCH/` - Backup of working state
+
+### Configuration
+- `/pleasantcovedesign/.env.example` - Environment variables template
+- `/pleasantcovedesign/server/index.ts` - Main server configuration
+
+### Documentation
+- `/pleasantcovedesign/WIDGET_TEST_CHECKLIST.md` - Testing procedures
+- `/pleasantcovedesign/DEVELOPMENT_GUIDELINES.md` - Code standards
+
+## 🔄 Deployment
+
+### Railway Deployment
 ```bash
-python fulfillment/website_builder.py
+# Configure in railway.json
+{
+  "build": {
+    "builder": "NIXPACKS"
+  },
+  "deploy": {
+    "startCommand": "npm start"
+  }
+}
 ```
 
-This will:
-- Generate a client information form template
-- Set up the structure for tracking clients
-- Create instructions for Fiverr freelancers
+### Vercel Deployment
+```bash
+# Frontend only
+cd pleasantcovedesign/admin-ui
+vercel
+```
 
-### Step 5: Website Creation & Fulfillment
+## 📈 Future Enhancements
 
-Once you've closed a client:
+- [ ] AI-powered website generation
+- [ ] Advanced analytics dashboard
+- [ ] Multi-language support
+- [ ] White-label capabilities
+- [ ] API for third-party integrations
 
-1. Create a client folder with their info
-2. Generate Fiverr instructions
-3. Hire a Fiverr developer (~$50)
-4. Set up hosting (Namecheap + EasyWP, Hostinger, etc.)
+## 🤝 Contributing
 
-## Business Templates
+1. Create feature branch
+2. Make changes
+3. Test thoroughly using checklist
+4. Submit pull request
 
-The `templates/` directory contains a ready-to-use local business website template that can be customized for any service business. This template includes:
+## 📞 Support
 
-- Modern, responsive design
-- Optimized for local SEO
-- Contact form
-- Gallery/portfolio section
-- Testimonials
-- Calls to action
-
-## Financial Model
-
-- **Setup Fee**: $400 (one-time)
-- **Fiverr Cost**: $50 (one-time)
-- **Hosting/Maintenance**: $50/month (recurring)
-- **Your Profit**: $350 setup + $50/month recurring
-
-With just 10 clients, you'll earn $3,500 in setup fees and $500/month in recurring revenue!
-
-## Scaling Your Business
-
-To scale this business:
-1. Run the automation for multiple towns/regions
-2. Hire a virtual assistant to manage lead responses
-3. Create templated email responses for common questions
-4. Build a network of reliable Fiverr developers
-5. Consider white-labeling platforms like Wix, Webflow, or Framer
-
-## Support
-
-For questions or assistance, please reach out to [your contact information].
+For issues or questions:
+- Check `/pleasantcovedesign/FIXES_NEEDED.md`
+- Review test checklists
+- Contact development team
 
 ---
 
-**Happy automating!** 📈 💻
+**Version**: 2.0  
+**Last Updated**: January 2025  
+**Status**: Production Ready ✅

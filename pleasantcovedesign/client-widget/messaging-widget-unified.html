@@ -21,6 +21,7 @@
         }
 
         .pcd-debug-info {
+            display: none; /* Hide debug info from clients */
             background: #f8f9fa;
             border-bottom: 1px solid #e9ecef;
             padding: 8px 12px;
@@ -40,12 +41,13 @@
         }
 
         .pcd-user-info {
+            display: none !important; /* Hide user info bar from clients */
             background: #e7f3ff;
             padding: 8px 16px;
             border-bottom: 1px solid #b8daff;
             font-size: 12px;
             color: #0066cc;
-            display: flex;
+            /* display: flex; */
             justify-content: space-between;
             align-items: center;
         }

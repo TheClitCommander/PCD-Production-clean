@@ -199,7 +199,16 @@ app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 // Serve static files from React build (if they exist)
 const buildPath = path.join(__dirname, '../dist/client');
-app.use(express.static(buildPath));
+if (fs.existsSync(buildPath)) {
+  app.use(express.static(buildPath));
+}
+
+// Serve client widget files
+const widgetPath = path.join(__dirname, '../client-widget');
+if (fs.existsSync(widgetPath)) {
+  app.use('/client-widget', express.static(widgetPath));
+  console.log('📁 Serving client widget from:', widgetPath);
+}
 
 // Serve uploaded files from uploads directory with proper headers
 const uploadsPath = path.join(__dirname, '../uploads');

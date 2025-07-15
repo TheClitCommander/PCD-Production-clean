@@ -1,0 +1,12 @@
+{
+  "firstName": "John",
+  "lastName": "Doe",
+  "email": "john@example.com",
+  "phone": "207-555-0199",
+  "appointmentType": "Website Consultation",
+  "datetime": "2024-01-25T14:00:00Z",
+  "timezone": "America/New_York",
+  "notes": "Looking forward to discussing my new business website",
+  "appointmentID": 12345,
+  "calendarID": 67890
+}

@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Pleasant Cove Widget - Mobile Test</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-info {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-info h2 {
+            margin-top: 0;
+            color: #333;
+        }
+        .info-item {
+            margin: 10px 0;
+            padding: 10px;
+            background: #f0f0f0;
+            border-radius: 5px;
+            font-family: monospace;
+            word-break: break-all;
+        }
+        .status {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .status.success { background: #4CAF50; color: white; }
+        .status.error { background: #f44336; color: white; }
+        .status.warning { background: #ff9800; color: white; }
+        .test-button {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            background: #2196F3;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .test-button:active {
+            background: #1976D2;
+        }
+        #widget-container {
+            margin-top: 20px;
+            min-height: 200px;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-info">
+        <h2>Platform Detection</h2>
+        <div class="info-item">
+            <strong>User Agent:</strong><br>
+            <span id="userAgent"></span>
+        </div>
+        <div class="info-item">
+            <strong>Platform:</strong> <span id="platform"></span>
+        </div>
+        <div class="info-item">
+            <strong>Screen:</strong> <span id="screen"></span>
+        </div>
+        <div class="info-item">
+            <strong>Touch Support:</strong> <span id="touch"></span>
+        </div>
+    </div>
+
+    <div class="test-info">
+        <h2>Storage Tests</h2>
+        <button class="test-button" onclick="testLocalStorage()">Test LocalStorage</button>
+        <div id="storageResult"></div>
+    </div>
+
+    <div class="test-info">
+        <h2>File Upload Test</h2>
+        <input type="file" id="fileTest" accept="image/*,.pdf,.doc,.docx,.txt" onchange="testFileUpload(event)">
+        <div id="fileResult"></div>
+    </div>
+
+    <div class="test-info">
+        <h2>WebSocket Test</h2>
+        <button class="test-button" onclick="testWebSocket()">Test WebSocket Connection</button>
+        <div id="socketResult"></div>
+    </div>
+
+    <div class="test-info">
+        <h2>Widget Test</h2>
+        <p>Backend URL: <span id="backendUrl"></span></p>
+        <button class="test-button" onclick="loadWidget()">Load Messaging Widget</button>
+    </div>
+
+    <div id="widget-container"></div>
+
+    <script>
+        // Detect platform info
+        document.getElementById('userAgent').textContent = navigator.userAgent;
+        document.getElementById('platform').textContent = navigator.platform || 'Unknown';
+        document.getElementById('screen').textContent = `${window.screen.width}x${window.screen.height} (${window.devicePixelRatio}x DPI)`;
+        document.getElementById('touch').textContent = 'ontouchstart' in window ? 'Yes' : 'No';
+
+        // Detect backend URL
+        const backendUrl = window.location.hostname === 'localhost' 
+            ? 'http://localhost:3000'
+            : `http://${window.location.hostname}:3000`;
+        document.getElementById('backendUrl').textContent = backendUrl;
+
+        // Test localStorage
+        function testLocalStorage() {
+            const resultDiv = document.getElementById('storageResult');
+            try {
+                const testKey = 'pcd_test_' + Date.now();
+                localStorage.setItem(testKey, 'test_value');
+                const retrieved = localStorage.getItem(testKey);
+                localStorage.removeItem(testKey);
+                
+                if (retrieved === 'test_value') {
+                    resultDiv.innerHTML = '<span class="status success">✓ LocalStorage Working</span>';
+                    
+                    // Check for existing session
+                    const token = localStorage.getItem('pcd_project_token');
+                    const email = localStorage.getItem('pcd_user_email');
+                    if (token && email) {
+                        resultDiv.innerHTML += `<br><br>Found existing session for: ${email}`;
+                    }
+                } else {
+                    resultDiv.innerHTML = '<span class="status error">✗ LocalStorage Read Failed</span>';
+                }
+            } catch (e) {
+                resultDiv.innerHTML = `<span class="status error">✗ LocalStorage Error: ${e.message}</span>`;
+            }
+        }
+
+        // Test file upload
+        function testFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const resultDiv = document.getElementById('fileResult');
+            const info = `
+                <strong>File Selected:</strong><br>
+                Name: ${file.name}<br>
+                Type: ${file.type}<br>
+                Size: ${(file.size / 1024).toFixed(2)} KB<br>
+                Last Modified: ${new Date(file.lastModified).toLocaleString()}
+            `;
+            
+            if (file.size > 10 * 1024 * 1024) {
+                resultDiv.innerHTML = info + '<br><span class="status warning">⚠ File larger than 10MB</span>';
+            } else {
+                resultDiv.innerHTML = info + '<br><span class="status success">✓ File size OK</span>';
+            }
+            
+            // Test if it's an iOS HEIC file
+            if (file.name.toLowerCase().endsWith('.heic') || file.name.toLowerCase().endsWith('.heif')) {
+                resultDiv.innerHTML += '<br><span class="status warning">⚠ iOS HEIC format detected</span>';
+            }
+        }
+
+        // Test WebSocket
+        async function testWebSocket() {
+            const resultDiv = document.getElementById('socketResult');
+            resultDiv.innerHTML = 'Testing connection...';
+            
+            try {
+                // First test if backend is reachable
+                const response = await fetch(`${backendUrl}/health`);
+                if (!response.ok) {
+                    throw new Error('Backend not reachable');
+                }
+                
+                // Load Socket.IO if not already loaded
+                if (typeof io === 'undefined') {
+                    const script = document.createElement('script');
+                    script.src = `${backendUrl}/socket.io/socket.io.js`;
+                    document.head.appendChild(script);
+                    
+                    await new Promise(resolve => {
+                        script.onload = resolve;
+                        script.onerror = () => {
+                            resultDiv.innerHTML = '<span class="status error">✗ Failed to load Socket.IO</span>';
+                        };
+                    });
+                }
+                
+                // Test socket connection
+                const socket = io(backendUrl, {
+                    transports: ['websocket', 'polling']
+                });
+                
+                socket.on('connect', () => {
+                    resultDiv.innerHTML = '<span class="status success">✓ WebSocket Connected</span>';
+                    socket.disconnect();
+                });
+                
+                socket.on('connect_error', (error) => {
+                    resultDiv.innerHTML = `<span class="status error">✗ Connection Error: ${error.message}</span>`;
+                });
+                
+            } catch (error) {
+                resultDiv.innerHTML = `<span class="status error">✗ Test Failed: ${error.message}</span>`;
+            }
+        }
+
+        // Load the actual widget
+        function loadWidget() {
+            const container = document.getElementById('widget-container');
+            container.innerHTML = '<p>Loading widget...</p>';
+            
+            // Inject the widget HTML
+            fetch('messaging-widget-unified.html')
+                .then(response => response.text())
+                .then(html => {
+                    container.innerHTML = html;
+                    // Widget should auto-initialize
+                })
+                .catch(error => {
+                    container.innerHTML = `<p style="color: red;">Failed to load widget: ${error.message}</p>`;
+                });
+        }
+
+        // Auto-run localStorage test
+        testLocalStorage();
+    </script>
+</body>
+</html> 

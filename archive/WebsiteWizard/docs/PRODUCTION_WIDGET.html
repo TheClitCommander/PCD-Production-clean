@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pleasant Cove Design - Member Messaging (Production)</title>
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <style>
+        /* Widget Styles */
+        .pcd-messaging-widget {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 350px;
+            height: 500px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            display: flex;
+            flex-direction: column;
+            z-index: 9999;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        /* Mobile responsive */
+        @media (max-width: 480px) {
+            .pcd-messaging-widget {
+                width: 100%;
+                height: 100%;
+                bottom: 0;
+                right: 0;
+                border-radius: 0;
+            }
+        }
+
+        .pcd-messaging-header {
+            background: #2c3e50;
+            color: white;
+            padding: 16px;
+            border-radius: 12px 12px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .pcd-messaging-header h2 {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .pcd-messages-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+            background: #f8f9fa;
+        }
+
+        .pcd-message {
+            margin-bottom: 12px;
+            display: flex;
+        }
+
+        .pcd-message.user {
+            justify-content: flex-end;
+        }
+
+        .pcd-message.admin {
+            justify-content: flex-start;
+        }
+
+        .pcd-message-content {
+            max-width: 70%;
+            padding: 10px 14px;
+            border-radius: 12px;
+            position: relative;
+        }
+
+        .pcd-message.user .pcd-message-content {
+            background: #007bff;
+            color: white;
+        }
+
+        .pcd-message.admin .pcd-message-content {
+            background: white;
+            color: #333;
+            border: 1px solid #e0e0e0;
+        }
+
+        .pcd-message-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 4px;
+            font-size: 12px;
+            opacity: 0.8;
+        }
+
+        .pcd-message-text {
+            font-size: 14px;
+            line-height: 1.4;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .pcd-message-time {
+            font-size: 11px;
+            margin-left: 8px;
+        }
+
+        .pcd-message-input-container {
+            padding: 16px;
+            background: white;
+            border-top: 1px solid #e0e0e0;
+            border-radius: 0 0 12px 12px;
+        }
+
+        .pcd-message-form {
+            display: flex;
+            gap: 8px;
+            align-items: flex-end;
+        }
+
+        .pcd-message-input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            resize: none;
+            font-family: inherit;
+            font-size: 14px;
+            max-height: 120px;
+            overflow-y: auto;
+        }
+
+        .pcd-send-btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 16px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.2s;
+        }
+
+        .pcd-send-btn:hover:not(:disabled) {
+            background: #0056b3;
+        }
+
+        .pcd-send-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .pcd-connection-status {
+            display: flex;
+            align-items: center;
+            font-size: 12px;
+        }
+
+        .pcd-status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #ffc107;
+            margin-right: 8px;
+        }
+
+        .pcd-waiting-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #666;
+        }
+
+        .pcd-waiting-state h3 {
+            margin-bottom: 16px;
+            color: #333;
+        }
+
+        .pcd-attachment {
+            margin-top: 8px;
+            padding: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            font-size: 13px;
+        }
+
+        .pcd-attachment a {
+            color: inherit;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .pcd-attachment a:hover {
+            text-decoration: underline;
+        }
+
+        .pcd-file-preview {
+            margin-top: 8px;
+        }
+
+        .pcd-file-preview img {
+            max-width: 100%;
+            max-height: 200px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .pcd-debug-info {
+            background: #f0f0f0;
+            padding: 8px 12px;
+            font-size: 12px;
+            border-bottom: 1px solid #ddd;
+            font-family: monospace;
+        }
+
+        .pcd-debug-info.error {
+            background: #fee;
+            color: #c00;
+        }
+
+        .pcd-debug-info.success {
+            background: #efe;
+            color: #060;
+        }
+    </style>
+</head>
+<body>
+    <div class="pcd-messaging-widget">
+        <!-- Debug Info Bar -->
+        <div class="pcd-debug-info" id="debugInfo">
+            Connecting to Pleasant Cove Design...
+        </div>
+
+        <!-- Header -->
+        <div class="pcd-messaging-header">
+            <h2>Pleasant Cove Design</h2>
+            <div class="pcd-connection-status">
+                <div class="pcd-status-dot" id="connectionDot"></div>
+                <span id="connectionStatus">Connecting...</span>
+            </div>
+        </div>
+
+        <!-- Messages Container -->
+        <div class="pcd-messages-container" id="pcd-chat-container">
+            <div class="pcd-waiting-state" id="waitingState">
+                <h3>Loading your conversation...</h3>
+                <p>Please wait while we connect to the server.</p>
+            </div>
+        </div>
+
+        <!-- Message Input -->
+        <div class="pcd-message-input-container">
+            <form class="pcd-message-form" id="messageForm">
+                <textarea 
+                    class="pcd-message-input" 
+                    id="messageInput"
+                    placeholder="Type your message..."
+                    rows="1"
+                ></textarea>
+                <button type="submit" class="pcd-send-btn" id="sendButton">
+                    ➤
+                </button>
+            </form>
+        </div>
+    </div>
+    
+    <script>
+        class ProductionMessagingWidget {
+            constructor() {
+                // PRODUCTION CONFIGURATION
+                this.config = {
+                    backendUrl: 'https://pleasantcovedesign-production.up.railway.app',
+                    projectToken: 'mc516tr5_CSU4OUADdSIHB3AXxZPpbw', // Your specific token
+                    debugMode: true
+                };
+                
+                this.socket = null;
+                this.messages = [];
+                this.businessId = 1; // Default business ID
+                this.userName = 'Client';
+                
+                console.log('🚀 [PRODUCTION_WIDGET] Initialized with Railway backend');
+                this.init();
+            }
+
+            updateDebugInfo(message, type = 'info') {
+                const debugInfo = document.getElementById('debugInfo');
+                if (debugInfo) {
+                    debugInfo.textContent = message;
+                    debugInfo.className = `pcd-debug-info ${type}`;
+                }
+                console.log(`🔍 [DEBUG] ${message}`);
+            }
+
+            async init() {
+                console.log('🚀 [INIT] Starting production widget...');
+                this.updateDebugInfo('Initializing connection to Railway server...', 'info');
+                
+                try {
+                    // Check for stored user info
+                    this.loadUserInfo();
+                    
+                    // Connect to Railway backend
+                    await this.connectToRailway();
+                    
+                    // Load message history
+                    await this.loadMessages();
+                    
+                    // Setup UI
+                    this.showMessagingInterface();
+                    
+                    // Bind events
+                    this.bindEvents();
+                    
+                } catch (error) {
+                    console.error('❌ [INIT] Error:', error);
+                    this.updateDebugInfo(`Error: ${error.message}`, 'error');
+                }
+            }
+
+            loadUserInfo() {
+                // Try to get user info from localStorage or generate new
+                const storedName = localStorage.getItem('pcd_client_name');
+                const storedBusinessId = localStorage.getItem('pcd_business_id');
+                
+                if (storedName) {
+                    this.userName = storedName;
+                } else {
+                    // Generate a random client name for testing
+                    this.userName = `Client_${Math.floor(Math.random() * 1000)}`;
+                    localStorage.setItem('pcd_client_name', this.userName);
+                }
+                
+                if (storedBusinessId) {
+                    this.businessId = parseInt(storedBusinessId);
+                } else {
+                    localStorage.setItem('pcd_business_id', this.businessId.toString());
+                }
+                
+                console.log(`👤 [USER] Name: ${this.userName}, Business ID: ${this.businessId}`);
+            }
+
+            async connectToRailway() {
+                console.log('🔌 [RAILWAY] Connecting to Railway backend...');
+                this.updateDebugInfo('Connecting to Railway server...', 'info');
+                
+                return new Promise((resolve, reject) => {
+                    this.socket = io(this.config.backendUrl, {
+                        transports: ['websocket', 'polling'],
+                        auth: {
+                            businessId: this.businessId
+                        }
+                    });
+                    
+                    this.socket.on('connect', () => {
+                        console.log('✅ [SOCKET] Connected to Railway!');
+                        this.updateDebugInfo('Connected to Railway server', 'success');
+                        document.getElementById('connectionStatus').textContent = 'Connected';
+                        document.getElementById('connectionDot').style.background = '#28a745';
+                        
+                        // Join business room
+                        this.socket.emit('join:business', this.businessId);
+                        
+                        resolve();
+                    });
+                    
+                    this.socket.on('disconnect', () => {
+                        console.log('❌ [SOCKET] Disconnected from Railway');
+                        document.getElementById('connectionStatus').textContent = 'Disconnected';
+                        document.getElementById('connectionDot').style.background = '#dc3545';
+                    });
+                    
+                    this.socket.on('new:message', (data) => {
+                        console.log('📨 [SOCKET] New message received:', data);
+                        if (data.businessId === this.businessId) {
+                            this.addMessageToUI({
+                                id: Date.now(),
+                                content: data.message,
+                                senderName: data.senderName || 'Admin',
+                                senderType: data.messageType || 'admin',
+                                createdAt: data.timestamp || new Date().toISOString()
+                            });
+                        }
+                    });
+                    
+                    this.socket.on('connect_error', (error) => {
+                        console.error('❌ [SOCKET] Connection error:', error);
+                        reject(error);
+                    });
+                    
+                    // Timeout after 10 seconds
+                    setTimeout(() => {
+                        if (!this.socket.connected) {
+                            reject(new Error('Connection timeout'));
+                        }
+                    }, 10000);
+                });
+            }
+
+            async loadMessages() {
+                console.log('📥 [MESSAGES] Loading message history from Railway...');
+                this.updateDebugInfo('Loading message history...', 'info');
+                
+                try {
+                    const response = await fetch(
+                        `${this.config.backendUrl}/api/messages?projectToken=${this.config.projectToken}`,
+                        {
+                            headers: {
+                                'Authorization': 'Bearer pleasantcove2024admin'
+                            }
+                        }
+                    );
+                    
+                    if (!response.ok) {
+                        throw new Error(`Failed to load messages: ${response.status}`);
+                    }
+                    
+                    const messages = await response.json();
+                    console.log(`📥 [MESSAGES] Loaded ${messages.length} messages from Railway`);
+                    
+                    // Filter messages for this business
+                    this.messages = messages.filter(m => 
+                        m.businessId === this.businessId || 
+                        m.businessId === this.businessId.toString()
+                    );
+                    
+                    console.log(`📥 [MESSAGES] Filtered to ${this.messages.length} messages for business ${this.businessId}`);
+                    
+                    // Update UI
+                    this.displayMessages();
+                    
+                    this.updateDebugInfo(`Loaded ${this.messages.length} messages`, 'success');
+                    
+                } catch (error) {
+                    console.error('❌ [MESSAGES] Failed to load:', error);
+                    this.updateDebugInfo(`Failed to load messages: ${error.message}`, 'error');
+                }
+            }
+
+            displayMessages() {
+                const container = document.getElementById('pcd-chat-container');
+                container.innerHTML = '';
+                
+                if (this.messages.length === 0) {
+                    container.innerHTML = `
+                        <div class="pcd-waiting-state">
+                            <h3>Start a conversation</h3>
+                            <p>Send a message to begin chatting with Pleasant Cove Design.</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                // Sort messages by timestamp
+                const sortedMessages = [...this.messages].sort((a, b) => 
+                    new Date(a.timestamp || a.createdAt).getTime() - 
+                    new Date(b.timestamp || b.createdAt).getTime()
+                );
+                
+                sortedMessages.forEach(message => {
+                    this.addMessageToUI(message, false);
+                });
+                
+                this.scrollToBottom();
+            }
+
+            addMessageToUI(message, shouldScroll = true) {
+                const container = document.getElementById('pcd-chat-container');
+                
+                // Remove waiting state if exists
+                const waitingState = container.querySelector('.pcd-waiting-state');
+                if (waitingState) {
+                    waitingState.remove();
+                }
+                
+                const messageDiv = document.createElement('div');
+                const isFromUser = message.direction === 'inbound' || message.senderType === 'client';
+                const timestamp = new Date(message.timestamp || message.createdAt).toLocaleTimeString();
+                
+                messageDiv.className = `pcd-message ${isFromUser ? 'user' : 'admin'}`;
+                
+                // Parse file attachments
+                const { hasAttachment, fileName, isImage, fileUrl, cleanMessage } = this.parseFileAttachment(message.message || message.content);
+                
+                messageDiv.innerHTML = `
+                    <div class="pcd-message-content">
+                        <div class="pcd-message-header">
+                            <strong>${message.senderName || (isFromUser ? this.userName : 'Admin')}</strong>
+                            <span class="pcd-message-time">${timestamp}</span>
+                        </div>
+                        <div class="pcd-message-text">${this.escapeHtml(cleanMessage)}</div>
+                        ${hasAttachment ? `
+                            <div class="pcd-attachment">
+                                ${isImage ? `
+                                    <div class="pcd-file-preview">
+                                        <img src="${fileUrl}" alt="${fileName}" onclick="window.open('${fileUrl}', '_blank')">
+                                    </div>
+                                ` : ''}
+                                <a href="${fileUrl}" target="_blank">
+                                    ${isImage ? '🖼️' : '📎'} ${fileName}
+                                </a>
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+                
+                container.appendChild(messageDiv);
+                
+                if (shouldScroll) {
+                    this.scrollToBottom();
+                }
+            }
+
+            parseFileAttachment(message) {
+                const filePattern = /📎\s*(.+?)(?:\n|$)/;
+                const imagePattern = /🖼️\s*(.+?)(?:\n|$)/;
+                
+                const fileMatch = message.match(filePattern);
+                const imageMatch = message.match(imagePattern);
+                
+                if (fileMatch || imageMatch) {
+                    const fileName = fileMatch?.[1] || imageMatch?.[1] || 'Unknown file';
+                    const isImage = !!imageMatch || /\.(jpg|jpeg|png|gif|webp)$/i.test(fileName);
+                    
+                    // Handle different URL formats
+                    let fileUrl;
+                    if (fileName.startsWith('http://') || fileName.startsWith('https://')) {
+                        fileUrl = fileName;
+                    } else if (fileName.startsWith('/uploads/')) {
+                        fileUrl = `${this.config.backendUrl}${fileName}`;
+                    } else {
+                        fileUrl = `${this.config.backendUrl}/uploads/${fileName}`;
+                    }
+                    
+                    return {
+                        hasAttachment: true,
+                        fileName: fileName.split('/').pop(), // Get just the filename
+                        isImage,
+                        fileUrl,
+                        cleanMessage: message.replace(filePattern, '').replace(imagePattern, '').trim()
+                    };
+                }
+                
+                return {
+                    hasAttachment: false,
+                    fileName: '',
+                    isImage: false,
+                    fileUrl: '',
+                    cleanMessage: message
+                };
+            }
+
+            escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+
+            showMessagingInterface() {
+                console.log('🎨 [UI] Showing messaging interface...');
+                
+                // Hide waiting state if no messages
+                if (this.messages.length > 0) {
+                    document.getElementById('waitingState').style.display = 'none';
+                }
+                
+                // Enable input
+                document.getElementById('messageInput').disabled = false;
+                document.getElementById('sendButton').disabled = false;
+            }
+
+            bindEvents() {
+                console.log('🔗 [EVENTS] Binding event listeners...');
+                
+                const messageForm = document.getElementById('messageForm');
+                if (messageForm) {
+                    messageForm.addEventListener('submit', (e) => {
+                        e.preventDefault();
+                        this.sendMessage();
+                    });
+                }
+                
+                // Auto-resize textarea
+                const messageInput = document.getElementById('messageInput');
+                if (messageInput) {
+                    messageInput.addEventListener('input', () => {
+                        messageInput.style.height = 'auto';
+                        messageInput.style.height = Math.min(messageInput.scrollHeight, 120) + 'px';
+                    });
+                }
+            }
+
+            async sendMessage() {
+                const messageInput = document.getElementById('messageInput');
+                const message = messageInput.value.trim();
+                
+                if (!message) return;
+                
+                console.log('📤 [SEND] Sending message via Socket.IO...');
+                
+                // Clear input
+                messageInput.value = '';
+                messageInput.style.height = 'auto';
+                
+                // Send via socket
+                this.socket.emit('client:message', {
+                    businessId: this.businessId,
+                    message: message,
+                    senderName: this.userName,
+                    senderId: `client-${this.businessId}`
+                });
+                
+                // Add to UI immediately for better UX
+                this.addMessageToUI({
+                    id: Date.now(),
+                    content: message,
+                    message: message,
+                    senderName: this.userName,
+                    senderType: 'client',
+                    direction: 'inbound',
+                    createdAt: new Date().toISOString()
+                });
+            }
+
+            scrollToBottom() {
+                const container = document.getElementById('pcd-chat-container');
+                container.scrollTop = container.scrollHeight;
+            }
+        }
+
+        // Initialize the production widget
+        window.messagingWidget = new ProductionMessagingWidget();
+    </script>
+</body>
+</html> 

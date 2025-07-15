@@ -1,0 +1,17 @@
+{
+  "name": "localwebsitebuilder",
+  "version": "1.0.0",
+  "main": "test-webhook.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "drizzle-orm": "^0.44.1",
+    "drizzle-zod": "^0.8.2",
+    "zod": "^3.25.49"
+  }
+}

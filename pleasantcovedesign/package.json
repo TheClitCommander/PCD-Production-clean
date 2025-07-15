@@ -1,0 +1,17 @@
+{
+  "name": "pleasantcovedesign-monorepo",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "install:all": "npm install --prefix server && npm install --prefix admin-ui",
+    "dev:server": "npm run dev --prefix server",
+    "dev:admin": "npm run dev --prefix admin-ui",
+    "dev": "concurrently \"npm run dev:server\" \"npm run dev:admin\"",
+    "build:server": "npm run build --prefix server",
+    "build:admin": "npm run build --prefix admin-ui",
+    "build": "npm run build:server && npm run build:admin"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+} 

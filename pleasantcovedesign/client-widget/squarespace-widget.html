@@ -1,0 +1,433 @@
+<!-- Pleasant Cove Design Messaging Widget - Squarespace Version -->
+<!-- Copy everything below this line into your Squarespace Code Block -->
+
+<div id="pcd-messaging-widget">
+    <style>
+        /* Pleasant Cove Design Messaging Widget Styles */
+        #pcd-messaging-widget * {
+            box-sizing: border-box;
+        }
+        
+        #pcd-messaging-widget {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        
+        .pcd-messaging-header {
+            background: #1a73e8;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .pcd-messaging-header h2 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 500;
+        }
+        
+        .pcd-messages-container {
+            height: 400px;
+            overflow-y: auto;
+            padding: 20px;
+            background: #f8f9fa;
+        }
+        
+        .pcd-message {
+            margin-bottom: 16px;
+            display: flex;
+            align-items: flex-start;
+        }
+        
+        .pcd-message.from-user {
+            flex-direction: row-reverse;
+        }
+        
+        .pcd-message-bubble {
+            max-width: 70%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            word-wrap: break-word;
+        }
+        
+        .pcd-message.from-admin .pcd-message-bubble {
+            background: #e3f2fd;
+            color: #1a73e8;
+            margin-left: 8px;
+        }
+        
+        .pcd-message.from-user .pcd-message-bubble {
+            background: #1a73e8;
+            color: white;
+            margin-right: 8px;
+        }
+        
+        .pcd-message-input-container {
+            padding: 16px;
+            background: white;
+            border-top: 1px solid #e0e0e0;
+        }
+        
+        .pcd-message-form {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .pcd-message-input {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 24px;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        
+        .pcd-message-input:focus {
+            border-color: #1a73e8;
+        }
+        
+        .pcd-send-btn {
+            background: #1a73e8;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .pcd-send-btn:hover {
+            background: #1557b0;
+        }
+        
+        .pcd-send-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        
+        .pcd-loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        
+        .pcd-error {
+            background: #ffebee;
+            color: #c62828;
+            padding: 16px;
+            border-radius: 8px;
+            margin: 16px;
+        }
+    </style>
+
+    <div class="pcd-messaging-header">
+        <h2>Pleasant Cove Design</h2>
+        <div id="pcd-status" style="font-size: 14px; margin-top: 8px; opacity: 0.9;">
+            Connecting...
+        </div>
+    </div>
+
+    <div class="pcd-messages-container" id="pcd-messages">
+        <div class="pcd-loading">
+            <p>🔄 Loading messages...</p>
+        </div>
+    </div>
+
+    <div class="pcd-message-input-container">
+        <form class="pcd-message-form" id="pcd-form">
+            <input 
+                type="text" 
+                class="pcd-message-input" 
+                id="pcd-input"
+                placeholder="Type a message..."
+                disabled
+            />
+            <button type="submit" class="pcd-send-btn" id="pcd-send" disabled>
+                ➤
+            </button>
+        </form>
+    </div>
+</div>
+
+<script>
+(function() {
+    'use strict';
+    
+    // Configuration
+    const BACKEND_URL = 'https://pleasantcovedesign-production.up.railway.app';
+    const RECONNECT_DELAY = 3000;
+    
+    // State
+    let socket = null;
+    let projectToken = null;
+    let userName = 'Guest';
+    let userEmail = null;
+    let messages = [];
+    let isConnected = false;
+    
+    // DOM elements
+    const messagesContainer = document.getElementById('pcd-messages');
+    const messageInput = document.getElementById('pcd-input');
+    const sendButton = document.getElementById('pcd-send');
+    const statusDiv = document.getElementById('pcd-status');
+    const form = document.getElementById('pcd-form');
+    
+    // Initialize
+    console.log('[PCD Widget] Initializing...');
+    init();
+    
+    async function init() {
+        try {
+            // Detect member
+            const member = detectSquarespaceMember();
+            
+            if (!member) {
+                showError('Please log in to your member account to use the messaging system.');
+                return;
+            }
+            
+            userEmail = member.email;
+            userName = member.name || member.email.split('@')[0];
+            
+            updateStatus(`Authenticating as ${userName}...`);
+            
+            // Authenticate
+            await authenticate(member);
+            
+            // Load messages
+            await loadMessages();
+            
+            // Connect WebSocket
+            connectWebSocket();
+            
+            // Enable form
+            enableMessaging();
+            
+        } catch (error) {
+            console.error('[PCD Widget] Initialization error:', error);
+            showError('Failed to initialize messaging. Please refresh the page.');
+        }
+    }
+    
+    function detectSquarespaceMember() {
+        console.log('[PCD Widget] Detecting Squarespace member...');
+        
+        // Method 1: Check Static.SQUARESPACE_CONTEXT
+        if (window.Static && window.Static.SQUARESPACE_CONTEXT) {
+            const context = window.Static.SQUARESPACE_CONTEXT;
+            const account = context.authenticatedAccount;
+            
+            if (account && account.email) {
+                console.log('[PCD Widget] Found member via context:', account.email);
+                return {
+                    email: account.email,
+                    name: account.displayName || account.firstName || account.email.split('@')[0],
+                    id: account.id
+                };
+            }
+        }
+        
+        // Method 2: Check SiteUserInfo cookie
+        const cookies = document.cookie.split(';');
+        for (let cookie of cookies) {
+            const [name, value] = cookie.trim().split('=');
+            if (name === 'SiteUserInfo' && value) {
+                try {
+                    const decoded = decodeURIComponent(value);
+                    const info = JSON.parse(decoded);
+                    if (info.email) {
+                        console.log('[PCD Widget] Found member via cookie:', info.email);
+                        return {
+                            email: info.email,
+                            name: info.firstName || info.email.split('@')[0],
+                            id: info.id
+                        };
+                    }
+                } catch (e) {
+                    console.error('[PCD Widget] Cookie parse error:', e);
+                }
+            }
+        }
+        
+        console.log('[PCD Widget] No member detected');
+        return null;
+    }
+    
+    async function authenticate(member) {
+        const response = await fetch(`${BACKEND_URL}/api/auth/token`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                type: 'member',
+                email: member.email,
+                name: member.name
+            })
+        });
+        
+        if (!response.ok) {
+            throw new Error('Authentication failed');
+        }
+        
+        const data = await response.json();
+        projectToken = data.token;
+        
+        console.log('[PCD Widget] Authenticated successfully');
+    }
+    
+    async function loadMessages() {
+        const response = await fetch(`${BACKEND_URL}/api/public/project/${projectToken}/messages`);
+        
+        if (!response.ok) {
+            throw new Error('Failed to load messages');
+        }
+        
+        const data = await response.json();
+        messages = data.messages || [];
+        
+        renderMessages();
+        scrollToBottom();
+    }
+    
+    function connectWebSocket() {
+        console.log('[PCD Widget] Connecting WebSocket...');
+        
+        // Load Socket.IO dynamically
+        const script = document.createElement('script');
+        script.src = `${BACKEND_URL}/socket.io/socket.io.js`;
+        script.onload = () => {
+            socket = io(BACKEND_URL, {
+                transports: ['websocket', 'polling']
+            });
+            
+            socket.on('connect', () => {
+                console.log('[PCD Widget] WebSocket connected');
+                isConnected = true;
+                updateStatus(`Connected as ${userName}`);
+                
+                // Join room
+                socket.emit('join-project', projectToken);
+            });
+            
+            socket.on('disconnect', () => {
+                console.log('[PCD Widget] WebSocket disconnected');
+                isConnected = false;
+                updateStatus('Disconnected - Reconnecting...');
+                
+                // Auto-reconnect
+                setTimeout(connectWebSocket, RECONNECT_DELAY);
+            });
+            
+            socket.on('new-message', (message) => {
+                console.log('[PCD Widget] New message received:', message);
+                messages.push(message);
+                renderMessages();
+                scrollToBottom();
+            });
+        };
+        
+        document.head.appendChild(script);
+    }
+    
+    function enableMessaging() {
+        messageInput.disabled = false;
+        sendButton.disabled = false;
+        
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const content = messageInput.value.trim();
+            if (!content) return;
+            
+            messageInput.disabled = true;
+            sendButton.disabled = true;
+            
+            try {
+                await sendMessage(content);
+                messageInput.value = '';
+            } catch (error) {
+                console.error('[PCD Widget] Send error:', error);
+                alert('Failed to send message. Please try again.');
+            } finally {
+                messageInput.disabled = false;
+                sendButton.disabled = false;
+                messageInput.focus();
+            }
+        });
+    }
+    
+    async function sendMessage(content) {
+        const response = await fetch(`${BACKEND_URL}/api/public/project/${projectToken}/messages`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                content: content,
+                senderName: userName,
+                senderType: 'client'
+            })
+        });
+        
+        if (!response.ok) {
+            throw new Error('Failed to send message');
+        }
+    }
+    
+    function renderMessages() {
+        messagesContainer.innerHTML = messages.map(msg => {
+            const isFromUser = msg.senderType === 'client';
+            const time = new Date(msg.createdAt).toLocaleTimeString();
+            
+            return `
+                <div class="pcd-message ${isFromUser ? 'from-user' : 'from-admin'}">
+                    <div class="pcd-message-bubble">
+                        <div>${escapeHtml(msg.content)}</div>
+                        <div style="font-size: 11px; opacity: 0.7; margin-top: 4px;">
+                            ${time}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+    
+    function scrollToBottom() {
+        setTimeout(() => {
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }, 100);
+    }
+    
+    function updateStatus(text) {
+        statusDiv.textContent = text;
+    }
+    
+    function showError(message) {
+        messagesContainer.innerHTML = `
+            <div class="pcd-error">
+                <p><strong>⚠️ Error</strong></p>
+                <p>${message}</p>
+            </div>
+        `;
+    }
+    
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+})();
+</script>
+
+<!-- End of Pleasant Cove Design Messaging Widget --> 

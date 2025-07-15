@@ -1,0 +1,354 @@
+<!-- Squarespace Booking Widget for Pleasant Cove Design -->
+<!-- Add this to a Code Block on your /schedule page -->
+
+<div id="pcd-booking-widget">
+  <style>
+    #pcd-booking-widget {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+    
+    .pcd-header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    
+    .pcd-header h2 {
+      color: #333;
+      margin-bottom: 10px;
+    }
+    
+    .pcd-header p {
+      color: #666;
+      font-size: 16px;
+    }
+    
+    .pcd-business-info {
+      background: #f8f9fa;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 25px;
+    }
+    
+    .pcd-business-info strong {
+      color: #333;
+    }
+    
+    .pcd-calendar-section {
+      margin-bottom: 20px;
+    }
+    
+    .pcd-date-picker {
+      width: 100%;
+      padding: 12px;
+      font-size: 16px;
+      border: 2px solid #e0e0e0;
+      border-radius: 6px;
+      margin-bottom: 20px;
+    }
+    
+    .pcd-time-slots {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    
+    .pcd-time-slot {
+      padding: 15px;
+      text-align: center;
+      background: #f0f0f0;
+      border: 2px solid transparent;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-size: 16px;
+      font-weight: 500;
+    }
+    
+    .pcd-time-slot:hover {
+      background: #e8e8e8;
+      transform: translateY(-1px);
+    }
+    
+    .pcd-time-slot.selected {
+      background: #007bff;
+      color: white;
+      border-color: #0056b3;
+    }
+    
+    .pcd-time-slot.unavailable {
+      background: #f8f9fa;
+      color: #999;
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+    
+    .pcd-confirm-button {
+      width: 100%;
+      padding: 16px;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 18px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+    
+    .pcd-confirm-button:hover {
+      background: #0056b3;
+    }
+    
+    .pcd-confirm-button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+    
+    .pcd-success-message {
+      text-align: center;
+      padding: 40px 20px;
+    }
+    
+    .pcd-success-message h3 {
+      color: #28a745;
+      margin-bottom: 15px;
+    }
+    
+    .pcd-loading {
+      text-align: center;
+      padding: 20px;
+      color: #666;
+    }
+    
+    .pcd-error {
+      background: #fee;
+      color: #c33;
+      padding: 15px;
+      border-radius: 6px;
+      margin-bottom: 20px;
+    }
+  </style>
+
+  <div class="pcd-header">
+    <h2>Schedule Your Website Consultation</h2>
+    <p>Let's discuss how I can help your business get online</p>
+    <p style="font-size: 14px; color: #666; margin-top: 8px;">Available times: 8:30 AM or 9:00 AM daily</p>
+  </div>
+
+  <div id="pcd-business-info" class="pcd-business-info" style="display: none;">
+    <p>Scheduling for: <strong id="pcd-business-name"></strong></p>
+  </div>
+
+  <div id="pcd-calendar-section" class="pcd-calendar-section">
+    <label for="pcd-date-picker" style="display: block; margin-bottom: 8px; font-weight: 600;">
+      Select a Date:
+    </label>
+    <input type="date" id="pcd-date-picker" class="pcd-date-picker" min="">
+    
+    <div id="pcd-time-slots-container" style="display: none;">
+      <label style="display: block; margin-bottom: 8px; font-weight: 600;">
+        Available Times:
+      </label>
+      <div id="pcd-time-slots" class="pcd-time-slots"></div>
+    </div>
+  </div>
+
+  <button id="pcd-confirm-button" class="pcd-confirm-button" style="display: none;" disabled>
+    Confirm Booking
+  </button>
+
+  <div id="pcd-loading" class="pcd-loading" style="display: none;">
+    Loading available times...
+  </div>
+
+  <div id="pcd-error" class="pcd-error" style="display: none;"></div>
+
+  <div id="pcd-success" class="pcd-success-message" style="display: none;">
+    <h3>✅ Booking Confirmed!</h3>
+    <p>Your consultation is scheduled for:</p>
+    <p style="font-size: 20px; font-weight: 600; margin: 20px 0;" id="pcd-confirmation-details"></p>
+    <p>I'll call you at the number on file. Looking forward to speaking with you!</p>
+  </div>
+</div>
+
+<script>
+(function() {
+  // Configuration - Update this with your actual API endpoint
+  const API_BASE = 'https://your-ngrok-url.ngrok.io/api'; // Replace with your actual API URL
+  
+  // Get lead ID from URL
+  const urlParams = new URLSearchParams(window.location.search);
+  const leadId = urlParams.get('lead_id');
+  
+  // Elements
+  const businessInfo = document.getElementById('pcd-business-info');
+  const businessName = document.getElementById('pcd-business-name');
+  const datePicker = document.getElementById('pcd-date-picker');
+  const timeSlotsContainer = document.getElementById('pcd-time-slots-container');
+  const timeSlots = document.getElementById('pcd-time-slots');
+  const confirmButton = document.getElementById('pcd-confirm-button');
+  const loading = document.getElementById('pcd-loading');
+  const errorDiv = document.getElementById('pcd-error');
+  const successDiv = document.getElementById('pcd-success');
+  const confirmationDetails = document.getElementById('pcd-confirmation-details');
+  const calendarSection = document.getElementById('pcd-calendar-section');
+  
+  let selectedSlot = null;
+  
+  // Set minimum date to today
+  const today = new Date().toISOString().split('T')[0];
+  datePicker.min = today;
+  
+  // Load business info if lead_id provided
+  async function loadBusinessInfo() {
+    if (!leadId) return;
+    
+    try {
+      const response = await fetch(`${API_BASE}/businesses/${leadId}`);
+      if (response.ok) {
+        const business = await response.json();
+        businessName.textContent = business.name;
+        businessInfo.style.display = 'block';
+      }
+    } catch (error) {
+      console.error('Failed to load business info:', error);
+    }
+  }
+  
+  // Load available slots for selected date
+  async function loadAvailableSlots(date) {
+    loading.style.display = 'block';
+    timeSlotsContainer.style.display = 'none';
+    errorDiv.style.display = 'none';
+    
+    try {
+      const params = new URLSearchParams({ date });
+      if (leadId) params.append('businessId', leadId);
+      
+      const response = await fetch(`${API_BASE}/scheduling/slots?${params}`);
+      const data = await response.json();
+      
+      loading.style.display = 'none';
+      
+      if (data.slots && data.slots.length > 0) {
+        displayTimeSlots(data.slots);
+        timeSlotsContainer.style.display = 'block';
+      } else {
+        showError('No available slots on this date. Please try another day.');
+      }
+    } catch (error) {
+      loading.style.display = 'none';
+      showError('Failed to load available times. Please try again.');
+      console.error('Error loading slots:', error);
+    }
+  }
+  
+  // Display time slots
+  function displayTimeSlots(slots) {
+    timeSlots.innerHTML = '';
+    
+    slots.forEach(slot => {
+      const slotDate = new Date(slot);
+      const button = document.createElement('button');
+      button.className = 'pcd-time-slot';
+      button.textContent = slotDate.toLocaleTimeString('en-US', { 
+        hour: 'numeric', 
+        minute: '2-digit',
+        hour12: true
+      });
+      
+      button.onclick = () => selectTimeSlot(slot, button);
+      timeSlots.appendChild(button);
+    });
+  }
+  
+  // Handle time slot selection
+  function selectTimeSlot(slot, button) {
+    // Remove previous selection
+    document.querySelectorAll('.pcd-time-slot').forEach(btn => {
+      btn.classList.remove('selected');
+    });
+    
+    // Mark selected
+    button.classList.add('selected');
+    selectedSlot = slot;
+    
+    // Enable confirm button
+    confirmButton.disabled = false;
+    confirmButton.style.display = 'block';
+  }
+  
+  // Handle booking confirmation
+  async function confirmBooking() {
+    if (!selectedSlot || !leadId) return;
+    
+    confirmButton.disabled = true;
+    confirmButton.textContent = 'Booking...';
+    
+    try {
+      const response = await fetch(`${API_BASE}/scheduling/book`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          businessId: parseInt(leadId),
+          datetime: selectedSlot
+        })
+      });
+      
+      if (response.ok) {
+        const result = await response.json();
+        showSuccess(selectedSlot);
+      } else {
+        showError('Failed to book appointment. Please try again.');
+        confirmButton.disabled = false;
+        confirmButton.textContent = 'Confirm Booking';
+      }
+    } catch (error) {
+      showError('Failed to book appointment. Please try again.');
+      confirmButton.disabled = false;
+      confirmButton.textContent = 'Confirm Booking';
+      console.error('Booking error:', error);
+    }
+  }
+  
+  // Show success message
+  function showSuccess(datetime) {
+    const date = new Date(datetime);
+    confirmationDetails.textContent = date.toLocaleString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    });
+    
+    calendarSection.style.display = 'none';
+    confirmButton.style.display = 'none';
+    successDiv.style.display = 'block';
+  }
+  
+  // Show error message
+  function showError(message) {
+    errorDiv.textContent = message;
+    errorDiv.style.display = 'block';
+  }
+  
+  // Event listeners
+  datePicker.addEventListener('change', (e) => {
+    if (e.target.value) {
+      loadAvailableSlots(e.target.value);
+    }
+  });
+  
+  confirmButton.addEventListener('click', confirmBooking);
+  
+  // Initialize
+  loadBusinessInfo();
+})();
+</script> 

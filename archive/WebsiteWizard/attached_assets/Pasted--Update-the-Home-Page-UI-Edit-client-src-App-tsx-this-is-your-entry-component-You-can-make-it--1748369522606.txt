@@ -1,0 +1,87 @@
+ Update the Home Page UI
+Edit /client/src/App.tsx — this is your entry component.
+
+You can make it:
+
+Cleaner (centered layout, padding)
+
+Wizard-like (step-by-step intake)
+
+Branded (Midcoast Maine Website Wizard)
+
+Example Modern Layout:
+Here’s a UI upgrade you can paste into App.tsx:
+
+tsx
+Copy
+Edit
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { useState } from "react"
+
+export default function App() {
+  const [step, setStep] = useState(1)
+  const [form, setForm] = useState({ name: "", business: "", location: "" })
+
+  const nextStep = () => setStep(step + 1)
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-100 p-6">
+      <div className="bg-white p-6 rounded-2xl shadow-xl w-full max-w-md">
+        {step === 1 && (
+          <>
+            <h1 className="text-2xl font-bold mb-4">Step 1: Your Name</h1>
+            <Input
+              placeholder="Enter your name"
+              value={form.name}
+              onChange={(e) => setForm({ ...form, name: e.target.value })}
+            />
+            <Button className="mt-4 w-full" onClick={nextStep}>Next</Button>
+          </>
+        )}
+        {step === 2 && (
+          <>
+            <h1 className="text-2xl font-bold mb-4">Step 2: Business Name</h1>
+            <Input
+              placeholder="Business name"
+              value={form.business}
+              onChange={(e) => setForm({ ...form, business: e.target.value })}
+            />
+            <Button className="mt-4 w-full" onClick={nextStep}>Next</Button>
+          </>
+        )}
+        {step === 3 && (
+          <>
+            <h1 className="text-2xl font-bold mb-4">Step 3: Location</h1>
+            <Input
+              placeholder="Town / Area"
+              value={form.location}
+              onChange={(e) => setForm({ ...form, location: e.target.value })}
+            />
+            <Button className="mt-4 w-full" onClick={() => alert(JSON.stringify(form))}>
+              Submit
+            </Button>
+          </>
+        )}
+      </div>
+    </div>
+  )
+}
+This creates a basic 3-step wizard with Tailwind styling and state tracking.
+
+🧱 2. Optional: Add a Preview or Confirmation Step
+We can make step 4 show a live preview or confirmation message like:
+
+✅ “Thanks, Ben! We’ll start building a site for Ben’s Plumbing in Boothbay.”
+
+Let me know and I’ll add that.
+
+🧰 3. Next Improvements
+Once the layout is done, we can:
+
+Integrate file upload (logo, images)
+
+Save submissions to Supabase or Google Sheets
+
+Auto-send email or webhook to you when form is completed
+

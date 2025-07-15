@@ -1,0 +1,39 @@
+# Dependencies
+node_modules/
+dist/
+build/
+
+# Environment files
+.env
+.env.local
+.env.production
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+
+# Temporary files
+*.tmp
+*.temp
+/tmp/
+
+# Backup files
+*.backup
+
+server/public
+vite.config.ts.*
+*.tar.gz

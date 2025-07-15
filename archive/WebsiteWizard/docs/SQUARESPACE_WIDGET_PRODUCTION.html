@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pleasant Cove Design - Live Chat</title>
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <style>
+        /* Reset and base styles */
+        * {
+            box-sizing: border-box;
+        }
+
+        /* Widget Container */
+        .pcd-chat-widget {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 380px;
+            height: 600px;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 5px 40px rgba(0, 0, 0, 0.16);
+            display: flex;
+            flex-direction: column;
+            z-index: 10000;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            overflow: hidden;
+        }
+
+        /* Mobile responsive */
+        @media (max-width: 480px) {
+            .pcd-chat-widget {
+                width: 100%;
+                height: 100%;
+                bottom: 0;
+                right: 0;
+                border-radius: 0;
+                max-height: 100vh;
+            }
+        }
+
+        /* Header */
+        .pcd-header {
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            color: white;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0;
+        }
+
+        .pcd-header h3 {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .pcd-status {
+            display: flex;
+            align-items: center;
+            font-size: 13px;
+            opacity: 0.9;
+        }
+
+        .pcd-status-dot {
+            width: 8px;
+            height: 8px;
+            background: #4ade80;
+            border-radius: 50%;
+            margin-right: 6px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        /* Messages Container */
+        .pcd-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            background: #f8f9fa;
+            scroll-behavior: smooth;
+        }
+
+        .pcd-message {
+            margin-bottom: 16px;
+            display: flex;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .pcd-message.user {
+            justify-content: flex-end;
+        }
+
+        .pcd-message-bubble {
+            max-width: 70%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            position: relative;
+            word-wrap: break-word;
+        }
+
+        .pcd-message.user .pcd-message-bubble {
+            background: #3498db;
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        .pcd-message.admin .pcd-message-bubble {
+            background: white;
+            color: #2c3e50;
+            border: 1px solid #e0e0e0;
+            border-bottom-left-radius: 4px;
+        }
+
+        .pcd-message-time {
+            font-size: 11px;
+            opacity: 0.7;
+            margin-top: 4px;
+        }
+
+        .pcd-message-sender {
+            font-weight: 600;
+            font-size: 12px;
+            margin-bottom: 4px;
+            opacity: 0.8;
+        }
+
+        /* File Attachments */
+        .pcd-attachment {
+            margin-top: 8px;
+            padding: 8px;
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 8px;
+            font-size: 13px;
+        }
+
+        .pcd-attachment a {
+            color: inherit;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .pcd-attachment a:hover {
+            text-decoration: underline;
+        }
+
+        .pcd-image-preview {
+            margin-top: 8px;
+            max-width: 100%;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .pcd-image-preview img {
+            max-width: 100%;
+            max-height: 200px;
+            border-radius: 8px;
+        }
+
+        /* Input Area */
+        .pcd-input-area {
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #e0e0e0;
+            flex-shrink: 0;
+        }
+
+        .pcd-input-form {
+            display: flex;
+            gap: 12px;
+            align-items: flex-end;
+        }
+
+        .pcd-input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 24px;
+            outline: none;
+            font-size: 14px;
+            resize: none;
+            max-height: 120px;
+            line-height: 1.4;
+            transition: border-color 0.2s;
+        }
+
+        .pcd-input:focus {
+            border-color: #3498db;
+        }
+
+        .pcd-send-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: #3498db;
+            color: white;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .pcd-send-btn:hover {
+            background: #2980b9;
+            transform: scale(1.05);
+        }
+
+        .pcd-send-btn:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+            transform: scale(1);
+        }
+
+        /* Loading State */
+        .pcd-loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            color: #7f8c8d;
+        }
+
+        .pcd-loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #e0e0e0;
+            border-top-color: #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 12px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Welcome Message */
+        .pcd-welcome {
+            text-align: center;
+            padding: 40px 20px;
+            color: #7f8c8d;
+        }
+
+        .pcd-welcome h4 {
+            color: #2c3e50;
+            margin-bottom: 8px;
+        }
+
+        /* Error State */
+        .pcd-error {
+            padding: 20px;
+            background: #fee;
+            color: #c00;
+            text-align: center;
+            margin: 20px;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="pcd-chat-widget">
+        <!-- Header -->
+        <div class="pcd-header">
+            <h3>Pleasant Cove Design</h3>
+            <div class="pcd-status">
+                <div class="pcd-status-dot"></div>
+                <span>Online</span>
+            </div>
+        </div>
+
+        <!-- Messages Container -->
+        <div class="pcd-messages" id="messagesContainer">
+            <div class="pcd-loading">
+                <div class="pcd-loading-spinner"></div>
+                <span>Connecting...</span>
+            </div>
+        </div>
+
+        <!-- Input Area -->
+        <div class="pcd-input-area">
+            <form class="pcd-input-form" id="messageForm">
+                <textarea 
+                    class="pcd-input" 
+                    id="messageInput" 
+                    placeholder="Type your message..."
+                    rows="1"
+                ></textarea>
+                <button type="submit" class="pcd-send-btn" id="sendBtn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M22 2L11 13M22 2L15 22L11 13L2 9L22 2Z"/>
+                    </svg>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Production Chat Widget
+        class PleasantCoveChat {
+            constructor() {
+                // PRODUCTION CONFIGURATION
+                this.config = {
+                    railwayUrl: 'https://pleasantcovedesign-production.up.railway.app',
+                    projectToken: 'mc516tr5_CSU4OUADdSIHB3AXxZPpbw',
+                    businessId: 1, // Default business ID
+                    reconnectDelay: 3000,
+                    maxReconnectAttempts: 5
+                };
+                
+                this.socket = null;
+                this.messages = [];
+                this.reconnectAttempts = 0;
+                this.isConnected = false;
+                
+                // Generate or retrieve persistent client ID
+                this.clientId = this.getOrCreateClientId();
+                this.clientName = this.getOrCreateClientName();
+                
+                console.log(`🚀 Pleasant Cove Chat initialized`);
+                console.log(`📍 Client ID: ${this.clientId}`);
+                console.log(`👤 Client Name: ${this.clientName}`);
+                
+                this.init();
+            }
+
+            getOrCreateClientId() {
+                let clientId = localStorage.getItem('pcd_client_id');
+                if (!clientId) {
+                    clientId = `client_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+                    localStorage.setItem('pcd_client_id', clientId);
+                }
+                return clientId;
+            }
+
+            getOrCreateClientName() {
+                let clientName = localStorage.getItem('pcd_client_name');
+                if (!clientName) {
+                    // Try to detect from Squarespace member info
+                    clientName = this.detectSquarespaceMember() || `Guest_${Math.floor(Math.random() * 1000)}`;
+                    localStorage.setItem('pcd_client_name', clientName);
+                }
+                return clientName;
+            }
+
+            detectSquarespaceMember() {
+                try {
+                    // Check for Squarespace member cookie
+                    const cookie = document.cookie.split('; ').find(row => row.startsWith('SiteUserInfo='));
+                    if (cookie) {
+                        const info = JSON.parse(decodeURIComponent(cookie.split('=')[1]));
+                        if (info.authenticated && info.displayName) {
+                            return info.displayName;
+                        }
+                    }
+                } catch (e) {
+                    console.log('Could not detect Squarespace member');
+                }
+                return null;
+            }
+
+            async init() {
+                try {
+                    // Setup UI
+                    this.setupEventListeners();
+                    
+                    // Connect to Railway
+                    await this.connectToRailway();
+                    
+                    // Load message history
+                    await this.loadMessageHistory();
+                    
+                } catch (error) {
+                    console.error('❌ Initialization error:', error);
+                    this.showError('Failed to initialize chat. Please refresh the page.');
+                }
+            }
+
+            async connectToRailway() {
+                return new Promise((resolve, reject) => {
+                    console.log('🔌 Connecting to Railway...');
+                    
+                    this.socket = io(this.config.railwayUrl, {
+                        transports: ['websocket', 'polling'],
+                        auth: {
+                            businessId: this.config.businessId
+                        }
+                    });
+                    
+                    this.socket.on('connect', () => {
+                        console.log('✅ Connected to Railway!');
+                        this.isConnected = true;
+                        this.reconnectAttempts = 0;
+                        
+                        // Join business room
+                        this.socket.emit('join:business', this.config.businessId);
+                        
+                        // Update UI
+                        this.updateConnectionStatus(true);
+                        
+                        resolve();
+                    });
+                    
+                    this.socket.on('disconnect', () => {
+                        console.log('❌ Disconnected from Railway');
+                        this.isConnected = false;
+                        this.updateConnectionStatus(false);
+                        this.attemptReconnect();
+                    });
+                    
+                    this.socket.on('new:message', (data) => {
+                        console.log('📨 New message received:', data);
+                        
+                        // Only show messages for this business
+                        if (data.businessId === this.config.businessId || data.businessId === this.config.businessId.toString()) {
+                            this.addMessage({
+                                id: Date.now(),
+                                content: data.message,
+                                senderName: data.senderName || 'Admin',
+                                senderType: data.messageType || 'admin',
+                                timestamp: data.timestamp || new Date().toISOString()
+                            });
+                        }
+                    });
+                    
+                    this.socket.on('message:sent', (data) => {
+                        console.log('✅ Message sent confirmation:', data);
+                    });
+                    
+                    this.socket.on('error', (error) => {
+                        console.error('❌ Socket error:', error);
+                    });
+                    
+                    // Timeout
+                    setTimeout(() => {
+                        if (!this.isConnected) {
+                            reject(new Error('Connection timeout'));
+                        }
+                    }, 10000);
+                });
+            }
+
+            async loadMessageHistory() {
+                console.log('📥 Loading message history...');
+                
+                try {
+                    const response = await fetch(
+                        `${this.config.railwayUrl}/api/messages?projectToken=${this.config.projectToken}`,
+                        {
+                            headers: {
+                                'Authorization': 'Bearer pleasantcove2024admin'
+                            }
+                        }
+                    );
+                    
+                    if (!response.ok) {
+                        throw new Error(`Failed to load messages: ${response.status}`);
+                    }
+                    
+                    const allMessages = await response.json();
+                    
+                    // Filter messages for this business/client
+                    this.messages = allMessages.filter(msg => {
+                        // Match by business ID
+                        if (msg.businessId === this.config.businessId || msg.businessId === this.config.businessId.toString()) {
+                            return true;
+                        }
+                        
+                        // Match by sender name (for persistence across sessions)
+                        if (msg.senderName === this.clientName) {
+                            return true;
+                        }
+                        
+                        // Match messages that contain our project token
+                        if (msg.projectToken === this.config.projectToken) {
+                            return true;
+                        }
+                        
+                        return false;
+                    });
+                    
+                    console.log(`📊 Loaded ${this.messages.length} messages for this conversation`);
+                    
+                    // Display messages
+                    this.displayMessages();
+                    
+                } catch (error) {
+                    console.error('❌ Failed to load message history:', error);
+                    this.showWelcomeMessage();
+                }
+            }
+
+            displayMessages() {
+                const container = document.getElementById('messagesContainer');
+                container.innerHTML = '';
+                
+                if (this.messages.length === 0) {
+                    this.showWelcomeMessage();
+                    return;
+                }
+                
+                // Sort by timestamp
+                const sortedMessages = [...this.messages].sort((a, b) => 
+                    new Date(a.timestamp || a.createdAt).getTime() - 
+                    new Date(b.timestamp || b.createdAt).getTime()
+                );
+                
+                sortedMessages.forEach(msg => {
+                    this.addMessageToUI(msg, false);
+                });
+                
+                this.scrollToBottom();
+            }
+
+            addMessage(messageData) {
+                this.messages.push(messageData);
+                this.addMessageToUI(messageData, true);
+            }
+
+            addMessageToUI(message, shouldScroll = true) {
+                const container = document.getElementById('messagesContainer');
+                
+                // Remove welcome message if exists
+                const welcome = container.querySelector('.pcd-welcome');
+                if (welcome) welcome.remove();
+                
+                const messageEl = document.createElement('div');
+                const isUser = message.senderType === 'client' || message.direction === 'inbound' || message.senderName === this.clientName;
+                messageEl.className = `pcd-message ${isUser ? 'user' : 'admin'}`;
+                
+                const time = new Date(message.timestamp || message.createdAt).toLocaleTimeString([], { 
+                    hour: '2-digit', 
+                    minute: '2-digit' 
+                });
+                
+                // Parse file attachments
+                const { hasAttachment, fileName, isImage, fileUrl, cleanMessage } = this.parseFileAttachment(message.content || message.message);
+                
+                messageEl.innerHTML = `
+                    <div class="pcd-message-bubble">
+                        <div class="pcd-message-sender">${message.senderName || (isUser ? this.clientName : 'Admin')}</div>
+                        <div>${this.escapeHtml(cleanMessage)}</div>
+                        ${hasAttachment ? `
+                            ${isImage ? `
+                                <div class="pcd-image-preview" onclick="window.open('${fileUrl}', '_blank')">
+                                    <img src="${fileUrl}" alt="${fileName}" />
+                                </div>
+                            ` : ''}
+                            <div class="pcd-attachment">
+                                <a href="${fileUrl}" target="_blank">
+                                    ${isImage ? '🖼️' : '📎'} ${fileName}
+                                </a>
+                            </div>
+                        ` : ''}
+                        <div class="pcd-message-time">${time}</div>
+                    </div>
+                `;
+                
+                container.appendChild(messageEl);
+                
+                if (shouldScroll) {
+                    this.scrollToBottom();
+                }
+            }
+
+            parseFileAttachment(message) {
+                const filePattern = /📎\s*(.+?)(?:\n|$)/;
+                const imagePattern = /🖼️\s*(.+?)(?:\n|$)/;
+                
+                const fileMatch = message.match(filePattern);
+                const imageMatch = message.match(imagePattern);
+                
+                if (fileMatch || imageMatch) {
+                    const fileName = fileMatch?.[1] || imageMatch?.[1] || 'Unknown file';
+                    const isImage = !!imageMatch || /\.(jpg|jpeg|png|gif|webp)$/i.test(fileName);
+                    
+                    let fileUrl;
+                    if (fileName.startsWith('http://') || fileName.startsWith('https://')) {
+                        fileUrl = fileName;
+                    } else if (fileName.startsWith('/uploads/')) {
+                        fileUrl = `${this.config.railwayUrl}${fileName}`;
+                    } else {
+                        fileUrl = `${this.config.railwayUrl}/uploads/${fileName}`;
+                    }
+                    
+                    return {
+                        hasAttachment: true,
+                        fileName: fileName.split('/').pop(),
+                        isImage,
+                        fileUrl,
+                        cleanMessage: message.replace(filePattern, '').replace(imagePattern, '').trim()
+                    };
+                }
+                
+                return {
+                    hasAttachment: false,
+                    fileName: '',
+                    isImage: false,
+                    fileUrl: '',
+                    cleanMessage: message
+                };
+            }
+
+            showWelcomeMessage() {
+                const container = document.getElementById('messagesContainer');
+                container.innerHTML = `
+                    <div class="pcd-welcome">
+                        <h4>Welcome to Pleasant Cove Design!</h4>
+                        <p>How can we help you today?</p>
+                    </div>
+                `;
+            }
+
+            showError(message) {
+                const container = document.getElementById('messagesContainer');
+                container.innerHTML = `<div class="pcd-error">${message}</div>`;
+            }
+
+            setupEventListeners() {
+                const form = document.getElementById('messageForm');
+                const input = document.getElementById('messageInput');
+                
+                form.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.sendMessage();
+                });
+                
+                // Auto-resize textarea
+                input.addEventListener('input', () => {
+                    input.style.height = 'auto';
+                    input.style.height = Math.min(input.scrollHeight, 120) + 'px';
+                });
+                
+                // Enter to send (Shift+Enter for new line)
+                input.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        this.sendMessage();
+                    }
+                });
+            }
+
+            sendMessage() {
+                const input = document.getElementById('messageInput');
+                const message = input.value.trim();
+                
+                if (!message || !this.isConnected) return;
+                
+                console.log('📤 Sending message:', message);
+                
+                // Clear input
+                input.value = '';
+                input.style.height = 'auto';
+                
+                // Send via socket with proper business association
+                this.socket.emit('client:message', {
+                    businessId: this.config.businessId,
+                    message: message,
+                    senderName: this.clientName,
+                    senderId: this.clientId,
+                    projectToken: this.config.projectToken
+                });
+                
+                // Add to UI immediately
+                this.addMessage({
+                    id: Date.now(),
+                    content: message,
+                    senderName: this.clientName,
+                    senderType: 'client',
+                    timestamp: new Date().toISOString()
+                });
+            }
+
+            updateConnectionStatus(connected) {
+                const statusDot = document.querySelector('.pcd-status-dot');
+                const statusText = document.querySelector('.pcd-status span');
+                
+                if (connected) {
+                    statusDot.style.background = '#4ade80';
+                    statusText.textContent = 'Online';
+                } else {
+                    statusDot.style.background = '#ef4444';
+                    statusText.textContent = 'Offline';
+                }
+            }
+
+            attemptReconnect() {
+                if (this.reconnectAttempts >= this.config.maxReconnectAttempts) {
+                    console.log('❌ Max reconnection attempts reached');
+                    this.showError('Connection lost. Please refresh the page.');
+                    return;
+                }
+                
+                this.reconnectAttempts++;
+                console.log(`🔄 Attempting reconnect ${this.reconnectAttempts}/${this.config.maxReconnectAttempts}...`);
+                
+                setTimeout(() => {
+                    this.connectToRailway().catch(console.error);
+                }, this.config.reconnectDelay);
+            }
+
+            scrollToBottom() {
+                const container = document.getElementById('messagesContainer');
+                container.scrollTop = container.scrollHeight;
+            }
+
+            escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+        }
+
+        // Initialize the chat widget
+        window.pleasantCoveChat = new PleasantCoveChat();
+    </script>
+</body>
+</html> 

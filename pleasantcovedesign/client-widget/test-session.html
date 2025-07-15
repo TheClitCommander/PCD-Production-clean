@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Session Debug Test</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .section {
+            background: #f5f5f5;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        .button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .button:hover {
+            background: #5a67d8;
+        }
+        .log {
+            background: #1a1a1a;
+            color: #00ff00;
+            padding: 10px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+        .storage-item {
+            background: white;
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <h1>Pleasant Cove Design - Session Debug Tool</h1>
+    
+    <div class="section">
+        <h2>LocalStorage Contents</h2>
+        <div id="storage-contents"></div>
+        <button class="button" onclick="refreshStorage()">Refresh</button>
+        <button class="button" onclick="clearStorage()">Clear All</button>
+    </div>
+    
+    <div class="section">
+        <h2>Test Authentication</h2>
+        <input type="email" id="test-email" placeholder="Enter email" value="test@example.com">
+        <input type="text" id="test-name" placeholder="Enter name" value="Test User">
+        <button class="button" onclick="testAuth()">Test Auth</button>
+    </div>
+    
+    <div class="section">
+        <h2>Token Validation</h2>
+        <input type="text" id="token-input" placeholder="Enter token to validate" style="width: 300px;">
+        <button class="button" onclick="validateToken()">Validate</button>
+    </div>
+    
+    <div class="section">
+        <h2>Debug Log</h2>
+        <div id="log" class="log"></div>
+    </div>
+    
+    <script>
+        const BACKEND_URL = window.location.hostname === 'localhost' 
+            ? 'http://localhost:3000' 
+            : 'https://pleasantcovedesign-production.up.railway.app';
+        
+        function log(message, type = 'info') {
+            const logEl = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            const prefix = type === 'error' ? '❌' : type === 'success' ? '✅' : '📝';
+            logEl.textContent += `[${timestamp}] ${prefix} ${message}\n`;
+            logEl.scrollTop = logEl.scrollHeight;
+        }
+        
+        function refreshStorage() {
+            const container = document.getElementById('storage-contents');
+            container.innerHTML = '';
+            
+            const keys = ['pcd_project_token', 'pcd_user_email', 'pcd_user_name'];
+            
+            keys.forEach(key => {
+                const value = localStorage.getItem(key);
+                if (value) {
+                    const item = document.createElement('div');
+                    item.className = 'storage-item';
+                    item.innerHTML = `<strong>${key}:</strong> ${value}`;
+                    container.appendChild(item);
+                }
+            });
+            
+            if (container.innerHTML === '') {
+                container.innerHTML = '<p>No session data stored</p>';
+            }
+            
+            log('Storage refreshed');
+        }
+        
+        function clearStorage() {
+            localStorage.removeItem('pcd_project_token');
+            localStorage.removeItem('pcd_user_email');
+            localStorage.removeItem('pcd_user_name');
+            log('Storage cleared', 'success');
+            refreshStorage();
+        }
+        
+        async function testAuth() {
+            const email = document.getElementById('test-email').value;
+            const name = document.getElementById('test-name').value;
+            
+            log(`Testing auth for ${email}...`);
+            
+            try {
+                const response = await fetch(`${BACKEND_URL}/api/public/auth`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email: email,
+                        name: name,
+                        memberSince: new Date().toISOString()
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`Auth failed: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                log(`Auth successful! Token: ${data.token}`, 'success');
+                log(`Project ID: ${data.projectId}`);
+                
+                // Store in localStorage
+                localStorage.setItem('pcd_project_token', data.token);
+                localStorage.setItem('pcd_user_email', email);
+                localStorage.setItem('pcd_user_name', name);
+                
+                refreshStorage();
+                
+                // Load messages for this token
+                await loadMessagesForToken(data.token);
+                
+            } catch (error) {
+                log(`Auth error: ${error.message}`, 'error');
+            }
+        }
+        
+        async function validateToken() {
+            const token = document.getElementById('token-input').value || localStorage.getItem('pcd_project_token');
+            
+            if (!token) {
+                log('No token to validate', 'error');
+                return;
+            }
+            
+            log(`Validating token: ${token.substring(0, 8)}...`);
+            
+            try {
+                const response = await fetch(`${BACKEND_URL}/api/public/project/${token}/messages?limit=1`);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    log(`Token is VALID! Project has ${data.total || 0} messages`, 'success');
+                    
+                    // Try to get project info
+                    const projectResponse = await fetch(`${BACKEND_URL}/api/projects/${data.projectId}?token=pleasantcove2024admin`);
+                    if (projectResponse.ok) {
+                        const project = await projectResponse.json();
+                        log(`Project: ${project.businessName} (${project.contactEmail})`);
+                        log(`Created: ${new Date(project.createdAt).toLocaleString()}`);
+                    }
+                } else {
+                    log(`Token is INVALID: ${response.status}`, 'error');
+                }
+            } catch (error) {
+                log(`Validation error: ${error.message}`, 'error');
+            }
+        }
+        
+        async function loadMessagesForToken(token) {
+            log(`Loading messages for token ${token.substring(0, 8)}...`);
+            
+            try {
+                const response = await fetch(`${BACKEND_URL}/api/public/project/${token}/messages`);
+                
+                if (!response.ok) {
+                    throw new Error(`Failed to load messages: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                log(`Loaded ${data.messages.length} messages for this conversation`);
+                
+                // Show last few messages
+                const recent = data.messages.slice(-3);
+                recent.forEach(msg => {
+                    log(`[${msg.sender}] ${msg.content.substring(0, 50)}...`);
+                });
+                
+            } catch (error) {
+                log(`Failed to load messages: ${error.message}`, 'error');
+            }
+        }
+        
+        // Initialize on load
+        window.addEventListener('load', () => {
+            log(`Backend URL: ${BACKEND_URL}`);
+            refreshStorage();
+            
+            // If we have a stored token, validate it
+            const storedToken = localStorage.getItem('pcd_project_token');
+            if (storedToken) {
+                log('Found stored token, validating...');
+                document.getElementById('token-input').value = storedToken;
+                validateToken();
+            }
+        });
+    </script>
+</body>
+</html> 

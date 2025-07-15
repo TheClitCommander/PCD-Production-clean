@@ -1,0 +1,187 @@
+{% extends "base.html" %}
+
+{% block title %}Designs - {{ client.business_name }}{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h1 class="display-5 fw-bold">Website Designs</h1>
+        <p class="lead text-muted">Review and approve your website design concepts</p>
+    </div>
+</div>
+
+{% if designs %}
+<div class="row row-cols-1 row-cols-md-2 g-4 mb-4">
+    {% for design in designs %}
+    <div class="col">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">{{ design.name }}</h5>
+                <span class="badge {% if design.status == 'approved' %}bg-success{% elif design.status == 'pending' %}bg-warning{% elif design.status == 'feedback_provided' %}bg-info{% else %}bg-secondary{% endif %}">
+                    {{ design.status|replace('_', ' ')|title }}
+                </span>
+            </div>
+            {% if design.image_url %}
+            <img src="{{ design.image_url }}" class="card-img-top design-preview" alt="{{ design.name }}">
+            {% else %}
+            <div class="text-center p-5 bg-light">
+                <i class="fas fa-image text-muted" style="font-size: 4rem;"></i>
+                <p class="mt-3">Image preview not available</p>
+            </div>
+            {% endif %}
+            <div class="card-body">
+                <p class="card-text">{{ design.description }}</p>
+                
+                {% if design.version %}
+                <p class="text-muted small">Version: {{ design.version }}</p>
+                {% endif %}
+                
+                {% if design.created_at %}
+                <p class="text-muted small">Created: {{ design.created_at }}</p>
+                {% endif %}
+                
+                {% if design.feedback %}
+                <div class="feedback-history mt-3">
+                    <h6>Feedback History</h6>
+                    <div class="feedback-list">
+                        {% for feedback_item in design.feedback %}
+                        <div class="feedback-item p-2 border-start border-3 border-info ps-3 mt-2">
+                            <div class="feedback-time small text-muted">{{ feedback_item.timestamp }}</div>
+                            <div class="feedback-content">{{ feedback_item.content }}</div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            <div class="card-footer bg-white">
+                <div class="d-flex justify-content-between">
+                    {% if design.status != 'approved' %}
+                    <a href="{{ url_for('approve_design', design_id=design.id) }}" class="btn btn-success">
+                        <i class="fas fa-check me-2"></i>Approve Design
+                    </a>
+                    
+                    <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#feedbackModal{{ design.id }}">
+                        <i class="fas fa-comment me-2"></i>Provide Feedback
+                    </button>
+                    {% else %}
+                    <div class="text-success">
+                        <i class="fas fa-check-circle me-1"></i>Approved on {{ design.approved_at }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Feedback Modal -->
+    <div class="modal fade" id="feedbackModal{{ design.id }}" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Provide Feedback for {{ design.name }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form action="{{ url_for('provide_feedback', design_id=design.id) }}" method="post">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="feedback" class="form-label">Your Feedback</label>
+                            <textarea class="form-control" id="feedback" name="feedback" rows="5" required placeholder="Please be as specific as possible about what you like and what changes you'd like to see..."></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Submit Feedback</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="row mb-4">
+    <div class="col">
+        <div class="card shadow-sm">
+            <div class="card-body text-center p-5">
+                <div class="mb-3">
+                    <i class="fas fa-paint-brush text-muted" style="font-size: 4rem;"></i>
+                </div>
+                <h4>No Designs Available Yet</h4>
+                <p class="text-muted">Your website designs will appear here when they're ready for your review</p>
+                <p class="mt-4">Have questions about your design timeline?</p>
+                <a href="{{ url_for('messages') }}" class="btn btn-primary">
+                    <i class="fas fa-comment me-2"></i>Contact Your Project Manager
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Design Process Information -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-info-circle text-info me-2"></i>Our Design Process
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3 text-center mb-4 mb-md-0">
+                        <div class="process-icon rounded-circle bg-light mx-auto mb-3 d-flex align-items-center justify-content-center">
+                            <i class="fas fa-lightbulb text-warning"></i>
+                        </div>
+                        <h6>1. Concept</h6>
+                        <p class="small text-muted">Initial design concepts based on your requirements</p>
+                    </div>
+                    <div class="col-md-3 text-center mb-4 mb-md-0">
+                        <div class="process-icon rounded-circle bg-light mx-auto mb-3 d-flex align-items-center justify-content-center">
+                            <i class="fas fa-sync-alt text-info"></i>
+                        </div>
+                        <h6>2. Revision</h6>
+                        <p class="small text-muted">Refinements based on your feedback</p>
+                    </div>
+                    <div class="col-md-3 text-center mb-4 mb-md-0">
+                        <div class="process-icon rounded-circle bg-light mx-auto mb-3 d-flex align-items-center justify-content-center">
+                            <i class="fas fa-check-circle text-success"></i>
+                        </div>
+                        <h6>3. Approval</h6>
+                        <p class="small text-muted">Final design approval</p>
+                    </div>
+                    <div class="col-md-3 text-center">
+                        <div class="process-icon rounded-circle bg-light mx-auto mb-3 d-flex align-items-center justify-content-center">
+                            <i class="fas fa-code text-primary"></i>
+                        </div>
+                        <h6>4. Development</h6>
+                        <p class="small text-muted">Converting designs to working website</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .design-preview {
+        max-height: 300px;
+        object-fit: contain;
+        background-color: #f8f9fa;
+    }
+    
+    .feedback-list {
+        max-height: 200px;
+        overflow-y: auto;
+    }
+    
+    .process-icon {
+        width: 80px;
+        height: 80px;
+        font-size: 2rem;
+    }
+</style>
+{% endblock %}

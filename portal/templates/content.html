@@ -1,0 +1,266 @@
+{% extends "base.html" %}
+
+{% block title %}Content Management - {{ client.business_name }}{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h1 class="display-5 fw-bold">Content Management</h1>
+        <p class="lead text-muted">Upload and manage your website content</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-4 mb-4">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-upload text-primary me-2"></i>Upload Content
+                </h5>
+            </div>
+            <div class="card-body">
+                <form action="{{ url_for('upload_content') }}" method="post" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label for="file" class="form-label">Select File</label>
+                        <input class="form-control" type="file" id="file" name="file" required>
+                        <div class="form-text">Max file size: 16MB</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="content_type" class="form-label">Content Type</label>
+                        <select class="form-select" id="content_type" name="content_type" required>
+                            <option value="image">Image</option>
+                            <option value="logo">Logo</option>
+                            <option value="document">Document</option>
+                            <option value="product">Product Info</option>
+                            <option value="text">Text Content</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description</label>
+                        <textarea class="form-control" id="description" name="description" rows="3" placeholder="Briefly describe this content..."></textarea>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-cloud-upload-alt me-2"></i>Upload File
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Content Guidelines Card -->
+        <div class="card shadow-sm mt-4">
+            <div class="card-header bg-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-info-circle text-info me-2"></i>Content Guidelines
+                </h5>
+            </div>
+            <div class="card-body">
+                <h6>Recommended Image Sizes:</h6>
+                <ul class="small">
+                    <li>Hero Images: 1920×1080 pixels</li>
+                    <li>Logos: At least 500×500 pixels</li>
+                    <li>Product Images: 800×800 pixels</li>
+                </ul>
+                
+                <h6 class="mt-3">Accepted File Types:</h6>
+                <p class="small">
+                    <strong>Images:</strong> JPG, PNG, GIF, WebP<br>
+                    <strong>Documents:</strong> PDF, DOCX, TXT<br>
+                    <strong>Other:</strong> ZIP (for multiple files)
+                </p>
+                
+                <div class="alert alert-info mt-3 mb-0 small">
+                    <i class="fas fa-lightbulb me-2"></i>
+                    <strong>Tip:</strong> Organize your content before uploading for the best results.
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-8">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-file-alt text-success me-2"></i>Your Content Library
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if content_items %}
+                <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-3">
+                    {% for item in content_items %}
+                    <div class="col">
+                        <div class="content-item card h-100">
+                            <div class="card-body">
+                                <div class="content-type mb-2">
+                                    <span class="badge
+                                        {% if item.content_type == 'image' %}bg-info{% 
+                                        elif item.content_type == 'logo' %}bg-danger{% 
+                                        elif item.content_type == 'document' %}bg-warning{% 
+                                        elif item.content_type == 'product' %}bg-success{% 
+                                        elif item.content_type == 'text' %}bg-primary{% 
+                                        else %}bg-secondary{% endif %}">
+                                        {% if item.content_type == 'image' %}<i class="fas fa-image me-1"></i>{% 
+                                        elif item.content_type == 'logo' %}<i class="fas fa-trademark me-1"></i>{% 
+                                        elif item.content_type == 'document' %}<i class="fas fa-file-alt me-1"></i>{% 
+                                        elif item.content_type == 'product' %}<i class="fas fa-box me-1"></i>{% 
+                                        elif item.content_type == 'text' %}<i class="fas fa-align-left me-1"></i>{% 
+                                        else %}<i class="fas fa-file me-1"></i>{% endif %}
+                                        {{ item.content_type|title }}
+                                    </span>
+                                </div>
+                                
+                                {% if item.content_type == 'image' or item.content_type == 'logo' %}
+                                <div class="content-preview mb-2">
+                                    <img src="{{ url_for('uploaded_file', client_id=client.client_id, filename=item.filename) }}" 
+                                         class="img-thumbnail" alt="{{ item.description }}">
+                                </div>
+                                {% else %}
+                                <div class="content-icon text-center mb-2">
+                                    <i class="fas {% if item.content_type == 'document' %}fa-file-alt{% 
+                                               elif item.content_type == 'product' %}fa-box{% 
+                                               elif item.content_type == 'text' %}fa-align-left{% 
+                                               else %}fa-file{% endif %} fa-3x text-muted"></i>
+                                </div>
+                                {% endif %}
+                                
+                                <h6 class="content-filename text-truncate" title="{{ item.filename }}">
+                                    {{ item.filename }}
+                                </h6>
+                                
+                                {% if item.description %}
+                                <p class="content-description small text-muted">{{ item.description }}</p>
+                                {% endif %}
+                                
+                                <p class="content-date small text-muted">
+                                    <i class="fas fa-calendar-alt me-1"></i>
+                                    Uploaded: {{ item.uploaded_at }}
+                                </p>
+                            </div>
+                            <div class="card-footer bg-white d-flex justify-content-between">
+                                <a href="{{ url_for('uploaded_file', client_id=client.client_id, filename=item.filename) }}" 
+                                   class="btn btn-sm btn-outline-primary" target="_blank">
+                                    <i class="fas fa-eye me-1"></i>View
+                                </a>
+                                <a href="{{ url_for('uploaded_file', client_id=client.client_id, filename=item.filename) }}" 
+                                   class="btn btn-sm btn-outline-success" download>
+                                    <i class="fas fa-download me-1"></i>Download
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center p-5">
+                    <div class="mb-3">
+                        <i class="fas fa-file-upload text-muted" style="font-size: 4rem;"></i>
+                    </div>
+                    <h4>No Content Uploaded Yet</h4>
+                    <p class="text-muted">Upload images, documents, and other content to populate your website</p>
+                    <p class="mt-3">Not sure what content to upload?</p>
+                    <a href="{{ url_for('messages') }}" class="btn btn-primary">
+                        <i class="fas fa-question-circle me-2"></i>Ask For Guidance
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Content Checklist Card -->
+        <div class="card shadow-sm mt-4">
+            <div class="card-header bg-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-tasks text-warning me-2"></i>Content Checklist
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="list-group">
+                            <div class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <i class="fas fa-check-circle me-2 {% if content_items|selectattr('content_type', 'equalto', 'logo')|list|length > 0 %}text-success{% else %}text-muted{% endif %}"></i>
+                                    Company Logo
+                                </div>
+                                <span class="badge bg-primary rounded-pill">
+                                    {{ content_items|selectattr('content_type', 'equalto', 'logo')|list|length }}
+                                </span>
+                            </div>
+                            <div class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <i class="fas fa-check-circle me-2 {% if content_items|selectattr('content_type', 'equalto', 'image')|list|length > 0 %}text-success{% else %}text-muted{% endif %}"></i>
+                                    Hero Images
+                                </div>
+                                <span class="badge bg-primary rounded-pill">
+                                    {{ content_items|selectattr('content_type', 'equalto', 'image')|list|length }}
+                                </span>
+                            </div>
+                            <div class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <i class="fas fa-check-circle me-2 {% if content_items|selectattr('content_type', 'equalto', 'product')|list|length > 0 %}text-success{% else %}text-muted{% endif %}"></i>
+                                    Product Information
+                                </div>
+                                <span class="badge bg-primary rounded-pill">
+                                    {{ content_items|selectattr('content_type', 'equalto', 'product')|list|length }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mt-3 mt-md-0">
+                        <div class="list-group">
+                            <div class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <i class="fas fa-check-circle me-2 {% if content_items|selectattr('content_type', 'equalto', 'text')|list|length > 0 %}text-success{% else %}text-muted{% endif %}"></i>
+                                    About Us Text
+                                </div>
+                                <span class="badge bg-primary rounded-pill">
+                                    {{ content_items|selectattr('content_type', 'equalto', 'text')|list|length }}
+                                </span>
+                            </div>
+                            <div class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <i class="fas fa-check-circle me-2 {% if content_items|selectattr('content_type', 'equalto', 'document')|list|length > 0 %}text-success{% else %}text-muted{% endif %}"></i>
+                                    Documents
+                                </div>
+                                <span class="badge bg-primary rounded-pill">
+                                    {{ content_items|selectattr('content_type', 'equalto', 'document')|list|length }}
+                                </span>
+                            </div>
+                            <div class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <i class="fas fa-check-circle me-2 {% if content_items|selectattr('content_type', 'equalto', 'other')|list|length > 0 %}text-success{% else %}text-muted{% endif %}"></i>
+                                    Other Materials
+                                </div>
+                                <span class="badge bg-primary rounded-pill">
+                                    {{ content_items|selectattr('content_type', 'equalto', 'other')|list|length }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .content-preview img {
+        max-height: 120px;
+        object-fit: contain;
+    }
+    
+    .content-icon {
+        height: 80px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+</style>
+{% endblock %}

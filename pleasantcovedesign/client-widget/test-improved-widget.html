@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Improved Widget</title>
+    <meta charset="utf-8">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .info {
+            background: #e9ecef;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .info h3 {
+            margin-top: 0;
+            color: #495057;
+        }
+        .info ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        .info li {
+            margin: 5px 0;
+        }
+        .widget-container {
+            border: 2px dashed #007bff;
+            padding: 20px;
+            border-radius: 5px;
+            min-height: 600px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Improved Messaging Widget Test</h1>
+        
+        <div class="info">
+            <h3>What's New:</h3>
+            <ul>
+                <li>✅ <strong>Auto-scroll to latest messages</strong> - Widget automatically shows most recent messages</li>
+                <li>✅ <strong>Recent Messages divider</strong> - Visual indicator for recent messages in long conversations</li>
+                <li>✅ <strong>Jump to Latest button</strong> - Appears when scrolled up in conversations with 20+ messages</li>
+                <li>✅ <strong>New message notifications</strong> - Shows when new messages arrive while scrolled up</li>
+                <li>✅ <strong>Loading indicator</strong> - Shows progress when loading many messages</li>
+                <li>✅ <strong>Fade-in animation</strong> - Recent messages fade in smoothly</li>
+                <li>✅ <strong>Better error handling</strong> - Clear error messages with retry button</li>
+            </ul>
+        </div>
+        
+        <div class="widget-container">
+            <!-- Widget will be loaded here -->
+            <div id="widget-placeholder">
+                <p>Loading widget...</p>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Load the widget
+        fetch('/messaging-widget-unified.html')
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('widget-placeholder').innerHTML = html;
+                
+                // Extract and execute scripts
+                const scripts = document.getElementById('widget-placeholder').getElementsByTagName('script');
+                for (let script of scripts) {
+                    const newScript = document.createElement('script');
+                    newScript.textContent = script.textContent;
+                    document.body.appendChild(newScript);
+                }
+            })
+            .catch(error => {
+                document.getElementById('widget-placeholder').innerHTML = 
+                    '<p style="color: red;">Error loading widget: ' + error.message + '</p>';
+            });
+    </script>
+</body>
+</html> 

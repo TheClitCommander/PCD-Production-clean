@@ -1,0 +1,69 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: 210 40% 98%; /* #F8FAFC */
+  --foreground: 222 47% 11%; /* #1E293B */
+  --muted: 210 40% 96%; /* #F1F5F9 */
+  --muted-foreground: 215 16% 47%; /* #64748B */
+  --popover: 0 0% 100%;
+  --popover-foreground: 222 47% 11%; /* #1E293B */
+  --card: 0 0% 100%;
+  --card-foreground: 222 47% 11%; /* #1E293B */
+  --border: 214 32% 91%; /* #E2E8F0 */
+  --input: 214 32% 91%; /* #E2E8F0 */
+  --primary: 221 83% 53%; /* #2563EB */
+  --primary-foreground: 210 40% 98%; /* #F8FAFC */
+  --secondary: 160 84% 39%; /* #059669 */
+  --secondary-foreground: 210 40% 98%; /* #F8FAFC */
+  --accent: 210 40% 96%; /* #F1F5F9 */
+  --accent-foreground: 222 47% 11%; /* #1E293B */
+  --destructive: 0 72% 51%; /* #DC2626 */
+  --destructive-foreground: 210 40% 98%; /* #F8FAFC */
+  --ring: 221 83% 53%; /* #2563EB */
+  --radius: 0.5rem;
+}
+
+.dark {
+  --background: 222 47% 11%; /* #1E293B */
+  --foreground: 210 40% 98%; /* #F8FAFC */
+  --muted: 217 33% 17%; /* #334155 */
+  --muted-foreground: 215 20% 65%; /* #94A3B8 */
+  --popover: 222 47% 11%; /* #1E293B */
+  --popover-foreground: 210 40% 98%; /* #F8FAFC */
+  --card: 222 47% 11%; /* #1E293B */
+  --card-foreground: 210 40% 98%; /* #F8FAFC */
+  --border: 217 33% 17%; /* #334155 */
+  --input: 217 33% 17%; /* #334155 */
+  --primary: 221 83% 53%; /* #2563EB */
+  --primary-foreground: 210 40% 98%; /* #F8FAFC */
+  --secondary: 160 84% 39%; /* #059669 */
+  --secondary-foreground: 210 40% 98%; /* #F8FAFC */
+  --accent: 217 33% 17%; /* #334155 */
+  --accent-foreground: 210 40% 98%; /* #F8FAFC */
+  --destructive: 0 72% 51%; /* #DC2626 */
+  --destructive-foreground: 210 40% 98%; /* #F8FAFC */
+  --ring: 221 83% 53%; /* #2563EB */
+}
+
+@layer base {
+  body {
+    @apply antialiased bg-background text-foreground;
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+}
+
+@layer utilities {
+  .pipeline-column {
+    min-height: 400px;
+  }
+  
+  .drag-over {
+    @apply bg-blue-50 border-blue-300 border-dashed;
+  }
+  
+  .dragging {
+    @apply opacity-50 rotate-3 scale-95;
+  }
+}

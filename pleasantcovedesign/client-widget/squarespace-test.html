@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Squarespace Widget Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .test-section {
+            background: #f5f5f5;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .status { 
+            font-weight: bold; 
+            padding: 5px 10px;
+            border-radius: 3px;
+            display: inline-block;
+            margin: 5px 0;
+        }
+        .success { background: #4CAF50; color: white; }
+        .error { background: #f44336; color: white; }
+        .warning { background: #ff9800; color: white; }
+        .info { background: #2196F3; color: white; }
+        pre {
+            background: #333;
+            color: #fff;
+            padding: 10px;
+            border-radius: 3px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>Squarespace Widget Integration Test</h1>
+    
+    <div class="test-section">
+        <h2>1. Environment Detection</h2>
+        <p>Current URL: <code id="current-url"></code></p>
+        <p>Hostname: <code id="hostname"></code></p>
+        <p>Protocol: <code id="protocol"></code></p>
+        <p>Is Squarespace: <span id="is-squarespace" class="status"></span></p>
+        <p>Backend URL: <code id="backend-url"></code></p>
+    </div>
+
+    <div class="test-section">
+        <h2>2. Squarespace Context Check</h2>
+        <p>Static.SQUARESPACE_CONTEXT exists: <span id="context-exists" class="status"></span></p>
+        <p>Authenticated Member: <span id="authenticated-member" class="status"></span></p>
+        <div id="context-details"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>3. Cookie Check</h2>
+        <p>SiteUserInfo Cookie: <span id="cookie-status" class="status"></span></p>
+        <div id="cookie-details"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>4. Member API Check</h2>
+        <button onclick="checkMemberAPI()">Test Member API</button>
+        <div id="api-results"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>5. Backend Connection Test</h2>
+        <button onclick="testBackendConnection()">Test Backend Connection</button>
+        <div id="backend-results"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>6. Debug Console</h2>
+        <pre id="debug-console">Debug output will appear here...</pre>
+    </div>
+
+    <script>
+        // Debug logger
+        function log(message, type = 'info') {
+            const console = document.getElementById('debug-console');
+            const timestamp = new Date().toLocaleTimeString();
+            console.innerHTML += `[${timestamp}] ${type.toUpperCase()}: ${message}\n`;
+        }
+
+        // 1. Environment Detection
+        document.getElementById('current-url').textContent = window.location.href;
+        document.getElementById('hostname').textContent = window.location.hostname;
+        document.getElementById('protocol').textContent = window.location.protocol;
+        
+        const isSquarespace = window.location.hostname.includes('.squarespace.com') || 
+                            window.location.hostname.includes('.sqsp.net');
+        document.getElementById('is-squarespace').textContent = isSquarespace ? 'YES' : 'NO';
+        document.getElementById('is-squarespace').className = 'status ' + (isSquarespace ? 'success' : 'warning');
+        
+        // Detect backend URL
+        let backendUrl = 'https://pleasantcovedesign-production.up.railway.app';
+        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+            backendUrl = 'http://localhost:3000';
+        }
+        document.getElementById('backend-url').textContent = backendUrl;
+        log(`Backend URL detected: ${backendUrl}`);
+
+        // 2. Squarespace Context Check
+        if (window.Static && window.Static.SQUARESPACE_CONTEXT) {
+            document.getElementById('context-exists').textContent = 'YES';
+            document.getElementById('context-exists').className = 'status success';
+            
+            const context = window.Static.SQUARESPACE_CONTEXT;
+            const authenticated = context.authenticatedAccount || {};
+            
+            if (authenticated.email) {
+                document.getElementById('authenticated-member').textContent = authenticated.email;
+                document.getElementById('authenticated-member').className = 'status success';
+                document.getElementById('context-details').innerHTML = `
+                    <p>Email: <code>${authenticated.email}</code></p>
+                    <p>Name: <code>${authenticated.displayName || 'N/A'}</code></p>
+                    <p>ID: <code>${authenticated.id || 'N/A'}</code></p>
+                `;
+                log(`Found authenticated member: ${authenticated.email}`, 'success');
+            } else {
+                document.getElementById('authenticated-member').textContent = 'NOT FOUND';
+                document.getElementById('authenticated-member').className = 'status error';
+                log('No authenticated member in context', 'warning');
+            }
+        } else {
+            document.getElementById('context-exists').textContent = 'NO';
+            document.getElementById('context-exists').className = 'status error';
+            document.getElementById('authenticated-member').textContent = 'N/A';
+            document.getElementById('authenticated-member').className = 'status warning';
+            log('Static.SQUARESPACE_CONTEXT not found', 'error');
+        }
+
+        // 3. Cookie Check
+        function getCookie(name) {
+            const value = `; ${document.cookie}`;
+            const parts = value.split(`; ${name}=`);
+            if (parts.length === 2) return parts.pop().split(';').shift();
+            return null;
+        }
+
+        const siteUserInfo = getCookie('SiteUserInfo');
+        if (siteUserInfo) {
+            document.getElementById('cookie-status').textContent = 'FOUND';
+            document.getElementById('cookie-status').className = 'status success';
+            try {
+                const decoded = decodeURIComponent(siteUserInfo);
+                document.getElementById('cookie-details').innerHTML = `<pre>${decoded}</pre>`;
+                log('SiteUserInfo cookie found', 'success');
+            } catch (e) {
+                document.getElementById('cookie-details').innerHTML = `<p>Error decoding: ${e.message}</p>`;
+                log(`Cookie decode error: ${e.message}`, 'error');
+            }
+        } else {
+            document.getElementById('cookie-status').textContent = 'NOT FOUND';
+            document.getElementById('cookie-status').className = 'status error';
+            log('SiteUserInfo cookie not found', 'warning');
+        }
+
+        // 4. Member API Check
+        async function checkMemberAPI() {
+            const resultsDiv = document.getElementById('api-results');
+            resultsDiv.innerHTML = '<p>Testing APIs...</p>';
+            
+            const apis = [
+                '/api/member-areas/member',
+                '/api/auth/status',
+                '/api/commerce/customer/details'
+            ];
+            
+            for (const api of apis) {
+                try {
+                    log(`Testing ${api}...`);
+                    const response = await fetch(api);
+                    const status = response.ok ? 'success' : 'error';
+                    resultsDiv.innerHTML += `<p>${api}: <span class="status ${status}">${response.status}</span></p>`;
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        log(`${api} returned: ${JSON.stringify(data)}`, 'success');
+                    } else {
+                        log(`${api} failed with status ${response.status}`, 'error');
+                    }
+                } catch (e) {
+                    resultsDiv.innerHTML += `<p>${api}: <span class="status error">FAILED - ${e.message}</span></p>`;
+                    log(`${api} error: ${e.message}`, 'error');
+                }
+            }
+        }
+
+        // 5. Backend Connection Test
+        async function testBackendConnection() {
+            const resultsDiv = document.getElementById('backend-results');
+            resultsDiv.innerHTML = '<p>Testing backend connection...</p>';
+            
+            try {
+                log(`Testing connection to ${backendUrl}`);
+                const response = await fetch(`${backendUrl}/api/health`, {
+                    mode: 'cors'
+                });
+                
+                if (response.ok) {
+                    resultsDiv.innerHTML = '<p class="status success">Backend is reachable!</p>';
+                    log('Backend connection successful', 'success');
+                } else {
+                    resultsDiv.innerHTML = `<p class="status error">Backend returned ${response.status}</p>`;
+                    log(`Backend returned status ${response.status}`, 'error');
+                }
+            } catch (e) {
+                resultsDiv.innerHTML = `<p class="status error">Connection failed: ${e.message}</p>`;
+                log(`Backend connection error: ${e.message}`, 'error');
+                
+                // Check for CORS issues
+                if (e.message.includes('CORS') || e.message.includes('fetch')) {
+                    resultsDiv.innerHTML += '<p class="status warning">This might be a CORS issue. Check backend CORS settings.</p>';
+                    log('Possible CORS issue detected', 'warning');
+                }
+            }
+        }
+
+        // Auto-run tests
+        log('Squarespace integration test started');
+        log(`Test mode would activate: ${!isSquarespace && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')}`);
+    </script>
+</body>
+</html> 

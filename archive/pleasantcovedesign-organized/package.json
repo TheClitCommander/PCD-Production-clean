@@ -1,0 +1,22 @@
+{
+  "name": "pleasant-cove-design",
+  "version": "1.0.0",
+  "description": "Pleasant Cove Design - Squarespace messaging system",
+  "private": true,
+  "workspaces": [
+    "server",
+    "admin-ui"
+  ],
+  "scripts": {
+    "dev:server": "cd server && npm run dev",
+    "dev:admin": "cd admin-ui && npm run dev",
+    "dev": "concurrently \"npm run dev:server\" \"npm run dev:admin\"",
+    "build": "npm run build:server && npm run build:admin",
+    "build:server": "cd server && npm run build",
+    "build:admin": "cd admin-ui && npm run build",
+    "start": "cd server && npm start"
+  },
+  "devDependencies": {
+    "concurrently": "^8.1.0"
+  }
+} 

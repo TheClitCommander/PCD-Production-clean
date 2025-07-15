@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebsiteWizard Client Widget Test</title>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f7fa;
+        }
+        h1 {
+            color: #2563eb;
+        }
+        .container {
+            display: flex;
+            gap: 20px;
+        }
+        .widget {
+            flex: 1;
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        .connection-status {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 10px;
+            border-radius: 4px;
+            background-color: #f8d7da;
+        }
+        .connection-status.connected {
+            background-color: #d4edda;
+        }
+        .status-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: #dc3545;
+            margin-right: 10px;
+        }
+        .status-indicator.connected {
+            background-color: #28a745;
+        }
+        .connection-text {
+            flex: 1;
+        }
+        .messages {
+            height: 300px;
+            overflow-y: auto;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 10px;
+            margin-bottom: 10px;
+            background-color: #f8f9fa;
+        }
+        .message {
+            margin-bottom: 10px;
+            padding: 8px 12px;
+            border-radius: 18px;
+            max-width: 70%;
+            word-break: break-word;
+        }
+        .message.outgoing {
+            background-color: #2563eb;
+            color: white;
+            margin-left: auto;
+        }
+        .message.incoming {
+            background-color: #e2e8f0;
+            color: #1e293b;
+        }
+        .message.system {
+            background-color: #f8f9fa;
+            color: #6c757d;
+            border: 1px dashed #dee2e6;
+            text-align: center;
+            max-width: 100%;
+            font-size: 0.85em;
+        }
+        .input-group {
+            display: flex;
+            margin-top: 10px;
+        }
+        input {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid #dee2e6;
+            border-radius: 4px 0 0 4px;
+            font-size: 16px;
+        }
+        button {
+            padding: 8px 16px;
+            background-color: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 0 4px 4px 0;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #1d4ed8;
+        }
+        .tabs {
+            display: flex;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #dee2e6;
+        }
+        .tab {
+            padding: 10px 15px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+        }
+        .tab.active {
+            border-bottom: 2px solid #2563eb;
+            font-weight: bold;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            height: 100px;
+            font-family: inherit;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <h1>WebsiteWizard Client Widget Test</h1>
+    
+    <div class="tabs">
+        <div class="tab active" data-tab="socket">Socket.IO Test</div>
+        <div class="tab" data-tab="bridge">Bridge API Test</div>
+    </div>
+    
+    <div class="tab-content active" id="socket-tab">
+        <div class="container">
+            <div class="widget">
+                <h2>Client Widget</h2>
+                <div class="connection-status" id="connection-text">
+                    <div class="status-indicator" id="status"></div>
+                    <div class="connection-text">Connecting to server...</div>
+                </div>
+                
+                <div class="messages" id="messages"></div>
+                
+                <div class="input-group">
+                    <input type="text" id="input" placeholder="Type your message...">
+                    <button id="send-btn">Send</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="tab-content" id="bridge-tab">
+        <div class="container">
+            <div class="widget">
+                <h2>Bridge API Test</h2>
+                <p>Use this form to test the bridge API endpoint directly.</p>
+                
+                <form id="bridge-form">
+                    <div class="form-group">
+                        <label for="projectToken">Project Token:</label>
+                        <input type="text" id="projectToken" value="mc516tr5_CSU4OUADdSIHB3AXxZPpbw">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="senderName">Sender Name:</label>
+                        <input type="text" id="senderName" value="Garth">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="senderType">Sender Type:</label>
+                        <select id="senderType">
+                            <option value="client">Client</option>
+                            <option value="admin">Admin</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="content">Message:</label>
+                        <textarea id="content" placeholder="Type your message..."></textarea>
+                    </div>
+                    
+                    <button type="submit" id="bridge-send-btn">Send via Bridge API</button>
+                </form>
+                
+                <div id="bridge-result" style="margin-top: 20px; padding: 10px; border: 1px solid #ddd; display: none;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Client configuration
+        const businessId = 1; // Use the first business for testing
+        const clientName = 'Test Client';
+        
+        // Connect to the Socket.IO server
+        const socket = io('http://localhost:5173', {
+            path: '/socket.io',
+            auth: {
+                businessId: businessId
+            }
+        });
+
+        const statusIndicator = document.getElementById('status');
+        const connectionText = document.getElementById('connection-text');
+        const messagesContainer = document.getElementById('messages');
+        const input = document.getElementById('input');
+        const sendButton = document.getElementById('send-btn');
+
+        // Connection events
+        socket.on('connect', () => {
+            statusIndicator.className = 'connected';
+            connectionText.textContent = 'Connected to messaging server';
+            connectionText.style.backgroundColor = '#d4edda';
+            console.log('Connected to server with ID:', socket.id);
+        });
+
+        socket.on('disconnect', () => {
+            statusIndicator.className = 'disconnected';
+            connectionText.textContent = 'Disconnected from server';
+            connectionText.style.backgroundColor = '#f8d7da';
+            console.log('Disconnected from server');
+        });
+
+        socket.on('connect_error', (error) => {
+            statusIndicator.className = 'disconnected';
+            connectionText.textContent = 'Connection error: ' + error.message;
+            connectionText.style.backgroundColor = '#f8d7da';
+            console.error('Connection error:', error);
+        });
+
+        // Listen for authentication response
+        socket.on('authenticated', (data) => {
+            console.log('Authenticated:', data);
+            addSystemMessage('Authenticated as client for business #' + businessId);
+        });
+
+        // Listen for incoming messages
+        socket.on('new:message', (message) => {
+            console.log('Received message:', message);
+            addIncomingMessage(message.message || message.content);
+        });
+
+        socket.on('message:sent', (message) => {
+            console.log('Message sent confirmation:', message);
+        });
+
+        socket.on('error', (error) => {
+            console.error('Socket error:', error);
+            addSystemMessage('Error: ' + error.message);
+        });
+
+        // Send message
+        sendButton.addEventListener('click', sendMessage);
+        input.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        function sendMessage() {
+            const messageText = input.value.trim();
+            if (messageText) {
+                socket.emit('client:message', { 
+                    businessId: businessId, 
+                    message: messageText,
+                    senderName: clientName,
+                    senderId: 'client-' + socket.id
+                });
+                
+                addOutgoingMessage(messageText);
+                input.value = '';
+            }
+        }
+
+        function addIncomingMessage(text) {
+            const message = document.createElement('div');
+            message.className = 'message incoming';
+            message.textContent = text;
+            messagesContainer.appendChild(message);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        function addOutgoingMessage(text) {
+            const message = document.createElement('div');
+            message.className = 'message outgoing';
+            message.textContent = text;
+            messagesContainer.appendChild(message);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        function addSystemMessage(text) {
+            const message = document.createElement('div');
+            message.className = 'message system';
+            message.textContent = text;
+            messagesContainer.appendChild(message);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        // Tab switching
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                // Remove active class from all tabs
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                
+                // Add active class to clicked tab
+                tab.classList.add('active');
+                document.getElementById(tab.dataset.tab + '-tab').classList.add('active');
+            });
+        });
+
+        // Bridge API form handling
+        document.getElementById('bridge-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const projectToken = document.getElementById('projectToken').value;
+            const senderName = document.getElementById('senderName').value;
+            const senderType = document.getElementById('senderType').value;
+            const content = document.getElementById('content').value;
+            
+            if (!content.trim()) {
+                alert('Please enter a message');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/bridge/messages', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        projectToken,
+                        senderName,
+                        senderType,
+                        content
+                    })
+                });
+                
+                const result = await response.json();
+                
+                const resultElement = document.getElementById('bridge-result');
+                resultElement.style.display = 'block';
+                resultElement.innerHTML = `
+                    <h3>Response:</h3>
+                    <pre>${JSON.stringify(result, null, 2)}</pre>
+                `;
+                
+                // Clear the message input
+                document.getElementById('content').value = '';
+                
+            } catch (error) {
+                console.error('Error sending message via bridge:', error);
+                alert('Error sending message: ' + error.message);
+            }
+        });
+    </script>
+</body>
+</html> 

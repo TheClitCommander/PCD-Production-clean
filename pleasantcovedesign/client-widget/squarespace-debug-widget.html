@@ -1,0 +1,415 @@
+<!-- Pleasant Cove Design Debug Widget - Squarespace Version -->
+<!-- This version includes extensive logging to diagnose issues -->
+
+<div id="pcd-debug-widget">
+    <style>
+        #pcd-debug-widget {
+            font-family: monospace;
+            max-width: 800px;
+            margin: 20px auto;
+            background: #f5f5f5;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        
+        .debug-section {
+            background: white;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+        
+        .debug-log {
+            background: #000;
+            color: #0f0;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-size: 12px;
+            white-space: pre-wrap;
+        }
+        
+        .status { 
+            font-weight: bold;
+            padding: 3px 8px;
+            border-radius: 3px;
+            display: inline-block;
+        }
+        .success { background: #4CAF50; color: white; }
+        .error { background: #f44336; color: white; }
+        .warning { background: #ff9800; color: white; }
+        .info { background: #2196F3; color: white; }
+        
+        button {
+            background: #1a73e8;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        
+        button:hover {
+            background: #1557b0;
+        }
+        
+        code {
+            background: #e0e0e0;
+            padding: 2px 4px;
+            border-radius: 2px;
+        }
+    </style>
+
+    <h2>Pleasant Cove Design - Debug Widget</h2>
+    
+    <div class="debug-section">
+        <h3>1. Environment</h3>
+        <p>URL: <code id="current-url"></code></p>
+        <p>Hostname: <code id="hostname"></code></p>
+        <p>Is Squarespace: <span id="is-squarespace" class="status"></span></p>
+        <p>Backend URL: <code id="backend-url"></code></p>
+    </div>
+
+    <div class="debug-section">
+        <h3>2. Member Detection</h3>
+        <p>Detection Method: <span id="detection-method" class="status">Not started</span></p>
+        <p>Member Email: <code id="member-email">Not detected</code></p>
+        <p>Member Name: <code id="member-name">Not detected</code></p>
+        <p>Member ID: <code id="member-id">Not detected</code></p>
+    </div>
+
+    <div class="debug-section">
+        <h3>3. Local Storage</h3>
+        <p>Stored Token: <code id="stored-token">None</code></p>
+        <p>Stored Email: <code id="stored-email">None</code></p>
+        <p>Storage Keys: <code id="storage-keys">Loading...</code></p>
+        <button onclick="clearStorage()">Clear Storage</button>
+        <button onclick="checkStorage()">Refresh Storage Info</button>
+    </div>
+
+    <div class="debug-section">
+        <h3>4. Authentication</h3>
+        <p>Auth Status: <span id="auth-status" class="status">Not started</span></p>
+        <p>Project Token: <code id="project-token">None</code></p>
+        <p>Message Count: <code id="message-count">0</code></p>
+        <button onclick="testAuth()">Test Authentication</button>
+    </div>
+
+    <div class="debug-section">
+        <h3>5. Test Messages</h3>
+        <input type="text" id="test-message" placeholder="Test message" style="width: 300px; padding: 5px;">
+        <button onclick="sendTestMessage()">Send Test Message</button>
+        <button onclick="loadMessages()">Load Messages</button>
+        <div id="message-list" style="margin-top: 10px;"></div>
+    </div>
+
+    <div class="debug-section">
+        <h3>6. Debug Log</h3>
+        <div class="debug-log" id="debug-log">Debug log will appear here...</div>
+    </div>
+</div>
+
+<script>
+// Debug logger
+const debugLog = [];
+function log(message, type = 'info') {
+    const timestamp = new Date().toISOString();
+    const logEntry = `[${timestamp}] ${type.toUpperCase()}: ${message}`;
+    debugLog.push(logEntry);
+    console.log(logEntry);
+    
+    const logDiv = document.getElementById('debug-log');
+    if (logDiv) {
+        logDiv.textContent = debugLog.join('\n');
+        logDiv.scrollTop = logDiv.scrollHeight;
+    }
+}
+
+// Global state
+let memberInfo = null;
+let authToken = null;
+let backendUrl = null;
+
+// Initialize
+log('Debug widget initializing...');
+init();
+
+function init() {
+    // 1. Environment
+    document.getElementById('current-url').textContent = window.location.href;
+    document.getElementById('hostname').textContent = window.location.hostname;
+    
+    const isSquarespace = window.location.hostname.includes('.squarespace.com') || 
+                         window.location.hostname.includes('.sqsp.net');
+    document.getElementById('is-squarespace').textContent = isSquarespace ? 'YES' : 'NO';
+    document.getElementById('is-squarespace').className = 'status ' + (isSquarespace ? 'success' : 'warning');
+    
+    // Backend URL
+    backendUrl = 'https://pleasantcovedesign-production.up.railway.app';
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        backendUrl = 'http://localhost:3000';
+    }
+    document.getElementById('backend-url').textContent = backendUrl;
+    log(`Backend URL: ${backendUrl}`);
+    
+    // 2. Check storage
+    checkStorage();
+    
+    // 3. Detect member
+    detectMember();
+}
+
+function checkStorage() {
+    log('Checking localStorage...');
+    
+    // Get all localStorage keys
+    const keys = Object.keys(localStorage).filter(k => k.includes('pcd') || k.includes('pleasant'));
+    document.getElementById('storage-keys').textContent = keys.length > 0 ? keys.join(', ') : 'No PCD keys found';
+    
+    // Check specific values
+    const storedToken = localStorage.getItem('pcd_project_token');
+    const storedEmail = localStorage.getItem('pcd_user_email');
+    
+    document.getElementById('stored-token').textContent = storedToken ? 
+        storedToken.substring(0, 20) + '...' : 'None';
+    document.getElementById('stored-email').textContent = storedEmail || 'None';
+    
+    log(`Storage check: ${keys.length} keys found`);
+    if (storedToken) log(`Found stored token: ${storedToken.substring(0, 20)}...`);
+    if (storedEmail) log(`Found stored email: ${storedEmail}`);
+}
+
+function clearStorage() {
+    log('Clearing localStorage...', 'warning');
+    const keys = Object.keys(localStorage).filter(k => k.includes('pcd') || k.includes('pleasant'));
+    keys.forEach(k => localStorage.removeItem(k));
+    checkStorage();
+    log('Storage cleared', 'success');
+}
+
+function detectMember() {
+    log('Starting member detection...');
+    
+    // Method 1: Static.SQUARESPACE_CONTEXT
+    if (window.Static && window.Static.SQUARESPACE_CONTEXT) {
+        const context = window.Static.SQUARESPACE_CONTEXT;
+        log('Found Static.SQUARESPACE_CONTEXT');
+        log(`Context keys: ${Object.keys(context).join(', ')}`);
+        
+        if (context.authenticatedAccount) {
+            const account = context.authenticatedAccount;
+            log(`Authenticated account found: ${JSON.stringify(account)}`);
+            
+            if (account.email) {
+                memberInfo = {
+                    email: account.email,
+                    name: account.displayName || account.firstName || account.email.split('@')[0],
+                    id: account.id
+                };
+                
+                document.getElementById('detection-method').textContent = 'SQUARESPACE_CONTEXT';
+                document.getElementById('detection-method').className = 'status success';
+                document.getElementById('member-email').textContent = memberInfo.email;
+                document.getElementById('member-name').textContent = memberInfo.name;
+                document.getElementById('member-id').textContent = memberInfo.id || 'N/A';
+                
+                log(`Member detected: ${memberInfo.email}`, 'success');
+                return;
+            }
+        }
+    }
+    
+    // Method 2: Cookie
+    const cookies = document.cookie.split(';');
+    log(`Checking ${cookies.length} cookies...`);
+    
+    for (let cookie of cookies) {
+        const [name, value] = cookie.trim().split('=');
+        if (name === 'SiteUserInfo' && value) {
+            log('Found SiteUserInfo cookie');
+            try {
+                const decoded = decodeURIComponent(value);
+                const info = JSON.parse(decoded);
+                log(`Cookie data: ${JSON.stringify(info)}`);
+                
+                if (info.email) {
+                    memberInfo = {
+                        email: info.email,
+                        name: info.firstName || info.email.split('@')[0],
+                        id: info.id
+                    };
+                    
+                    document.getElementById('detection-method').textContent = 'Cookie';
+                    document.getElementById('detection-method').className = 'status success';
+                    document.getElementById('member-email').textContent = memberInfo.email;
+                    document.getElementById('member-name').textContent = memberInfo.name;
+                    document.getElementById('member-id').textContent = memberInfo.id || 'N/A';
+                    
+                    log(`Member detected via cookie: ${memberInfo.email}`, 'success');
+                    return;
+                }
+            } catch (e) {
+                log(`Cookie parse error: ${e.message}`, 'error');
+            }
+        }
+    }
+    
+    document.getElementById('detection-method').textContent = 'FAILED';
+    document.getElementById('detection-method').className = 'status error';
+    log('No member detected', 'error');
+}
+
+async function testAuth() {
+    if (!memberInfo) {
+        log('Cannot authenticate - no member detected', 'error');
+        alert('No member detected. Please ensure you are logged in.');
+        return;
+    }
+    
+    log(`Testing authentication for ${memberInfo.email}...`);
+    document.getElementById('auth-status').textContent = 'Authenticating...';
+    document.getElementById('auth-status').className = 'status warning';
+    
+    try {
+        const response = await fetch(`${backendUrl}/api/auth/token`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                type: 'member',
+                email: memberInfo.email,
+                name: memberInfo.name
+            })
+        });
+        
+        log(`Auth response status: ${response.status}`);
+        
+        if (!response.ok) {
+            const error = await response.text();
+            throw new Error(`Authentication failed: ${response.status} - ${error}`);
+        }
+        
+        const data = await response.json();
+        log(`Auth response: ${JSON.stringify(data)}`);
+        
+        authToken = data.token;
+        
+        // Store in localStorage
+        localStorage.setItem('pcd_project_token', authToken);
+        localStorage.setItem('pcd_user_email', memberInfo.email);
+        localStorage.setItem('pcd_user_name', memberInfo.name);
+        
+        document.getElementById('auth-status').textContent = 'Authenticated';
+        document.getElementById('auth-status').className = 'status success';
+        document.getElementById('project-token').textContent = authToken.substring(0, 20) + '...';
+        document.getElementById('message-count').textContent = data.messageCount || '0';
+        
+        log(`Authentication successful! Token: ${authToken.substring(0, 20)}...`, 'success');
+        log(`Message count: ${data.messageCount || 0}`);
+        
+        // Update storage display
+        checkStorage();
+        
+    } catch (error) {
+        log(`Authentication error: ${error.message}`, 'error');
+        document.getElementById('auth-status').textContent = 'Failed';
+        document.getElementById('auth-status').className = 'status error';
+        alert(`Authentication failed: ${error.message}`);
+    }
+}
+
+async function sendTestMessage() {
+    if (!authToken) {
+        log('Cannot send message - not authenticated', 'error');
+        alert('Please authenticate first');
+        return;
+    }
+    
+    const input = document.getElementById('test-message');
+    const message = input.value.trim();
+    
+    if (!message) {
+        alert('Please enter a message');
+        return;
+    }
+    
+    log(`Sending test message: "${message}"`);
+    
+    try {
+        const response = await fetch(`${backendUrl}/api/public/project/${authToken}/messages`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                content: message,
+                senderName: memberInfo.name,
+                senderType: 'client'
+            })
+        });
+        
+        if (!response.ok) {
+            throw new Error(`Send failed: ${response.status}`);
+        }
+        
+        log('Message sent successfully!', 'success');
+        input.value = '';
+        
+        // Reload messages
+        setTimeout(loadMessages, 500);
+        
+    } catch (error) {
+        log(`Send error: ${error.message}`, 'error');
+        alert(`Failed to send: ${error.message}`);
+    }
+}
+
+async function loadMessages() {
+    if (!authToken) {
+        log('Cannot load messages - not authenticated', 'error');
+        return;
+    }
+    
+    log('Loading messages...');
+    
+    try {
+        const response = await fetch(`${backendUrl}/api/public/project/${authToken}/messages`);
+        
+        if (!response.ok) {
+            throw new Error(`Load failed: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        const messages = data.messages || [];
+        
+        log(`Loaded ${messages.length} messages`, 'success');
+        document.getElementById('message-count').textContent = messages.length;
+        
+        // Display last 5 messages
+        const messageList = document.getElementById('message-list');
+        const lastMessages = messages.slice(-5);
+        
+        messageList.innerHTML = '<strong>Last 5 messages:</strong><br>' + 
+            lastMessages.map(m => {
+                const time = new Date(m.createdAt).toLocaleString();
+                return `[${time}] ${m.senderName}: ${m.content}`;
+            }).join('<br>');
+        
+    } catch (error) {
+        log(`Load error: ${error.message}`, 'error');
+    }
+}
+
+// Auto-test on load
+setTimeout(() => {
+    if (memberInfo) {
+        log('Auto-testing authentication...', 'info');
+        testAuth();
+    }
+}, 1000);
+</script> 

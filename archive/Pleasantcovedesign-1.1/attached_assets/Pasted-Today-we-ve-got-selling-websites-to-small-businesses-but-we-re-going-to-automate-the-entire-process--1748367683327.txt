@@ -1,0 +1,125 @@
+Today we've got selling websites to small businesses but we're going to automate the entire process and do none of the work ourselves. So first up I went to the map and picked a random regional town in my home country of Australia. Then I googled businesses in that area. I started with mechanics, electricians, and plumbers. Then I used my data scraper to pull all of this information straight from Google. This took me a few minutes to pull around 160 businesses but you could do this for even longer From there I just put all the info on a spreadsheet and cleaned the data, making sure to remove every business that already had a website. And just like that we've got 23 businesses that literally do not have a website. Now it's time to automate our outreach. I got ChatGPT to cram in a simple JSON file and imported this straight into N8. The automation I made is super simple. It basically just grabs the mobile number from the spreadsheet you saw earlier and sends a text message using Twilio. The test went through perfectly, now all I need to do is blast these messages out, see how many calls I can book, and try and close these guys on a new website. I'll charge around $400 to build the initial site and then pay somebody on Fiverr to do it for $50. On top of that we'll have a $50 upkeep fee which will cover the domain and web hosting with some money to spend. If you want to see how you can do this for yourself I'm going to be posting a full course in my WAP community along with all the tools and automations I use. So just come and check it out.   i would like help doing this in my area of midcoast Maine. so how do we go about doing this
+
+
+ChatGPT said:
+Updated saved memory
+Awesome — you're on track to replicate a super scalable local agency model with automation. Here's how we can set up a full pipeline to sell websites to small businesses in Midcoast Maine without you doing any of the work:
+
+💼 Step 1: Pick Your Niches
+Start with high-need, low-tech niches:
+
+Mechanics
+
+Plumbers
+
+Electricians
+
+Landscapers
+
+Roofers
+
+Home cleaning
+
+Contractors
+
+Septic, HVAC, etc.
+
+Target towns like: Brunswick, Bath, Wiscasset, Boothbay, Damariscotta, Waldoboro.
+
+🔍 Step 2: Scrape Local Business Info
+A) Use Google Maps Scraper
+You can use a tool like:
+
+PhantomBuster (Google Maps Search Export)
+
+BrightData, ScrapeOwl, or even Python + Selenium if you're technical
+
+Search format:
+[business type] near [town name] Maine
+
+Extract:
+
+Business name
+
+Phone number
+
+Address
+
+Website (filter this out later)
+
+Google Maps URL (optional)
+
+Goal: Get at least 150–300 rows of data.
+
+🧼 Step 3: Clean Your Lead List
+Use Excel/Google Sheets to:
+
+Remove businesses that already have websites
+
+Remove duplicate phone numbers or franchises
+
+Add a column for “Website = No”
+
+Optional: Add notes for standout businesses
+
+Result: A clean list of 20–50 local businesses with no site.
+
+🤖 Step 4: Automate Outreach (SMS or Email)
+Use Make.com (formerly Integromat), N8N, or Zapier to build the automation:
+
+Setup:
+Spreadsheet (Google Sheet or Airtable)
+
+Twilio or ClickSend (SMS)
+
+JSON config with business name and phone number
+
+Automation:
+For each row, send SMS like:
+
+text
+Copy
+Edit
+Hey [Name], I noticed [Business Name] doesn’t have a website. I’m local and can get one built for just $400 with free setup. Want the details?
+– Ben
+💡 Note: Always include opt-out ("Reply STOP") to stay compliant.
+
+💬 Step 5: Handle Inbound Replies
+When someone replies:
+
+Use ChatGPT to generate tailored pitch responses
+
+Book a call with Calendly or similar
+
+Sell the $400 site and $50/month hosting/maintenance plan
+
+💻 Step 6: Fulfillment
+Once they agree:
+
+Collect basic info (logo, colors, services) via Typeform or Google Form
+
+Pay a Fiverr dev (search “Local Business Website WordPress” or “Wix Website”)
+
+Or use a prebuilt template (we can make you one)
+
+Host with:
+
+Namecheap + EasyWP
+
+Hostinger
+
+Or Framer, Wix, or Webflow if white-labeling
+
+💰 Optional Upsells
+Add these later:
+
+Google Business Profile setup
+
+SEO boost
+
+Appointment booking calendar
+
+Yelp optimization
+
+Reputation management
+

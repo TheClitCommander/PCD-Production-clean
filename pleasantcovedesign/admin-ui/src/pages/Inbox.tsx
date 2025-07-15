@@ -701,7 +701,17 @@ const Inbox: React.FC = () => {
                 >
                   🔄
                 </button>
-                <span className="text-xs text-muted">{filteredConversations.length} conversation{filteredConversations.length !== 1 ? 's' : ''}</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-muted">{filteredConversations.length} conversation{filteredConversations.length !== 1 ? 's' : ''}</span>
+                  {(() => {
+                    const totalUnread = filteredConversations.reduce((sum, conv) => sum + (conv.unreadCount || 0), 0);
+                    return totalUnread > 0 ? (
+                      <div className="inline-flex items-center justify-center min-w-[20px] h-5 px-1 bg-blue-500 text-white text-xs font-semibold rounded-full">
+                        {totalUnread} new
+                      </div>
+                    ) : null;
+                  })()}
+                </div>
                 <div className="flex items-center gap-2">
                   <div className={`w-2 h-2 rounded-full ${
                     connectionStatus === 'connected' ? 'bg-green-500 animate-pulse' : 
@@ -737,7 +747,7 @@ const Inbox: React.FC = () => {
               <div
                 key={`conversation-${conversation.id}`}
                 onClick={() => handleConversationSelect(conversation)}
-                className={`p-4 border-b border-border cursor-pointer hover:bg-gray-50 ${
+                className={`relative p-4 border-b border-border cursor-pointer hover:bg-gray-50 ${
                   selectedConversation?.id === conversation.id ? 'bg-primary-50 border-r-2 border-r-primary-500' : ''
                 }`}
               >
@@ -766,8 +776,13 @@ const Inbox: React.FC = () => {
                       <p className="text-sm text-muted truncate mt-1 italic">No messages yet</p>
                     )}
                     {conversation.unreadCount > 0 && (
-                      <div className="inline-flex items-center justify-center w-5 h-5 bg-primary-600 text-white text-xs rounded-full mt-1">
-                        {conversation.unreadCount}
+                      <div className="absolute top-4 right-4 flex items-center">
+                        <div className="relative">
+                          <div className="animate-ping absolute inline-flex h-3 w-3 rounded-full bg-blue-400 opacity-75"></div>
+                          <div className="relative inline-flex items-center justify-center min-w-[20px] h-5 px-1 bg-blue-500 text-white text-xs font-semibold rounded-full">
+                            {conversation.unreadCount}
+                          </div>
+                        </div>
                       </div>
                     )}
                   </div>

@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Session Persistence Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h2 {
+            margin-top: 0;
+            color: #333;
+        }
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .primary {
+            background: #007cba;
+            color: white;
+        }
+        .danger {
+            background: #dc3545;
+            color: white;
+        }
+        .success {
+            background: #28a745;
+            color: white;
+        }
+        button:hover {
+            opacity: 0.9;
+        }
+        .console-output {
+            background: #1e1e1e;
+            color: #fff;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 10px;
+        }
+        .log-entry {
+            margin: 2px 0;
+        }
+        .log-info { color: #3498db; }
+        .log-success { color: #2ecc71; }
+        .log-error { color: #e74c3c; }
+        .log-warning { color: #f39c12; }
+    </style>
+</head>
+<body>
+    <h1>Session Persistence Test</h1>
+    
+    <div class="test-section">
+        <h2>Test Controls</h2>
+        <p>Use these controls to test session persistence:</p>
+        <div class="button-group">
+            <button class="primary" onclick="checkSession()">Check Current Session</button>
+            <button class="success" onclick="refreshPage()">Refresh Page</button>
+            <button class="danger" onclick="clearSession()">Clear Session</button>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>Console Output</h2>
+        <div id="console" class="console-output">
+            <div class="log-entry log-info">Ready to test session persistence...</div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>Widget Container</h2>
+        <p>The messaging widget will load here:</p>
+        <div id="widget-container"></div>
+    </div>
+
+    <script>
+        // Override console.log to capture widget logs
+        const originalLog = console.log;
+        const consoleDiv = document.getElementById('console');
+        
+        console.log = function(...args) {
+            originalLog.apply(console, args);
+            
+            const message = args.map(arg => 
+                typeof arg === 'object' ? JSON.stringify(arg, null, 2) : arg
+            ).join(' ');
+            
+            let className = 'log-info';
+            if (message.includes('✅')) className = 'log-success';
+            else if (message.includes('❌')) className = 'log-error';
+            else if (message.includes('⚠️')) className = 'log-warning';
+            else if (message.includes('🔍') || message.includes('[SESSION]')) className = 'log-warning';
+            
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${className}`;
+            entry.textContent = new Date().toLocaleTimeString() + ' - ' + message;
+            consoleDiv.appendChild(entry);
+            consoleDiv.scrollTop = consoleDiv.scrollHeight;
+        };
+
+        function checkSession() {
+            console.log('🔍 Checking localStorage session data...');
+            const token = localStorage.getItem('pcd_project_token');
+            const email = localStorage.getItem('pcd_user_email');
+            const name = localStorage.getItem('pcd_user_name');
+            
+            if (token) {
+                console.log('✅ Session found:');
+                console.log(`  Token: ${token.substring(0, 8)}...`);
+                console.log(`  Email: ${email}`);
+                console.log(`  Name: ${name}`);
+            } else {
+                console.log('❌ No session found in localStorage');
+            }
+        }
+
+        function refreshPage() {
+            console.log('🔄 Refreshing page...');
+            location.reload();
+        }
+
+        function clearSession() {
+            console.log('🗑️ Clearing session...');
+            localStorage.removeItem('pcd_project_token');
+            localStorage.removeItem('pcd_user_email');
+            localStorage.removeItem('pcd_user_name');
+            console.log('✅ Session cleared');
+        }
+
+        // Load the widget
+        function loadWidget() {
+            console.log('📦 Loading messaging widget...');
+            const container = document.getElementById('widget-container');
+            
+            // Create an iframe to load the widget
+            const iframe = document.createElement('iframe');
+            iframe.src = 'messaging-widget-unified.html';
+            iframe.style.width = '100%';
+            iframe.style.height = '600px';
+            iframe.style.border = 'none';
+            iframe.style.borderRadius = '8px';
+            
+            container.appendChild(iframe);
+        }
+
+        // Check session on page load
+        window.addEventListener('load', () => {
+            console.log('📄 Page loaded, checking initial session state...');
+            checkSession();
+            loadWidget();
+        });
+    </script>
+</body>
+</html> 

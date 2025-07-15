@@ -725,6 +725,7 @@
 
             async init() {
                 console.log('🚀 [BULLETPROOF_WIDGET] Starting bulletproof initialization...');
+                console.log('🔍 [SESSION] page load token:', localStorage.getItem('pcd_project_token')); // ADD THIS LOG
                 this.updateDebugInfo('Starting robust member detection...', 'info');
                 
                 // CRITICAL: Wait for page to be fully loaded on mobile/slow connections
@@ -800,6 +801,7 @@
                         }
                         
                         console.log('✅ [SESSION] Session matches current member');
+                        console.log('✅ [SESSION] reusing stored token'); // CHANGE THIS LOG
                         console.log('📌 [SESSION] Stored token:', storedToken.substring(0, 8) + '...');
                         
                         // Validate the stored token is still valid
@@ -1994,6 +1996,7 @@
                     console.debug('[WIDGET] socket connected');
                     console.log('✅ [SOCKET] Connected to server');
                     console.log('🔌 [SOCKET] Socket ID:', this.socket.id);
+                    console.log('🔌 [SOCKET] connected, loading messages'); // ADD THIS LOG
                     
                     const connectionStatus = document.getElementById('connectionStatus');
                     if (connectionStatus) {
@@ -2019,6 +2022,9 @@
                     } else {
                         console.error('❌ [SOCKET] No project token available for room join');
                     }
+                    
+                    // ALWAYS reload messages on socket connect to ensure fresh data
+                    this.loadMessages();
                 });
                 
                 this.socket.on('connect_error', err => {

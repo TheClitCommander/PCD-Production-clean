@@ -192,8 +192,8 @@ const Inbox: React.FC = () => {
             updatedConvo.lastMessage = message;
             updatedConvo.lastMessageTime = message.createdAt;
             
-            // Use the ref to check if the conversation is selected
-            if (selectedConversationRef.current?.projectToken !== message.projectToken) {
+            // Only increment unread count for CLIENT messages when conversation is not selected
+            if (message.senderType === 'client' && selectedConversationRef.current?.projectToken !== message.projectToken) {
               updatedConvo.unreadCount = (updatedConvo.unreadCount || 0) + 1;
             }
             newConversations[convoIndex] = updatedConvo;
@@ -215,7 +215,7 @@ const Inbox: React.FC = () => {
             customerEmail: 'unknown@example.com',
             lastMessage: message,
             lastMessageTime: message.createdAt,
-            unreadCount: 1,
+            unreadCount: message.senderType === 'client' ? 1 : 0,
             messages: [message],
           };
           newConversations.unshift(newConversation);

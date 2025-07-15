@@ -614,7 +614,7 @@ class InMemoryDatabase {
         
         // Create Ben's company
         const companyId = await this.createCompany({
-          name: 'Ben Dickinson',
+          name: 'Pleasant Cove Design',
           email: 'ben04537@gmail.com',
           phone: '',
           address: '',
@@ -632,7 +632,7 @@ class InMemoryDatabase {
         
         // Create project with stable token
         const projectId = await this.createProject({
-          title: 'Ben Dickinson - Website Project',
+          title: 'Pleasant Cove Design - Website Project',
           companyId: companyId,
           token: 'Q_lXDL9XQ-Q8d-jay7W2a2ZU', // Fixed stable token
           status: 'active',

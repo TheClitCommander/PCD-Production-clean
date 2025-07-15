@@ -98,7 +98,7 @@ const Inbox: React.FC = () => {
   }
 
   // Handle conversation selection - NO LONGER JOINS/LEAVES ROOMS
-  const handleConversationSelect = (conversation: Conversation) => {
+  const handleConversationSelect = async (conversation: Conversation) => {
     console.log('🎯 [SELECT] Selected conversation:', conversation.customerName);
     
     // Navigate to the conversation's URL
@@ -106,14 +106,36 @@ const Inbox: React.FC = () => {
       navigate(`/inbox/${conversation.projectToken}`)
     }
     
+    // Mark all unread client messages as read
+    const unreadMessages = conversation.messages.filter(m => m.senderType === 'client' && !m.readAt);
+    const readAt = new Date().toISOString();
+    
+    for (const msg of unreadMessages) {
+      try {
+        await api.post(`/messages/${msg.id}/read`);
+      } catch (error) {
+        console.error('Failed to mark message as read:', error);
+      }
+    }
+    
+    // Update conversation with read messages
+    const updatedConversation = {
+      ...conversation,
+      unreadCount: 0,
+      messages: conversation.messages.map(msg => ({
+        ...msg,
+        readAt: (msg.senderType === 'client' && !msg.readAt) ? readAt : msg.readAt
+      }))
+    };
+    
     // Update selected conversation
-    setSelectedConversation(conversation);
+    setSelectedConversation(updatedConversation);
     
     // Clear unread count - update both local state and persist
     setConversations(prevConversations =>
       prevConversations.map(conv =>
         conv.id === conversation.id
-          ? { ...conv, unreadCount: 0 }
+          ? updatedConversation
           : conv
       )
     );
@@ -193,8 +215,8 @@ const Inbox: React.FC = () => {
             updatedConvo.lastMessage = message;
             updatedConvo.lastMessageTime = message.createdAt;
             
-            // Only increment unread count for CLIENT messages when conversation is not selected
-            if (message.senderType === 'client' && selectedConversationRef.current?.projectToken !== message.projectToken) {
+            // Only increment unread count for CLIENT messages without readAt when conversation is not selected
+            if (message.senderType === 'client' && !message.readAt && selectedConversationRef.current?.projectToken !== message.projectToken) {
               updatedConvo.unreadCount = (updatedConvo.unreadCount || 0) + 1;
             }
             newConversations[convoIndex] = updatedConvo;
@@ -314,11 +336,17 @@ const Inbox: React.FC = () => {
               senderName: msg.senderName || msg.sender || 'Unknown',
               senderType: msg.senderType || 'client',
               createdAt: msg.createdAt || msg.timestamp || new Date().toISOString(),
+              readAt: msg.readAt, // Include readAt field
               attachments: msg.attachments || []
             };
           }) : [];
           
           messages.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+          
+          // Calculate unread count - count client messages without readAt
+          const unreadCount = messages.filter(msg => 
+            msg.senderType === 'client' && !msg.readAt
+          ).length;
           
           const conversation: Conversation = {
             id: project.projectId,
@@ -329,7 +357,7 @@ const Inbox: React.FC = () => {
             customerEmail: `${customerName.toLowerCase().replace(/\s+/g, '.')}@example.com`,
             lastMessage: messages[messages.length - 1] || undefined,
             lastMessageTime: messages[messages.length - 1]?.createdAt || new Date().toISOString(),
-            unreadCount: 0,
+            unreadCount: unreadCount,
             messages: messages
           };
           
@@ -431,7 +459,7 @@ const Inbox: React.FC = () => {
         // Use FormData for file uploads via public API
         const formData = new FormData()
         formData.append('content', newMessage || '')
-        formData.append('senderName', 'Ben Dickinson')
+        formData.append('senderName', 'Pleasant Cove Design')
         formData.append('senderType', 'admin')
         
         attachments.forEach(file => {
@@ -452,7 +480,7 @@ const Inbox: React.FC = () => {
         // Use unified messaging API for text-only messages
         response = await api.post(`/messages`, {
           projectToken: selectedConversation.projectToken,
-          sender: 'Ben Dickinson',
+          sender: 'Pleasant Cove Design',
           body: newMessage,
           attachmentKeys: [],
           hasFiles: false
@@ -471,7 +499,7 @@ const Inbox: React.FC = () => {
         projectId: selectedConversation.projectId,
         projectToken: selectedConversation.projectToken,
         content: response.data.content || newMessage || '',
-        senderName: response.data.senderName || 'Ben Dickinson',
+        senderName: response.data.senderName || 'Pleasant Cove Design',
         senderType: response.data.senderType || 'admin',
         createdAt: response.data.createdAt || new Date().toISOString(),
         attachments: response.data.attachments || []

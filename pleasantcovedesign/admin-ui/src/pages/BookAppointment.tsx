@@ -15,7 +15,7 @@ export default function BookAppointment() {
             Book Your Consultation
           </h1>
           <p className="text-lg text-gray-600">
-            Schedule a consultation with Ben Dickinson to discuss your design needs
+            Schedule a consultation with Pleasant Cove Design to discuss your design needs
           </p>
         </div>
         

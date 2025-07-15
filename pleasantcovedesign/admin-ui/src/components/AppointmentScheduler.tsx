@@ -222,7 +222,7 @@ export default function AppointmentScheduler({
           <div className="bg-gray-50 rounded-lg p-4 mb-6">
             <div className="flex items-center justify-center mb-2">
               <UserIcon className="w-5 h-5 text-gray-600 mr-2" />
-              <span className="font-medium">Consultation with Ben Dickinson</span>
+              <span className="font-medium">Consultation with Pleasant Cove Design</span>
             </div>
             <div className="flex items-center justify-center mb-2">
               <ClockIcon className="w-5 h-5 text-gray-600 mr-2" />
@@ -265,7 +265,7 @@ export default function AppointmentScheduler({
       {/* Service Header */}
       <div className="p-6 border-b border-gray-200">
         <h2 className="text-xl font-semibold text-gray-900 mb-2">
-          Consultation with Ben Dickinson
+          Consultation with Pleasant Cove Design
         </h2>
         <p className="text-sm text-gray-600 mb-4">25 minutes</p>
         

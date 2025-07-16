@@ -10,6 +10,7 @@ import Interactions from './pages/Interactions'
 import Progress from './pages/Progress'
 import Schedule from './pages/Schedule'
 import Settings from './pages/Settings'
+import ClientProfile from './pages/ClientProfile'
 
 // Error boundary component
 class ErrorBoundary extends React.Component<
@@ -67,9 +68,13 @@ const App: React.FC = () => {
             <Route path="inbox" element={<Inbox />} />
             <Route path="inbox/:projectToken" element={<Inbox />} />
             <Route path="leads" element={<Leads />} />
+            <Route path="leads/:id" element={<ClientProfile />} />
+            <Route path="clients/:id" element={<ClientProfile />} />
             <Route path="interactions" element={<Interactions />} />
             <Route path="progress" element={<Progress />} />
+            <Route path="progress/:id" element={<Progress />} />
             <Route path="schedule" element={<Schedule />} />
+            <Route path="schedule/:id" element={<Schedule />} />
             <Route path="settings" element={<Settings />} />
           </Route>
           

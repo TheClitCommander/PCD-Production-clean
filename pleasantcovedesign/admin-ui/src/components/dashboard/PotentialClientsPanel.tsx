@@ -37,7 +37,7 @@ const PotentialClientsPanel: React.FC = () => {
   return (
     <Card>
       <Link to="/leads" className="block">
-        <div className="flex items-center gap-2 mb-4 hover:text-blue-600 transition-colors">
+        <div className="flex items-center gap-2 mb-4 hover:text-blue-600 transition-colors cursor-pointer">
           <Search className="w-5 h-5" />
           <h3 className="text-lg font-semibold">
             Potential Clients ({newLeadsCount} new leads)
@@ -55,7 +55,7 @@ const PotentialClientsPanel: React.FC = () => {
             <Link
               key={lead.id}
               to={`/leads/${lead.id}`}
-              className="block hover:bg-gray-50 -mx-2 px-2 py-2 rounded transition-colors"
+              className="block hover:bg-gray-50 -mx-2 px-2 py-2 rounded transition-colors cursor-pointer"
             >
               <div className="flex items-center justify-between">
                 <div className="flex-1 min-w-0">

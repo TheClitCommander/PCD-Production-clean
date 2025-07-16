@@ -67,7 +67,7 @@ const CurrentProjectsPanel: React.FC = () => {
   return (
     <Card>
       <Link to="/progress" className="block">
-        <div className="flex items-center gap-2 mb-4 hover:text-blue-600 transition-colors">
+        <div className="flex items-center gap-2 mb-4 hover:text-blue-600 transition-colors cursor-pointer">
           <Hammer className="w-5 h-5" />
           <h3 className="text-lg font-semibold">
             Current Projects ({activeCount} active)
@@ -85,7 +85,7 @@ const CurrentProjectsPanel: React.FC = () => {
             <Link
               key={project.id}
               to={`/progress/${project.id}`}
-              className="block hover:bg-gray-50 -mx-2 px-2 py-2 rounded transition-colors"
+              className="block hover:bg-gray-50 -mx-2 px-2 py-2 rounded transition-colors cursor-pointer"
             >
               <div className="space-y-1">
                 <p className="font-medium truncate">

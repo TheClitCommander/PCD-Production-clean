@@ -59,7 +59,7 @@ const AppointmentsPanel: React.FC = () => {
   return (
     <Card>
       <Link to="/schedule" className="block">
-        <div className="flex items-center gap-2 mb-4 hover:text-blue-600 transition-colors">
+        <div className="flex items-center gap-2 mb-4 hover:text-blue-600 transition-colors cursor-pointer">
           <Calendar className="w-5 h-5" />
           <h3 className="text-lg font-semibold">
             Appointments ({appointments.length} today)
@@ -77,7 +77,7 @@ const AppointmentsPanel: React.FC = () => {
             <Link
               key={appointment.id}
               to={`/schedule/${appointment.id}`}
-              className="block hover:bg-gray-50 -mx-2 px-2 py-2 rounded transition-colors"
+              className="block hover:bg-gray-50 -mx-2 px-2 py-2 rounded transition-colors cursor-pointer"
             >
               <div className="flex items-start gap-2">
                 <span className="text-sm font-medium text-gray-600 whitespace-nowrap">

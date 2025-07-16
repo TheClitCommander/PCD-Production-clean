@@ -10,6 +10,7 @@ import { useSearchParams } from 'react-router-dom';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import 'react-big-calendar/lib/addons/dragAndDrop/styles.css';
 import ProjectAwareClientModal from '../components/ProjectAwareClientModal';
+import api from '../api';
 
 // Define basic types to avoid import errors
 interface Company {
@@ -225,11 +226,11 @@ export default function Schedule() {
   // Fetch appointments with error handling
   const fetchAppointments = useCallback(async () => {
     try {
-      const response = await fetch('/api/appointments?token=pleasantcove2024admin');
-      if (!response.ok) {
+      const response = await api.get('/appointments');
+      if (response.status !== 200) {
         throw new Error(`API Error: ${response.status} ${response.statusText}`);
       }
-      const appointments = await response.json();
+      const appointments = response.data;
       
       const mapped: CalendarEvent[] = await Promise.all(
         appointments.map(async (apt: any) => {
@@ -239,9 +240,9 @@ export default function Schedule() {
 
           if (apt.projectId) {
             try {
-              const projectResponse = await fetch(`/api/projects/${apt.projectId}?token=pleasantcove2024admin`);
-              if (projectResponse.ok) {
-                const projectData = await projectResponse.json();
+              const projectResponse = await api.get(`/projects/${apt.projectId}`);
+              if (projectResponse.status === 200) {
+                const projectData = projectResponse.data;
                 projectTitle = projectData.title || '';
                 projectType = projectData.type || '';
                 companyName = projectData.company?.name || companyName;
@@ -294,11 +295,11 @@ export default function Schedule() {
   // Fetch pending appointments with error handling
   const fetchPendingAppointments = useCallback(async () => {
     try {
-      const response = await fetch('/api/appointments/pending?token=pleasantcove2024admin');
-      if (!response.ok) {
+      const response = await api.get('/appointments/pending');
+      if (response.status !== 200) {
         throw new Error(`API Error: ${response.status} ${response.statusText}`);
       }
-      const data = await response.json();
+      const data = response.data;
       setPendingAppointments(data);
     } catch (err) {
       console.error("Failed to fetch pending appointments:", err);
@@ -395,14 +396,10 @@ export default function Schedule() {
         isAutoScheduled: false
       };
 
-      const response = await fetch('/api/appointments?token=pleasantcove2024admin', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(appointmentData),
-      });
+      const response = await api.post('/appointments', appointmentData);
 
-      if (!response.ok) {
-        const errorText = await response.text();
+      if (response.status !== 200) {
+        const errorText = response.data;
         throw new Error(`Failed to create appointment: ${response.status} ${errorText}`);
       }
 
@@ -517,14 +514,10 @@ export default function Schedule() {
         isAutoScheduled: false
       };
 
-      const response = await fetch('/api/appointments?token=pleasantcove2024admin', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newAppointmentData),
-      });
+      const response = await api.post('/appointments', newAppointmentData);
 
-      if (!response.ok) {
-        const errorText = await response.text();
+      if (response.status !== 200) {
+        const errorText = response.data;
         throw new Error(`Failed to create appointment: ${response.status} ${errorText}`);
       }
 
@@ -571,14 +564,10 @@ export default function Schedule() {
         notes: calendarEvent.resource.notes || ''
       };
 
-      const response = await fetch(`/api/appointments/${calendarEvent.resource.appointmentId}?token=pleasantcove2024admin`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(appointmentData),
-      });
+      const response = await api.put(`/appointments/${calendarEvent.resource.appointmentId}`, appointmentData);
 
-      if (!response.ok) {
-        const errorText = await response.text();
+      if (response.status !== 200) {
+        const errorText = response.data;
         throw new Error(`Failed to update appointment: ${response.status} ${errorText}`);
       }
 
@@ -635,13 +624,9 @@ export default function Schedule() {
         return;
       }
 
-      const response = await fetch(`/api/appointments/${modalData.id}?token=pleasantcove2024admin`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(appointmentData),
-      });
+      const response = await api.put(`/appointments/${modalData.id}`, appointmentData);
 
-      if (!response.ok) {
+      if (response.status !== 200) {
         throw new Error('Failed to save appointment');
       }
 
@@ -681,12 +666,10 @@ export default function Schedule() {
     if (!confirm(`Delete ${clientName}'s appointment?`)) return;
 
     try {
-      const response = await fetch(`/api/appointments/${modalData.id}?token=pleasantcove2024admin`, {
-        method: 'DELETE',
-      });
+      const response = await api.delete(`/appointments/${modalData.id}`);
 
-      if (!response.ok) {
-        const errorText = await response.text();
+      if (response.status !== 200) {
+        const errorText = response.data;
         throw new Error(`Failed to delete appointment: ${errorText}`);
       }
 

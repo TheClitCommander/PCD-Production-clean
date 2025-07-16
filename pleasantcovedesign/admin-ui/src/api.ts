@@ -9,8 +9,8 @@ const getApiBaseUrl = () => {
     return `${env.VITE_API_URL}/api`;
   }
   
-  // Always use production Railway server for now
-  return 'https://pleasantcovedesign-production.up.railway.app/api';
+  // Use local development server
+  return 'http://localhost:3000/api';
 };
 
 // Export base URL for WebSocket connections
@@ -20,8 +20,8 @@ export const getWebSocketUrl = () => {
     return env.VITE_WS_URL;
   }
   
-  // Always use production Railway server for now
-  return 'https://pleasantcovedesign-production.up.railway.app';
+  // Use local development server
+  return 'http://localhost:3000';
 };
 
 const api = axios.create({

@@ -34,7 +34,10 @@ const MessagesPanel: React.FC = () => {
   useEffect(() => {
     const fetchMessages = async () => {
       try {
+        console.log('💬 [DASHBOARD] Fetching conversations...');
         const response = await api.get('/admin/conversations')
+        console.log('💬 [DASHBOARD] Conversations response:', response.data);
+        
         const conversationData = response.data.projectMessages || []
         
         // Calculate totals
@@ -50,6 +53,8 @@ const MessagesPanel: React.FC = () => {
           }
         })
         
+        console.log('💬 [DASHBOARD] Message stats:', { totalMsgs, unreadMsgs });
+        
         setTotalMessages(totalMsgs)
         setUnreadCount(unreadMsgs)
         
@@ -61,9 +66,10 @@ const MessagesPanel: React.FC = () => {
           )
           .slice(0, 5)
           
+        console.log('💬 [DASHBOARD] Sorted conversations:', sortedConversations);
         setConversations(sortedConversations)
       } catch (error) {
-        console.error('Failed to fetch messages:', error)
+        console.error('❌ [DASHBOARD] Failed to fetch messages:', error)
       } finally {
         setLoading(false)
       }

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { Search, Phone, Mail } from 'lucide-react'
+import { Search, Phone, Mail, MessageCircle } from 'lucide-react'
 import Card from '../Card'
 import api from '../../api'
 import type { Company } from '../../../../shared/schema'
@@ -12,14 +12,18 @@ const PotentialClientsPanel: React.FC = () => {
   useEffect(() => {
     const fetchLeads = async () => {
       try {
+        console.log('🔍 [DASHBOARD] Fetching companies...');
         const response = await api.get<Company[]>('/companies')
+        console.log('🔍 [DASHBOARD] Companies response:', response.data);
+        
         // Get top 5 leads, prioritizing those without projects (new leads)
         const sortedLeads = response.data
           .sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''))
           .slice(0, 5)
+        console.log('🔍 [DASHBOARD] Sorted leads:', sortedLeads);
         setLeads(sortedLeads)
       } catch (error) {
-        console.error('Failed to fetch leads:', error)
+        console.error('❌ [DASHBOARD] Failed to fetch leads:', error)
       } finally {
         setLoading(false)
       }
@@ -33,6 +37,12 @@ const PotentialClientsPanel: React.FC = () => {
     const daysSinceCreation = (Date.now() - createdDate.getTime()) / (1000 * 60 * 60 * 24)
     return daysSinceCreation <= 7 // Consider leads from last 7 days as "new"
   }).length
+
+  const isNewLead = (lead: Company) => {
+    const createdDate = new Date(lead.createdAt || '')
+    const daysSinceCreation = (Date.now() - createdDate.getTime()) / (1000 * 60 * 60 * 24)
+    return daysSinceCreation <= 7
+  }
 
   return (
     <Card>
@@ -52,28 +62,47 @@ const PotentialClientsPanel: React.FC = () => {
       ) : (
         <div className="space-y-3">
           {leads.map((lead) => (
-            <Link
-              key={lead.id}
-              to={`/leads/${lead.id}`}
-              className="block hover:bg-gray-50 -mx-2 px-2 py-2 rounded transition-colors cursor-pointer"
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium truncate">{lead.name}</p>
-                  <p className="text-sm text-gray-500">
-                    Source: {lead.industry || 'Unknown'}
-                  </p>
+            <div key={lead.id} className="group">
+              <Link
+                to={`/leads/${lead.id}`}
+                className="block hover:bg-gray-50 -mx-2 px-2 py-2 rounded transition-colors cursor-pointer"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <p className="font-medium truncate">{lead.name}</p>
+                      {isNewLead(lead) && (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                          NEW
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-sm text-gray-500">
+                      Source: {lead.industry || 'Unknown'}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2 ml-2">
+                    {lead.phone && (
+                      <Phone className="w-4 h-4 text-green-500" />
+                    )}
+                    {lead.email && (
+                      <Mail className="w-4 h-4 text-blue-500" />
+                    )}
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault()
+                        e.stopPropagation()
+                        console.log('Quick outreach for:', lead.name)
+                        // TODO: Implement quick outreach
+                      }}
+                      className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-blue-100 rounded"
+                    >
+                      <MessageCircle className="w-4 h-4 text-blue-600" />
+                    </button>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2 ml-2">
-                  {lead.phone && (
-                    <Phone className="w-4 h-4 text-gray-400" />
-                  )}
-                  {lead.email && (
-                    <Mail className="w-4 h-4 text-gray-400" />
-                  )}
-                </div>
-              </div>
-            </Link>
+              </Link>
+            </div>
           ))}
         </div>
       )}

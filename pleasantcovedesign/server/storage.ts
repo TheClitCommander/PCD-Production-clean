@@ -14,9 +14,12 @@ const templatesTable = { tableName: 'templates' };
 const appointmentsTable = { tableName: 'appointments' };
 const progressEntriesTable = { tableName: 'progress_entries' };
 
+import { memoryDb } from './db';
+
 export class Storage {
   async markMessageAsRead(messageId: number, readAt: string): Promise<void> {
-    await db.update(projectMessagesTable).set({ readAt }).where({ id: messageId });
+    // Use the in-memory database method directly
+    await memoryDb.markMessageAsRead(messageId, readAt);
   }
   // Business operations (legacy compatibility)
   async createBusiness(data: any): Promise<Business> {

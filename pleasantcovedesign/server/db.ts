@@ -105,6 +105,7 @@ interface ProjectMessage {
   senderName: string;
   content: string;
   attachments?: string[];
+  readAt?: string;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -518,6 +519,18 @@ class InMemoryDatabase {
     return this.companies.find(c => c.email === email) || null;
   }
 
+  // Mark message as read
+  async markMessageAsRead(messageId: number, readAt: string): Promise<void> {
+    const message = this.projectMessages.find(m => m.id === messageId);
+    if (message) {
+      message.readAt = readAt;
+      this.saveToDisk(); // Save changes to disk
+      console.log(`💾 Message ${messageId} marked as read at ${readAt}`);
+    } else {
+      console.warn(`⚠️ Message ${messageId} not found for marking as read`);
+    }
+  }
+
   // Get projects by company ID
   async getProjectsByCompanyId(companyId: number): Promise<any[]> {
     return this.projects.filter(p => p.companyId === companyId);
@@ -692,6 +705,9 @@ class InMemoryDatabase {
 
 // Create singleton instance
 const memoryDb = new InMemoryDatabase();
+
+// Export the memory database instance
+export { memoryDb };
 
 // Export mock db object that matches drizzle interface
 export const db = {

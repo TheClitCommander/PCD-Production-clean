@@ -3556,6 +3556,29 @@ export async function registerRoutes(app: Express, io: any) {
     }
   });
 
+  // Admin endpoint to mark individual message as read
+  app.post("/api/messages/:id/read", requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const messageId = parseInt(req.params.id);
+      const readAt = new Date().toISOString();
+      
+      console.log(`📖 [ADMIN_READ] Admin marking message ${messageId} as read`);
+      
+      await storage.markMessageAsRead(messageId, readAt);
+      
+      // Broadcast read status to admin room
+      io.to('admin-room').emit('messageRead', {
+        messageId,
+        readAt
+      });
+      
+      res.json({ success: true, readAt });
+    } catch (error) {
+      console.error("Failed to mark message as read:", error);
+      res.status(500).json({ error: "Failed to mark message as read" });
+    }
+  });
+
   // ===================
   // ADMIN BYPASS ROUTES (No Authentication Required for Local Development)
   // ===================

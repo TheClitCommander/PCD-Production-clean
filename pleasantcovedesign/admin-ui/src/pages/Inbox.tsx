@@ -110,8 +110,11 @@ const Inbox: React.FC = () => {
     const unreadMessages = conversation.messages.filter(m => m.senderType === 'client' && !m.readAt);
     const readAt = new Date().toISOString();
     
+    console.log(`📖 [READ_MESSAGES] Found ${unreadMessages.length} unread messages for ${conversation.customerName}`);
+    
     for (const msg of unreadMessages) {
       try {
+        console.log(`📖 [READ_MESSAGES] Marking message ${msg.id} as read`);
         await api.post(`/messages/${msg.id}/read`);
       } catch (error) {
         console.error('Failed to mark message as read:', error);
@@ -398,7 +401,8 @@ const Inbox: React.FC = () => {
             console.log(`🎯 [AUTO_SELECT] Auto-selecting first conversation: ${conversationToSelect.customerName}`);
           }
           
-          setSelectedConversation(conversationToSelect);
+          // Use handleConversationSelect to ensure messages are marked as read
+          await handleConversationSelect(conversationToSelect);
           autoSelectedRef.current = true;
         }
         

@@ -76,7 +76,7 @@ const AppointmentsPanel: React.FC = () => {
           {appointments.map((appointment) => (
             <Link
               key={appointment.id}
-              to={`/schedule/${appointment.id}`}
+              to="/schedule"
               className="block hover:bg-gray-50 -mx-2 px-2 py-2 rounded transition-colors cursor-pointer"
             >
               <div className="flex items-start gap-2">

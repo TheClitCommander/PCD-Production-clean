@@ -11,6 +11,7 @@ import Progress from './pages/Progress'
 import Schedule from './pages/Schedule'
 import Settings from './pages/Settings'
 import ClientProfile from './pages/ClientProfile'
+import BookAppointment from './pages/BookAppointment'
 
 // Error boundary component
 class ErrorBoundary extends React.Component<
@@ -72,9 +73,8 @@ const App: React.FC = () => {
             <Route path="clients/:id" element={<ClientProfile />} />
             <Route path="interactions" element={<Interactions />} />
             <Route path="progress" element={<Progress />} />
-            <Route path="progress/:id" element={<Progress />} />
             <Route path="schedule" element={<Schedule />} />
-            <Route path="schedule/:id" element={<Schedule />} />
+            <Route path="book-appointment" element={<BookAppointment />} />
             <Route path="settings" element={<Settings />} />
           </Route>
           

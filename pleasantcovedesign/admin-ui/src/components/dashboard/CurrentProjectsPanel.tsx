@@ -84,7 +84,7 @@ const CurrentProjectsPanel: React.FC = () => {
           {projects.map((project) => (
             <Link
               key={project.id}
-              to={`/progress/${project.id}`}
+              to="/progress"
               className="block hover:bg-gray-50 -mx-2 px-2 py-2 rounded transition-colors cursor-pointer"
             >
               <div className="space-y-1">

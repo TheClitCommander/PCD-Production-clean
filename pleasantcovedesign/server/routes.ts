@@ -4068,6 +4068,28 @@ Booked via: ${source}
     }
   });
 
+  // Update company (for approval toggles and other updates)
+  app.patch("/api/companies/:id", requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const companyId = parseInt(req.params.id);
+      const updates = req.body;
+      
+      console.log(`🔄 [COMPANY_UPDATE] Updating company ${companyId}:`, updates);
+      
+      const updatedCompany = await storage.updateCompany(companyId, updates);
+      
+      if (!updatedCompany) {
+        return res.status(404).json({ error: "Company not found" });
+      }
+      
+      console.log(`✅ [COMPANY_UPDATE] Company ${companyId} updated successfully`);
+      res.json(updatedCompany);
+    } catch (error) {
+      console.error("Failed to update company:", error);
+      res.status(500).json({ error: "Failed to update company" });
+    }
+  });
+
   // Get activities for admin dashboard
   app.get("/api/activities", requireAdmin, async (req: Request, res: Response) => {
     try {

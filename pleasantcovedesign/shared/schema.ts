@@ -36,6 +36,7 @@ export interface Company {
   website?: string;
   priority?: string;
   tags?: string[];
+  contactApproved?: boolean; // Approval gate for outreach
   createdAt?: string;
   updatedAt?: string;
 }

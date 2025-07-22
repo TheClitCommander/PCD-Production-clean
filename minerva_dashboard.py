@@ -9,10 +9,16 @@ import os
 from minerva_outreach_assistant import MinervaOutreachAssistant
 from minerva_visual_generator import MinervaVisualGenerator
 import requests
+from datetime import datetime
+import logging
 
 app = Flask(__name__)
 minerva = MinervaOutreachAssistant()
 visual_generator = MinervaVisualGenerator()
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # Simple HTML template
 DASHBOARD_TEMPLATE = """
@@ -499,6 +505,135 @@ def health():
         'message': 'Minerva is ready to help!',
         'visual_generator': 'enabled'
     })
+
+@app.route('/api/track/view', methods=['POST'])
+def track_demo_view():
+    """Track when someone views a demo"""
+    try:
+        data = request.get_json()
+        demo_id = data.get('demo_id')
+        tracking_token = data.get('tracking_token')
+        user_agent = data.get('user_agent')
+        
+        result = visual_generator.track_demo_view(demo_id, tracking_token, user_agent)
+        
+        # Log to analytics file
+        analytics_log = {
+            'event': 'demo_viewed',
+            'timestamp': datetime.now().isoformat(),
+            'demo_id': demo_id,
+            'tracking_token': tracking_token,
+            'user_agent': user_agent
+        }
+        
+        # Save to analytics log
+        with open('analytics.log', 'a') as f:
+            f.write(json.dumps(analytics_log) + '\n')
+        
+        return jsonify(result)
+        
+    except Exception as e:
+        logger.error(f"View tracking failed: {e}")
+        return jsonify({'tracked': False, 'error': str(e)}), 500
+
+@app.route('/api/track/cta', methods=['POST'])
+def track_cta_click():
+    """Track when someone clicks a CTA in the demo"""
+    try:
+        data = request.get_json()
+        demo_id = data.get('demo_id')
+        tracking_token = data.get('tracking_token')
+        cta_type = data.get('cta_type')
+        
+        result = visual_generator.track_cta_click(demo_id, tracking_token, cta_type)
+        
+        # Log to analytics file
+        analytics_log = {
+            'event': 'cta_clicked',
+            'timestamp': datetime.now().isoformat(),
+            'demo_id': demo_id,
+            'tracking_token': tracking_token,
+            'cta_type': cta_type
+        }
+        
+        # Save to analytics log
+        with open('analytics.log', 'a') as f:
+            f.write(json.dumps(analytics_log) + '\n')
+        
+        return jsonify(result)
+        
+    except Exception as e:
+        logger.error(f"CTA tracking failed: {e}")
+        return jsonify({'tracked': False, 'error': str(e)}), 500
+
+@app.route('/preview/<demo_id>')
+def secure_demo_preview(demo_id):
+    """Serve demo with token-based security"""
+    try:
+        token = request.args.get('token')
+        if not token:
+            return "Access denied: Missing token", 403
+        
+        # Load demo file
+        demo_file = os.path.join(visual_generator.output_dir, f"{demo_id}.html")
+        if not os.path.exists(demo_file):
+            return "Demo not found", 404
+        
+        # Track the view
+        user_agent = request.headers.get('User-Agent', '')
+        visual_generator.track_demo_view(demo_id, token, user_agent)
+        
+        # Serve the HTML file
+        with open(demo_file, 'r', encoding='utf-8') as f:
+            content = f.read()
+        
+        return content, 200, {'Content-Type': 'text/html'}
+        
+    except Exception as e:
+        logger.error(f"Preview serving failed: {e}")
+        return "Error loading demo", 500
+
+@app.route('/api/analytics/summary')
+def analytics_summary():
+    """Get analytics summary"""
+    try:
+        analytics_data = []
+        
+        # Read analytics log if it exists
+        if os.path.exists('analytics.log'):
+            with open('analytics.log', 'r') as f:
+                for line in f:
+                    try:
+                        analytics_data.append(json.loads(line.strip()))
+                    except:
+                        continue
+        
+        # Group by demo_id and event type
+        summary = {}
+        for event in analytics_data:
+            demo_id = event.get('demo_id')
+            event_type = event.get('event')
+            
+            if demo_id not in summary:
+                summary[demo_id] = {'views': 0, 'cta_clicks': 0, 'events': []}
+            
+            if event_type == 'demo_viewed':
+                summary[demo_id]['views'] += 1
+            elif event_type == 'cta_clicked':
+                summary[demo_id]['cta_clicks'] += 1
+            
+            summary[demo_id]['events'].append(event)
+        
+        return jsonify({
+            'total_demos': len(summary),
+            'total_views': sum(demo['views'] for demo in summary.values()),
+            'total_cta_clicks': sum(demo['cta_clicks'] for demo in summary.values()),
+            'demos': summary
+        })
+        
+    except Exception as e:
+        logger.error(f"Analytics summary failed: {e}")
+        return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
     print("🤖 Starting Minerva Dashboard with Visual Demo Generator...")

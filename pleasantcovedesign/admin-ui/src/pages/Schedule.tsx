@@ -230,11 +230,13 @@ export default function Schedule() {
       if (response.status !== 200) {
         throw new Error(`API Error: ${response.status} ${response.statusText}`);
       }
-      const appointments = response.data;
+      // Handle both wrapped response format {success: true, appointments: [...]} and direct array
+      const appointments = response.data.appointments || response.data;
       
-      const mapped: CalendarEvent[] = await Promise.all(
+      const mapped: CalendarEvent[] = (await Promise.all(
         appointments.map(async (apt: any) => {
-          let companyName = apt.client_name || 'Unknown Company';
+          // Handle different client name formats
+          let companyName = apt.client_name || `${apt.firstName || ''} ${apt.lastName || ''}`.trim() || 'Unknown Company';
           let projectTitle = '';
           let projectType = '';
 
@@ -256,11 +258,25 @@ export default function Schedule() {
             ? `${projectTitle} – ${companyName}`
             : apt.client_name || apt.notes || 'Appointment';
 
+          // Handle both datetime field and separate appointmentDate/appointmentTime fields
+          let appointmentDateTime;
+          if (apt.datetime) {
+            appointmentDateTime = new Date(apt.datetime);
+          } else if (apt.appointmentDate && apt.appointmentTime) {
+            // Combine appointmentDate and appointmentTime into a proper datetime
+            const dateStr = apt.appointmentDate; // "2025-07-17"
+            const timeStr = apt.appointmentTime; // "8:30 AM"
+            appointmentDateTime = new Date(`${dateStr} ${timeStr}`);
+          } else {
+            console.warn('Appointment missing datetime information:', apt);
+            return null; // Skip this appointment
+          }
+
           return {
             id: apt.id.toString(),
             title,
-            start: new Date(apt.datetime),
-            end: new Date(new Date(apt.datetime).getTime() + 25 * 60000),
+            start: appointmentDateTime,
+            end: new Date(appointmentDateTime.getTime() + 25 * 60000),
             resource: {
               appointmentId: apt.id,
               companyId: apt.companyId,
@@ -283,7 +299,7 @@ export default function Schedule() {
             }
           };
         })
-      );
+      )).filter(event => event !== null) as CalendarEvent[];
       
       setEvents(mapped);
     } catch (err) {

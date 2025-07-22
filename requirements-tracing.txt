@@ -1,0 +1,18 @@
+# Distributed Tracing Requirements
+opentelemetry-api==1.22.0
+opentelemetry-sdk==1.22.0
+opentelemetry-instrumentation-flask==0.43b0
+opentelemetry-instrumentation-requests==0.43b0
+opentelemetry-instrumentation-redis==0.43b0
+opentelemetry-instrumentation-sqlalchemy==0.43b0
+opentelemetry-instrumentation-logging==0.43b0
+opentelemetry-exporter-jaeger==1.22.0
+opentelemetry-propagator-b3==1.22.0
+
+# Include circuit breaker requirements
+pybreaker==1.0.2
+redis==5.0.1
+PyJWT==2.8.0
+flask==3.0.0
+flask-cors==4.0.0
+requests==2.31.0 

@@ -170,7 +170,7 @@ function generateProjectToken(): string {
 
 // Email configuration (consolidated from appointment-server.js)  
 const createEmailTransporter = () => {
-  return nodemailer.createTransporter({
+  return nodemailer.createTransport({
     host: process.env.SMTP_HOST || 'smtp.gmail.com',
     port: parseInt(process.env.SMTP_PORT || '587'),
     secure: false,
@@ -431,10 +431,12 @@ export async function registerRoutes(app: Express, io: any) {
       
       const appointment = await storage.createAppointment(appointmentData);
       
-      // Send confirmation emails
-      const transporter = createEmailTransporter();
+      // Send confirmation emails (disabled for development)
+      // const transporter = createEmailTransporter();
       
-      try {
+              try {
+        console.log('📧 Email sending disabled for development');
+        /* 
         // Email to client
         await transporter.sendMail({
           from: '"Pleasant Cove Design" <pleasantcovedesign@gmail.com>',
@@ -483,6 +485,7 @@ export async function registerRoutes(app: Express, io: any) {
             <p><strong>Additional Notes:</strong> ${additionalNotes || 'None'}</p>
           `
         });
+        */
       } catch (emailError) {
         console.error('Email error:', emailError);
         // Don't fail the appointment if email fails
@@ -3927,8 +3930,10 @@ Booked via: ${source}
 
       console.log('✅ Comprehensive appointment booking completed successfully');
 
-      // Send confirmation email
+      // Send confirmation email (disabled for development)
       try {
+        console.log('📧 Confirmation email disabled for development');
+        /*
         await sendAppointmentConfirmationEmail({
           to: email,
           clientName: `${firstName} ${lastName}`,
@@ -3940,6 +3945,7 @@ Booked via: ${source}
           appointmentId: appointment.id // Include appointment ID for action links
         });
         console.log('📧 Confirmation email sent successfully');
+        */
       } catch (emailError) {
         console.error('⚠️ Failed to send confirmation email:', emailError);
         // Don't fail the whole request if email fails

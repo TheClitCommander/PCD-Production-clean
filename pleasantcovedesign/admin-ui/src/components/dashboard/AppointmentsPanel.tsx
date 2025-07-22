@@ -8,6 +8,10 @@ interface Appointment {
   id: number
   client_name: string
   appointment_time: string
+  appointmentDate?: string  // Add this field to match actual API data
+  appointmentTime?: string  // Add this field to match actual API data
+  firstName?: string        // Add this field to match actual API data
+  lastName?: string         // Add this field to match actual API data
   service_type?: string
   notes?: string
   status?: string
@@ -22,21 +26,30 @@ const AppointmentsPanel: React.FC = () => {
       try {
         const response = await api.get<Appointment[]>('/appointments')
         
-        // Filter for today's appointments
+        // Filter for recent appointments (today and yesterday)
         const today = new Date()
         today.setHours(0, 0, 0, 0)
+        const yesterday = new Date(today)
+        yesterday.setDate(today.getDate() - 1)
         const tomorrow = new Date(today)
         tomorrow.setDate(tomorrow.getDate() + 1)
         
-        const todaysAppointments = response.data
-          .filter(apt => {
-            const aptDate = new Date(apt.appointment_time)
-            return aptDate >= today && aptDate < tomorrow && apt.status !== 'cancelled'
+        // Handle both wrapped response format {success: true, appointments: [...]} and direct array
+        const appointments = (response.data as any).appointments || response.data
+        const recentAppointments = (appointments as Appointment[])
+          .filter((apt: Appointment) => {
+            // Use appointmentDate field (which exists) instead of appointment_time (which is null)
+            const aptDate = new Date(apt.appointmentDate || apt.appointment_time)
+            return aptDate >= yesterday && aptDate < tomorrow && apt.status !== 'cancelled'
           })
-          .sort((a, b) => new Date(a.appointment_time).getTime() - new Date(b.appointment_time).getTime())
+          .sort((a: Appointment, b: Appointment) => {
+            const aDateTime = a.appointmentDate || a.appointment_time;
+            const bDateTime = b.appointmentDate || b.appointment_time;
+            return new Date(aDateTime).getTime() - new Date(bDateTime).getTime();
+          })
           .slice(0, 5) // Max 5 appointments
           
-        setAppointments(todaysAppointments)
+        setAppointments(recentAppointments)
       } catch (error) {
         console.error('Failed to fetch appointments:', error)
       } finally {
@@ -62,7 +75,7 @@ const AppointmentsPanel: React.FC = () => {
         <div className="flex items-center gap-2 mb-4 hover:text-blue-600 transition-colors cursor-pointer">
           <Calendar className="w-5 h-5" />
           <h3 className="text-lg font-semibold">
-            Appointments ({appointments.length} today)
+            Appointments ({appointments.length} recent)
           </h3>
         </div>
       </Link>
@@ -70,7 +83,7 @@ const AppointmentsPanel: React.FC = () => {
       {loading ? (
         <div className="text-center py-4 text-gray-500">Loading...</div>
       ) : appointments.length === 0 ? (
-        <div className="text-center py-4 text-gray-500">No appointments today</div>
+        <div className="text-center py-4 text-gray-500">No recent appointments</div>
       ) : (
         <div className="space-y-3">
           {appointments.map((appointment) => (
@@ -81,7 +94,7 @@ const AppointmentsPanel: React.FC = () => {
             >
               <div className="flex items-start gap-2">
                 <span className="text-sm font-medium text-gray-600 whitespace-nowrap">
-                  {formatTime(appointment.appointment_time)}
+                  {appointment.appointmentTime || formatTime(appointment.appointment_time)}
                 </span>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm">
@@ -92,7 +105,9 @@ const AppointmentsPanel: React.FC = () => {
                       <span className="text-gray-500"> (Regarding)</span>
                     )}
                     {' • '}
-                    <span className="text-gray-700">{appointment.client_name}</span>
+                    <span className="text-gray-700">
+                      {appointment.client_name || `${appointment.firstName || ''} ${appointment.lastName || ''}`.trim()}
+                    </span>
                   </p>
                 </div>
               </div>

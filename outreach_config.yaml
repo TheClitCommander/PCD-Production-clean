@@ -1,0 +1,128 @@
+# Pleasant Cove Design Outreach Configuration
+# Edit templates here without touching code!
+
+# Email/SMS provider settings
+email_provider: sendgrid
+sms_provider: twilio
+
+# Sender information
+from_email: "ben@pleasantcovedesign.com"
+from_phone: "+12075551234"  # Replace with your Twilio number
+
+# Message templates
+templates:
+  # Email Templates
+  cold_email_v1:
+    channel: email
+    subject: "Hey {business_name}, let's get your website live!"
+    body: |
+      Hi {business_name} team,
+
+      I noticed you don't have a website yet—and with your {rating}⭐ Google rating from {reviews} reviews, you'd really shine online!
+      
+      We specialize in building modern, mobile-friendly websites for local businesses in {location}. Here's what we offer:
+      
+      ✅ Professional design that matches your brand
+      ✅ Built in 1-2 weeks
+      ✅ Hosting, maintenance, and basic SEO included
+      ✅ No huge upfront costs—affordable monthly plans
+      
+      Interested in a free audit of your online presence? I can show you exactly what you're missing out on.
+      
+      Cheers,
+      Ben Dickinson
+      Pleasant Cove Design
+      
+      P.S. Check out some of our work at pleasantcovedesign.com
+
+  cold_email_v2:
+    channel: email
+    subject: "Quick question about {business_name}'s online presence"
+    body: |
+      Hi there,
+      
+      I was looking for {business_type} in {location} and found {business_name} on Google Maps. 
+      Your {rating}⭐ rating caught my eye, but I noticed you don't have a website.
+      
+      In today's world, even loyal customers expect to find you online. You're probably losing business to competitors with websites.
+      
+      We've helped dozens of Maine businesses get online quickly and affordably. Would you be interested in a quick 15-minute call to discuss your options?
+      
+      Best regards,
+      Ben
+      Pleasant Cove Design
+
+  follow_up_email_v1:
+    channel: email
+    subject: "Re: {business_name}'s website"
+    body: |
+      Hi {business_name} team,
+      
+      Just following up on my previous email about getting your business online.
+      
+      I know you're busy running {business_name}, so I'll keep this short:
+      
+      • We can have your site live in 7-10 days
+      • Monthly plans start at just $99
+      • You'll own your domain and content
+      • Mobile-friendly design included
+      
+      Want to chat for 5 minutes? Reply with a good time to call.
+      
+      Thanks,
+      Ben
+
+  # SMS Templates
+  sms_intro_v1:
+    channel: sms
+    body: |
+      Hi {business_name}! Ben from Pleasant Cove Design here. I noticed you don't have a website yet. 
+      With your great {rating}⭐ reviews, you'd do well online! Interested in a quick chat? 
+      Reply YES for info or STOP to opt out.
+
+  sms_follow_up_v1:
+    channel: sms
+    body: |
+      Hey {business_name}, Ben here from Pleasant Cove Design—did you get my note about your online presence? 
+      Happy to answer any questions! 👍 Reply STOP to opt out.
+
+  sms_special_offer:
+    channel: sms
+    body: |
+      {business_name}: Special offer this week only! 50% off setup for new websites. 
+      Your {rating}⭐ rating deserves to be seen online. Interested? 
+      -Ben @ Pleasant Cove
+
+  # Warm Templates (for interested leads)
+  warm_email_v1:
+    channel: email
+    subject: "Your {business_name} website mockup is ready!"
+    body: |
+      Hi {business_name},
+      
+      Thanks for your interest! I've put together a quick mockup of what your website could look like.
+      
+      [Link to mockup would go here]
+      
+      A few highlights:
+      • Clean, professional design
+      • Mobile-responsive layout
+      • Easy-to-find contact info and hours
+      • Integration with your Google reviews
+      
+      When would be a good time for a quick 15-minute call to go over this?
+      
+      Looking forward to working with you!
+      
+      Ben
+      Pleasant Cove Design
+
+# Campaign settings
+campaign_defaults:
+  rate_limit: 2.0  # seconds between messages
+  daily_limit: 50  # max messages per day
+  business_hours_only: true
+  business_hours:
+    start: "09:00"
+    end: "17:00"
+    timezone: "America/New_York" 

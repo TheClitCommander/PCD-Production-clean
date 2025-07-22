@@ -578,6 +578,41 @@ class InMemoryDatabase {
     return newId;
   }
 
+  // Delete company
+  async deleteCompany(id: number): Promise<boolean> {
+    const initialLength = this.companies.length;
+    this.companies = this.companies.filter(company => company.id !== id);
+    
+    if (this.companies.length < initialLength) {
+      // Also delete associated projects
+      this.projects = this.projects.filter(project => project.companyId !== id);
+      
+      // Save to disk after deletion
+      this.saveToDisk();
+      return true;
+    }
+    
+    return false;
+  }
+
+  // Delete project
+  async deleteProject(id: number): Promise<boolean> {
+    const initialLength = this.projects.length;
+    this.projects = this.projects.filter(project => project.id !== id);
+    
+    if (this.projects.length < initialLength) {
+      // Also delete associated messages and files
+      this.projectMessages = this.projectMessages.filter(message => message.projectId !== id);
+      this.projectFiles = this.projectFiles.filter(file => file.projectId !== id);
+      
+      // Save to disk after deletion
+      this.saveToDisk();
+      return true;
+    }
+    
+    return false;
+  }
+
   // Create new project
   async createProject(data: any): Promise<number> {
     const newId = Math.max(...this.projects.map(p => p.id), 0) + 1;

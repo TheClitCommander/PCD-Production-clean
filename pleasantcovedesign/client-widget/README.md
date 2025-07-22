@@ -10,6 +10,7 @@ This package contains everything you need to integrate appointment booking and m
 squarespace-widgets/
 ├── appointment-booking.html    # Appointment booking widget
 ├── messaging-widget.html      # Real-time messaging widget  
+├── meeting-access.html        # Client meeting access portal
 ├── demo.html                  # Interactive demo page
 ├── SETUP_GUIDE.md            # Complete integration guide
 └── README.md                 # This file
@@ -47,6 +48,14 @@ To see the widgets in action:
 - **Connection status** indicator
 - **Auto-scroll** to new messages
 - **Professional chat interface**
+
+### 🎥 Meeting Access Portal
+- **View all appointments** with meeting details
+- **One-click Zoom join** for video meetings
+- **Meeting credentials** display (ID, password)
+- **Meeting type indicators** (Zoom, phone, FaceTime)
+- **Copy-to-clipboard** for meeting IDs
+- **Mobile responsive** design
 
 ---
 

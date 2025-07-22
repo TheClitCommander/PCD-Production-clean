@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.pleasantcovedesign.launcher</string>
+    
+    <key>ProgramArguments</key>
+    <array>
+        <string>/bin/bash</string>
+        <string>/Users/bendickinson/Desktop/pleasantcovedesign/pleasantcove-launcher.sh</string>
+        <string>monitor</string>
+    </array>
+    
+    <key>WorkingDirectory</key>
+    <string>/Users/bendickinson/Desktop/pleasantcovedesign</string>
+    
+    <key>RunAtLoad</key>
+    <true/>
+    
+    <key>KeepAlive</key>
+    <true/>
+    
+    <key>RestartInterval</key>
+    <integer>30</integer>
+    
+    <key>StandardOutPath</key>
+    <string>/Users/bendickinson/Desktop/pleasantcovedesign/pleasant-cove.log</string>
+    
+    <key>StandardErrorPath</key>
+    <string>/Users/bendickinson/Desktop/pleasantcovedesign/pleasant-cove-error.log</string>
+    
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>NODE_ENV</key>
+        <string>development</string>
+        <key>PATH</key>
+        <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
+    </dict>
+    
+    <key>ProcessType</key>
+    <string>Background</string>
+</dict>
+</plist> 

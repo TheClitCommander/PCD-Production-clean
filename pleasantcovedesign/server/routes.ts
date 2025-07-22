@@ -18,6 +18,7 @@ import {
   generateConversationMetadata, 
   validateTokenFormat 
 } from './utils/tokenGenerator.js';
+import { zoomIntegration } from './zoom-integration.js';
 import { 
   validateChatToken, 
   securityLoggingMiddleware, 
@@ -333,6 +334,7 @@ export async function registerRoutes(app: Express, io: any) {
         timeline,
         appointmentDate,
         appointmentTime,
+        meetingType,
         additionalNotes
       } = req.body;
 
@@ -425,11 +427,43 @@ export async function registerRoutes(app: Express, io: any) {
         timeline,
         appointmentDate,
         appointmentTime,
+        meetingType: meetingType || 'zoom',
         additionalNotes: additionalNotes || '',
         status: 'pending'
       };
       
       const appointment = await storage.createAppointment(appointmentData);
+      
+      // Create Zoom meeting if needed
+      let meetingDetails = null;
+      if (meetingType === 'zoom') {
+        const appointmentDateTime = new Date(`${appointmentDate} ${appointmentTime}`);
+        const zoomMeeting = await zoomIntegration.createMeeting({
+          topic: `Pleasant Cove Design Consultation - ${firstName} ${lastName}`,
+          startTime: appointmentDateTime,
+          duration: 30,
+          agenda: `Consultation meeting to discuss: ${services}\n\nProject: ${projectDescription}`,
+          settings: {
+            hostVideo: true,
+            participantVideo: true,
+            joinBeforeHost: true,
+            muteUponEntry: false,
+            waitingRoom: false
+          }
+        });
+        
+        if (zoomMeeting) {
+          meetingDetails = zoomIntegration.formatMeetingDetails(zoomMeeting);
+          
+          // Update appointment with Zoom details
+          await storage.updateAppointment(appointment.id!, {
+            meetingLink: zoomMeeting.joinUrl,
+            meetingId: zoomMeeting.id,
+            meetingPassword: zoomMeeting.password,
+            meetingInstructions: meetingDetails
+          });
+        }
+      }
       
       // Send confirmation emails (disabled for development)
       // const transporter = createEmailTransporter();
@@ -3280,7 +3314,12 @@ export async function registerRoutes(app: Express, io: any) {
           duration: apt.duration,
           serviceType: apt.serviceType,
           status: apt.status,
-          notes: apt.notes
+          notes: apt.notes,
+          meetingType: apt.meetingType,
+          meetingLink: apt.meetingLink,
+          meetingId: apt.meetingId,
+          meetingPassword: apt.meetingPassword,
+          meetingInstructions: apt.meetingInstructions
         })),
         messages: messages || [],
         totalAppointments: appointments.length,
@@ -3748,6 +3787,7 @@ export async function registerRoutes(app: Express, io: any) {
         timeline,
         appointmentDate,
         appointmentTime,
+        meetingType,
         additionalNotes,
         source,
         timestamp
@@ -3894,6 +3934,7 @@ Initial Consultation Appointment
 Services Requested: ${typeof services === 'string' ? services : services.join(', ')}
 Budget: ${budget}
 Timeline: ${timeline || 'Not specified'}
+Meeting Type: ${meetingType === 'zoom' ? 'Zoom Video Call' : meetingType === 'phone' ? 'Phone Call' : meetingType === 'facetime' ? 'FaceTime' : 'Zoom Video Call'}
 
 Project Description:
 ${projectDescription}
@@ -3911,6 +3952,7 @@ Booked via: ${source}
         serviceType: typeof services === 'string' ? services : services.join(', '),
         duration: 30,
         isAutoScheduled: true,
+        meetingType: meetingType || 'zoom',
         firstName,
         lastName,
         email,
@@ -3919,6 +3961,36 @@ Booked via: ${source}
 
       const appointment = await storage.createAppointment(appointmentData);
       console.log(`✅ Created appointment: ID ${appointment.id}`);
+
+      // Create Zoom meeting if needed
+      let meetingDetails = null;
+      if (meetingType === 'zoom') {
+        const zoomMeeting = await zoomIntegration.createMeeting({
+          topic: `Pleasant Cove Design Consultation - ${firstName} ${lastName}`,
+          startTime: new Date(appointmentData.datetime),
+          duration: 30,
+          agenda: `Consultation meeting to discuss: ${typeof services === 'string' ? services : services.join(', ')}\n\nProject: ${projectDescription}`,
+          settings: {
+            hostVideo: true,
+            participantVideo: true,
+            joinBeforeHost: true,
+            muteUponEntry: false,
+            waitingRoom: false
+          }
+        });
+        
+        if (zoomMeeting) {
+          meetingDetails = zoomIntegration.formatMeetingDetails(zoomMeeting);
+          
+          // Update appointment with Zoom details
+          await storage.updateAppointment(appointment.id!, {
+            meetingLink: zoomMeeting.joinUrl,
+            meetingId: zoomMeeting.id,
+            meetingPassword: zoomMeeting.password,
+            meetingInstructions: meetingDetails
+          });
+        }
+      }
 
       // Create activity log
       await storage.createActivity({
@@ -4847,4 +4919,85 @@ Booked via: ${source}
   });
 
   // Correctly closing the function
+  
+  // Simple tracking endpoints for CRM integration
+  app.get('/api/leads/tracking/summary', requireAdmin, (req: Request, res: Response) => {
+    // Mock tracking summary for now
+    res.json({
+      total_leads: 4,
+      demo_view_rate: 75.0,
+      cta_click_rate: 25.0,
+      reply_rate: 12.5,
+      lead_categories: {
+        hot: 1,
+        warm: 2, 
+        cold: 1,
+        dead: 0
+      }
+    });
+  });
+
+  app.get('/api/leads/:id/tracking', requireAdmin, (req: Request, res: Response) => {
+    const leadId = req.params.id;
+    
+    // Mock tracking data based on lead ID
+    const trackingData = {
+      '1': { demo_views: 0, cta_clicks: 0, conversations: 0, lead_info: { status: 'demo_sent' } },
+      '2': { demo_views: 0, cta_clicks: 0, conversations: 0, lead_info: { status: 'demo_sent' } },
+      '3': { demo_views: 3, cta_clicks: 0, conversations: 0, lead_info: { status: 'viewed_demo' } },
+      '4': { demo_views: 3, cta_clicks: 0, conversations: 0, lead_info: { status: 'viewed_demo' } }
+    };
+    
+    res.json(trackingData[leadId] || { error: 'Lead not found' });
+  });
+
+  // Delete company endpoint
+  app.delete('/api/companies/:id', requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const companyId = parseInt(req.params.id);
+      
+      if (isNaN(companyId)) {
+        return res.status(400).json({ error: 'Invalid company ID' });
+      }
+
+      // Remove from storage
+      const success = await storage.deleteCompany(companyId);
+      
+      if (success) {
+        console.log(`✅ [DELETE] Company ${companyId} deleted successfully`);
+        res.json({ success: true, message: 'Company deleted successfully' });
+      } else {
+        console.log(`❌ [DELETE] Company ${companyId} not found`);
+        res.status(404).json({ error: 'Company not found' });
+      }
+    } catch (error) {
+      console.error('❌ [DELETE] Failed to delete company:', error);
+      res.status(500).json({ error: 'Failed to delete company' });
+    }
+  });
+
+  // Delete project/conversation endpoint  
+  app.delete('/api/projects/:id', requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      
+      if (isNaN(projectId)) {
+        return res.status(400).json({ error: 'Invalid project ID' });
+      }
+
+      // Remove from storage
+      const success = await storage.deleteProject(projectId);
+      
+      if (success) {
+        console.log(`✅ [DELETE] Project ${projectId} deleted successfully`);
+        res.json({ success: true, message: 'Project deleted successfully' });
+      } else {
+        console.log(`❌ [DELETE] Project ${projectId} not found`);
+        res.status(404).json({ error: 'Project not found' });
+      }
+    } catch (error) {
+      console.error('❌ [DELETE] Failed to delete project:', error);
+      res.status(500).json({ error: 'Failed to delete project' });
+    }
+  });
 }

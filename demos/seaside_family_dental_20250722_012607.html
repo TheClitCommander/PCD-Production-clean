@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seaside Family Dental - Professional Website</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #333;
+        }
+        
+        .hero {
+            background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url('https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&w=1200&h=600');
+            background-size: cover;
+            background-position: center;
+            height: 70vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: white;
+        }
+        
+        .hero-content {
+            max-width: 800px;
+            padding: 2rem;
+        }
+        
+        .hero h1 {
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+        
+        .hero p {
+            font-size: 1.5rem;
+            margin-bottom: 2rem;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+        }
+        
+        .cta-button {
+            background: #2563eb;
+            color: white;
+            padding: 1rem 2rem;
+            font-size: 1.2rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+        
+        .section {
+            padding: 4rem 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+        
+        .service-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            text-align: center;
+            transition: transform 0.2s;
+        }
+        
+        .service-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .contact-info {
+            background: #f8fafc;
+            padding: 3rem 2rem;
+            text-align: center;
+        }
+        
+        .rating {
+            color: #ffffff;
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+        }
+        
+        .footer {
+            background: #1f2937;
+            color: white;
+            text-align: center;
+            padding: 2rem;
+        }
+        
+        .watermark {
+            font-size: 0.9rem;
+            opacity: 0.7;
+            margin-top: 1rem;
+        }
+        
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+            
+            .hero p {
+                font-size: 1.2rem;
+            }
+            
+            .section {
+                padding: 2rem 1rem;
+            }
+        }
+    </style>
+    
+    <!-- Analytics Tracking -->
+    <script>
+        // Track page view
+        fetch('/api/track/view', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                demo_id: 'seaside_family_dental_20250722_012607',
+                tracking_token: '1a67d052-5beb-420b-9ac9-38d1b52c1fbb',
+                user_agent: navigator.userAgent,
+                timestamp: new Date().toISOString()
+            })
+        }).catch(console.error);
+        
+        // Track CTA clicks
+        function trackCTA(ctaType) {
+            fetch('/api/track/cta', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    demo_id: 'seaside_family_dental_20250722_012607',
+                    tracking_token: '1a67d052-5beb-420b-9ac9-38d1b52c1fbb',
+                    cta_type: ctaType,
+                    timestamp: new Date().toISOString()
+                })
+            }).catch(console.error);
+        }
+    </script>
+</head>
+<body>
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <h1>Seaside Family Dental - Complete Dental Care</h1>
+            <p>Healthy Smiles, Exceptional Care</p>
+            <a href="tel:(207) 555-0654" class="cta-button" onclick="trackCTA('phone')">Book Your Appointment</a>
+        </div>
+    </section>
+    
+    <!-- Services Section -->
+    <section class="section">
+        <h2 style="text-align: center; font-size: 2.5rem; margin-bottom: 2rem; color: #2563eb;">Our Services</h2>
+        <div class="services-grid">
+            <div class="service-card">
+                <h3 style="color: #2563eb; margin-bottom: 1rem;">General Dentistry</h3>
+                <p>Professional general dentistry services you can trust.</p>
+            </div>
+            <div class="service-card">
+                <h3 style="color: #2563eb; margin-bottom: 1rem;">Cleanings & Exams</h3>
+                <p>Professional cleanings & exams services you can trust.</p>
+            </div>
+            <div class="service-card">
+                <h3 style="color: #2563eb; margin-bottom: 1rem;">Cosmetic Dentistry</h3>
+                <p>Professional cosmetic dentistry services you can trust.</p>
+            </div>
+            <div class="service-card">
+                <h3 style="color: #2563eb; margin-bottom: 1rem;">Emergency Care</h3>
+                <p>Professional emergency care services you can trust.</p>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Contact Information -->
+    <section class="contact-info">
+        <div class="rating">⭐ 4.9 Star Rating</div>
+        <h2 style="color: #2563eb; margin-bottom: 2rem;">Get In Touch</h2>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 2rem; margin-bottom: 2rem;">
+            <div>
+                <h3>📞 Phone</h3>
+                <p><a href="tel:(207) 555-0654" onclick="trackCTA('phone')" style="color: #2563eb; text-decoration: none;">(207) 555-0654</a></p>
+            </div>
+            <div>
+                <h3>📧 Email</h3>
+                <p><a href="mailto:appointments@seasidedental.com" onclick="trackCTA('email')" style="color: #2563eb; text-decoration: none;">appointments@seasidedental.com</a></p>
+            </div>
+            <div>
+                <h3>📍 Location</h3>
+                <p>156 Coastal Highway, Kennebunkport, ME 04046</p>
+            </div>
+        </div>
+        <a href="tel:(207) 555-0654" class="cta-button" onclick="trackCTA('contact')">Contact Us Today</a>
+    </section>
+    
+    <!-- Footer -->
+    <footer class="footer">
+        <p>&copy; 2024 Seaside Family Dental. All rights reserved.</p>
+        <div class="watermark">
+            Website mockup created by <strong>Pleasant Cove Design</strong><br>
+            Ready to make this real? Let's build your professional website!
+        </div>
+    </footer>
+</body>
+</html>

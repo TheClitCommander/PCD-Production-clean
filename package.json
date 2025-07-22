@@ -3,14 +3,15 @@
   "private": true,
   "version": "1.0.0",
   "scripts": {
-    "install:all": "npm install --prefix server && npm install --prefix admin-ui",
-    "dev:server": "npm run dev --prefix server",
-    "dev:admin": "npm run dev --prefix admin-ui",
-    "dev:widget": "npx serve client-widget -p 8080",
+    "install:all": "npm install --prefix pleasantcovedesign/server && npm install --prefix pleasantcovedesign/admin-ui",
+    "dev:server": "npm run dev --prefix pleasantcovedesign/server",
+    "dev:admin": "npm run dev --prefix pleasantcovedesign/admin-ui",
+    "dev:widget": "npx serve pleasantcovedesign/client-widget -p 8080",
     "dev": "concurrently \"npm run dev:server\" \"npm run dev:admin\" \"npm run dev:widget\"",
-    "build:server": "npm run build --prefix server",
-    "build:admin": "npm run build --prefix admin-ui",
-    "build": "npm run build:server && npm run build:admin"
+    "build:server": "npm run build --prefix pleasantcovedesign/server",
+    "build:admin": "npm run build --prefix pleasantcovedesign/admin-ui",
+    "build": "npm run build:server && npm run build:admin",
+    "start": "npm run dev"
   },
   "devDependencies": {
     "concurrently": "^8.2.2",

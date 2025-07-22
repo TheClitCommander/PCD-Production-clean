@@ -1,6 +1,7 @@
 import { db } from "./db.js";
 import { PostgreSQLStorage } from "./postgres-storage.js";
 import type { Business, NewBusiness, Activity, NewActivity, Company, NewCompany, Project, NewProject, ProjectMessage, ProjectFile } from "../shared/schema.js";
+import { eq } from "drizzle-orm";
 
 // Mock schema objects for the in-memory database
 const businessesTable = { tableName: 'businesses' };
@@ -83,14 +84,30 @@ export class Storage {
     return (results[0] as Company) || null;
   }
 
-  async deleteCompany(id: number): Promise<void> {
-    db.delete(companiesTable).where({ id });
+  async deleteCompany(id: number): Promise<boolean> {
+    try {
+      const result = await memoryDb.deleteCompany(id);
+      return result;
+    } catch (error) {
+      console.error('❌ Error deleting company:', error);
+      return false;
+    }
   }
 
   // Project operations
   async createProject(data: NewProject): Promise<Project> {
     const results: any[] = db.insert(projectsTable).values(data).returning();
     return results[0] as Project;
+  }
+
+  async deleteProject(id: number): Promise<boolean> {
+    try {
+      const result = await memoryDb.deleteProject(id);
+      return result;
+    } catch (error) {
+      console.error('❌ Error deleting project:', error);
+      return false;
+    }
   }
 
   async getProjects(filters?: {
@@ -137,10 +154,6 @@ export class Storage {
   async updateProject(id: number, data: Partial<Project>): Promise<Project | null> {
     const results: any[] = db.update(projectsTable).set(data).where({ id }).returning();
     return (results[0] as Project) || null;
-  }
-
-  async deleteProject(id: number): Promise<void> {
-    db.delete(projectsTable).where({ id });
   }
 
   // Activity operations (updated for project awareness)

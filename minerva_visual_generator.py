@@ -12,6 +12,7 @@ from typing import Dict, List, Optional
 import uuid
 import boto3
 from botocore.exceptions import ClientError
+from image_validator import ImageValidator
 
 logger = logging.getLogger(__name__)
 
@@ -24,6 +25,9 @@ class MinervaVisualGenerator:
     def __init__(self, output_dir="demos"):
         self.output_dir = output_dir
         os.makedirs(output_dir, exist_ok=True)
+        
+        # Initialize image validator for reliable, relevant images
+        self.image_validator = ImageValidator()
         
         # Cloud storage configuration
         self.use_cloud_storage = os.getenv('USE_CLOUD_STORAGE', 'false').lower() == 'true'
@@ -59,7 +63,7 @@ class MinervaVisualGenerator:
                 'services': ['Emergency Repairs', 'Drain Cleaning', 'Water Heater Installation', 'Leak Detection'],
                 'color_primary': '#1e40af',
                 'color_secondary': '#dc2626',
-                'hero_image': 'https://images.unsplash.com/photo-1621905251918-48416bd8575a?auto=format&fit=crop&w=1200&h=600',
+                'hero_image': 'https://images.unsplash.com/photo-1607472586893-edb57bdc0e39?auto=format&fit=crop&w=1200&h=600',  # Professional plumber working
                 'cta_text': 'Call Now for Emergency Service'
             },
             
@@ -69,7 +73,7 @@ class MinervaVisualGenerator:
                 'services': ['Dine-In', 'Takeout', 'Catering', 'Private Events'],
                 'color_primary': '#dc2626',
                 'color_secondary': '#f59e0b',
-                'hero_image': 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&fit=crop&w=1200&h=600',
+                'hero_image': 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1200&h=600',  # Restaurant interior
                 'cta_text': 'Reserve Your Table Today'
             },
             
@@ -79,7 +83,7 @@ class MinervaVisualGenerator:
                 'services': ['Lawn Care', 'Garden Design', 'Tree Services', 'Hardscaping'],
                 'color_primary': '#059669',
                 'color_secondary': '#f59e0b',
-                'hero_image': 'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?auto=format&fit=crop&w=1200&h=600',
+                'hero_image': 'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?auto=format&fit=crop&w=1200&h=600',  # Beautiful landscaped garden
                 'cta_text': 'Get Your Free Estimate'
             },
             
@@ -89,7 +93,7 @@ class MinervaVisualGenerator:
                 'services': ['Wiring & Rewiring', 'Panel Upgrades', 'Lighting Installation', 'Emergency Repairs'],
                 'color_primary': '#f59e0b',
                 'color_secondary': '#6b7280',
-                'hero_image': 'https://images.unsplash.com/photo-1621905252507-b35492cc74b4?auto=format&fit=crop&w=1200&h=600',
+                'hero_image': 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?auto=format&fit=crop&w=1200&h=600',  # Electrician working on panel
                 'cta_text': 'Schedule Electrical Service'
             },
             
@@ -99,7 +103,7 @@ class MinervaVisualGenerator:
                 'services': ['General Dentistry', 'Cleanings & Exams', 'Cosmetic Dentistry', 'Emergency Care'],
                 'color_primary': '#2563eb',
                 'color_secondary': '#ffffff',
-                'hero_image': 'https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&w=1200&h=600',
+                'hero_image': 'https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&w=1200&h=600',  # Clean dental office
                 'cta_text': 'Book Your Appointment'
             },
             
@@ -109,7 +113,7 @@ class MinervaVisualGenerator:
                 'services': ['Professional Service', 'Expert Solutions', 'Customer Support', 'Quality Guarantee'],
                 'color_primary': '#7c3aed',
                 'color_secondary': '#06b6d4',
-                'hero_image': 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?auto=format&fit=crop&w=1200&h=600',
+                'hero_image': 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?auto=format&fit=crop&w=1200&h=600',  # Professional office building
                 'cta_text': 'Contact Us Today'
             }
         }
@@ -136,6 +140,16 @@ class MinervaVisualGenerator:
             
             # Get template for business type
             template = self.templates.get(business_type, self.templates['default'])
+            
+            # Get validated, relevant hero image
+            validated_image = self.image_validator.get_validated_image(business_type)
+            
+            # Update template with validated image
+            template = template.copy()  # Don't modify the original
+            template['hero_image'] = validated_image['url']
+            template['image_description'] = validated_image['description']
+            
+            logger.info(f"🎨 Using validated image for {business_type}: {validated_image['description']}")
             
             # Generate HTML content
             html_content = self._create_html_mockup(
@@ -165,7 +179,8 @@ class MinervaVisualGenerator:
                 'demo_id': demo_id,
                 'business_name': business_name,
                 'business_type': business_type,
-                'tracking_token': tracking_token
+                'tracking_token': tracking_token,
+                'image_used': validated_image['description']
             })
             
             result = {
@@ -179,12 +194,14 @@ class MinervaVisualGenerator:
                 'secure_url': preview_url,
                 'created_at': datetime.now().isoformat(),
                 'template_used': business_type,
+                'image_validated': validated_image['verified'],
                 'expires_at': self._calculate_expiry(),
                 'content': {
                     'hero_title': template['hero_title'].format(business_name=business_name),
                     'tagline': template['tagline'],
                     'services': template['services'],
-                    'cta_text': template['cta_text']
+                    'cta_text': template['cta_text'],
+                    'hero_image_description': validated_image['description']
                 }
             }
             
@@ -293,22 +310,88 @@ class MinervaVisualGenerator:
         return expiry.isoformat()
     
     def _detect_business_type(self, business_data: Dict) -> str:
-        """Detect business type from name/description"""
+        """
+        Detect business type from name/description with improved accuracy
+        """
         name = business_data.get('name', '').lower()
         business_type = business_data.get('businessType', '').lower()
+        description = business_data.get('description', '').lower()
         
-        # Check for keywords
-        if any(word in name or word in business_type for word in ['plumb', 'pipe', 'drain', 'water']):
-            return 'plumbing'
-        elif any(word in name or word in business_type for word in ['restaurant', 'food', 'dining', 'cafe', 'bistro']):
-            return 'restaurant'
-        elif any(word in name or word in business_type for word in ['landscape', 'lawn', 'garden', 'yard']):
-            return 'landscaping'
-        elif any(word in name or word in business_type for word in ['electric', 'electrical', 'wire', 'lighting']):
-            return 'electrical'
-        elif any(word in name or word in business_type for word in ['dental', 'dentist', 'teeth', 'oral']):
-            return 'dental'
+        # Combine all text for analysis
+        all_text = f"{name} {business_type} {description}"
+        
+        # Enhanced keyword matching with scoring
+        type_scores = {
+            'plumbing': 0,
+            'restaurant': 0,
+            'landscaping': 0,
+            'electrical': 0,
+            'dental': 0
+        }
+        
+        # Plumbing keywords (weighted by relevance)
+        plumbing_keywords = {
+            'plumb': 5, 'plumber': 5, 'plumbing': 5,
+            'pipe': 3, 'drain': 4, 'water': 2,
+            'leak': 4, 'faucet': 4, 'toilet': 3,
+            'sewer': 4, 'heating': 2, 'hvac': 2
+        }
+        
+        # Restaurant keywords
+        restaurant_keywords = {
+            'restaurant': 5, 'food': 3, 'dining': 4,
+            'cafe': 5, 'bistro': 5, 'bar': 4,
+            'grill': 4, 'kitchen': 3, 'menu': 4,
+            'pizza': 4, 'burger': 3, 'deli': 4
+        }
+        
+        # Landscaping keywords
+        landscaping_keywords = {
+            'landscape': 5, 'landscaping': 5, 'lawn': 4,
+            'garden': 4, 'yard': 3, 'tree': 3,
+            'grass': 3, 'mowing': 4, 'irrigation': 4,
+            'hardscape': 4, 'outdoor': 2
+        }
+        
+        # Electrical keywords
+        electrical_keywords = {
+            'electric': 5, 'electrical': 5, 'electrician': 5,
+            'wire': 3, 'wiring': 4, 'lighting': 3,
+            'panel': 4, 'outlet': 3, 'breaker': 4,
+            'voltage': 4, 'install': 2
+        }
+        
+        # Dental keywords
+        dental_keywords = {
+            'dental': 5, 'dentist': 5, 'teeth': 4,
+            'oral': 4, 'smile': 3, 'cleaning': 3,
+            'braces': 4, 'cavity': 4, 'root': 2
+        }
+        
+        # Score each business type
+        keyword_sets = {
+            'plumbing': plumbing_keywords,
+            'restaurant': restaurant_keywords,
+            'landscaping': landscaping_keywords,
+            'electrical': electrical_keywords,
+            'dental': dental_keywords
+        }
+        
+        for business_type_key, keywords in keyword_sets.items():
+            for keyword, weight in keywords.items():
+                if keyword in all_text:
+                    type_scores[business_type_key] += weight
+        
+        # Get the highest scoring type
+        best_type = max(type_scores, key=type_scores.get)
+        best_score = type_scores[best_type]
+        
+        # Require minimum confidence score
+        if best_score >= 3:
+            logger.info(f"🎯 Business type detected: {best_type} (confidence: {best_score})")
+            return best_type
         else:
+            logger.warning(f"⚠️ Low confidence business type detection. Using default. Scores: {type_scores}")
             return 'default'
     
     def _generate_demo_id(self, business_name: str) -> str:
@@ -513,7 +596,37 @@ class MinervaVisualGenerator:
         </div>
     </section>
     
-    <!-- Contact Information -->
+    <!-- Appointment Booking Section -->
+    <section class="appointment-section" style="padding: 80px 20px; background: #f8f9fa; text-align: center;">
+        <div style="max-width: 800px; margin: 0 auto;">
+            <h2 style="color: {template['color_primary']}; font-size: 2.5rem; margin-bottom: 1rem;">Schedule Your Free Consultation</h2>
+            <p style="font-size: 1.2rem; color: #666; max-width: 600px; margin: 0 auto 40px;">
+                Ready to get started? Book a free 15-minute consultation to discuss your project needs.
+            </p>
+            
+            <!-- Appointment Widget Container -->
+            <div id="appointment-widget-container" style="max-width: 600px; margin: 0 auto; background: white; border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); overflow: hidden;">
+                <div id="appointment-widget" style="min-height: 400px; padding: 40px;">
+                    <!-- Loading State -->
+                    <div id="appointment-loading" style="text-align: center; padding: 60px 20px;">
+                        <div style="width: 50px; height: 50px; border: 3px solid #f3f3f3; border-top: 3px solid {template['color_primary']}; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 20px;"></div>
+                        <p style="color: #666;">Loading available appointment times...</p>
+                    </div>
+                    
+                    <!-- Error State (hidden by default) -->
+                    <div id="appointment-error" style="display: none; text-align: center; padding: 40px 20px;">
+                        <h3 style="color: #e74c3c; margin-bottom: 1rem;">Booking Temporarily Unavailable</h3>
+                        <p style="color: #666; margin-bottom: 2rem;">Please call us directly to schedule your consultation.</p>
+                        <a href="tel:{phone}" class="cta-button" onclick="trackCTA('phone_fallback')" 
+                           style="background: {template['color_primary']}; color: white; padding: 12px 30px; border-radius: 8px; text-decoration: none; display: inline-block; font-weight: 600;">
+                           Call {phone}
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <section class="contact-info">
         <div class="rating">⭐ {rating} Star Rating</div>
         <h2 style="color: {template['color_primary']}; margin-bottom: 2rem;">Get In Touch</h2>
@@ -542,6 +655,116 @@ class MinervaVisualGenerator:
             Ready to make this real? Let's build your professional website!
         </div>
     </footer>
+
+    <!-- Appointment Widget JavaScript -->
+    <script>
+        // Appointment Widget Integration
+        (function() {{
+            // Add CSS animations
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes spin {{
+                    0% {{ transform: rotate(0deg); }}
+                    100% {{ transform: rotate(360deg); }}
+                }}
+            `;
+            document.head.appendChild(style);
+
+            // Initialize appointment widget
+            function initAppointmentWidget() {{
+                console.log('🗓️ Initializing appointment widget...');
+                
+                // Try to load available slots
+                fetch('http://localhost:3000/api/appointments/slots')
+                    .then(response => {{
+                        if (!response.ok) {{
+                            throw new Error(`HTTP ${{response.status}}`);
+                        }}
+                        return response.json();
+                    }})
+                    .then(data => {{
+                        console.log('✅ Appointment slots loaded:', data);
+                        renderAppointmentSlots(data.slots || []);
+                    }})
+                    .catch(error => {{
+                        console.error('❌ Failed to load appointment slots:', error);
+                        showAppointmentError();
+                    }});
+            }}
+
+            function renderAppointmentSlots(slots) {{
+                const container = document.getElementById('appointment-widget');
+                document.getElementById('appointment-loading').style.display = 'none';
+                
+                if (slots.length === 0) {{
+                    container.innerHTML = `
+                        <div style="text-align: center; padding: 40px 20px;">
+                            <h3 style="color: #666; margin-bottom: 1rem;">No Available Slots</h3>
+                            <p style="color: #666; margin-bottom: 2rem;">Please call us to schedule your consultation.</p>
+                            <a href="tel:{phone}" class="cta-button" onclick="trackCTA('phone_no_slots')" 
+                               style="background: {template['color_primary']}; color: white; padding: 12px 30px; border-radius: 8px; text-decoration: none; display: inline-block; font-weight: 600;">
+                               Call {phone}
+                            </a>
+                        </div>
+                    `;
+                    return;
+                }}
+
+                // Render appointment slots
+                let slotsHTML = '<div style="text-align: left;"><h3 style="margin-bottom: 20px; text-align: center;">Available Times</h3>';
+                slots.slice(0, 6).forEach(slot => {{
+                    const date = new Date(slot.time);
+                    const dateStr = date.toLocaleDateString();
+                    const timeStr = date.toLocaleTimeString([], {{hour: '2-digit', minute:'2-digit'}});
+                    
+                    slotsHTML += `
+                        <div class="slot-option" onclick="selectSlot('${{slot.id}}', '${{dateStr}} at ${{timeStr}}')" 
+                             style="padding: 15px; margin: 10px 0; border: 2px solid #e0e0e0; border-radius: 8px; cursor: pointer; transition: all 0.3s;">
+                            <strong>${{dateStr}}</strong> at ${{timeStr}}
+                        </div>
+                    `;
+                }});
+                slotsHTML += '</div>';
+                
+                container.innerHTML = slotsHTML;
+                
+                // Add hover effects
+                const slotOptions = container.querySelectorAll('.slot-option');
+                slotOptions.forEach(slot => {{
+                    slot.addEventListener('mouseenter', () => {{
+                        slot.style.borderColor = '{template['color_primary']}';
+                        slot.style.backgroundColor = '#f8f9fa';
+                    }});
+                    slot.addEventListener('mouseleave', () => {{
+                        slot.style.borderColor = '#e0e0e0';
+                        slot.style.backgroundColor = 'white';
+                    }});
+                }});
+            }}
+
+            function showAppointmentError() {{
+                document.getElementById('appointment-loading').style.display = 'none';
+                document.getElementById('appointment-error').style.display = 'block';
+            }}
+
+            // Global function for slot selection
+            window.selectSlot = function(slotId, slotTime) {{
+                trackCTA('appointment_slot_selected');
+                alert(`Great! You selected ${{slotTime}}. We'll call you shortly to confirm your free consultation.`);
+                
+                // In a real implementation, this would open a booking form
+                // For now, we'll simulate the booking
+                console.log(`Slot selected: ${{slotId}} - ${{slotTime}}`);
+            }};
+
+            // Initialize when page loads
+            if (document.readyState === 'loading') {{
+                document.addEventListener('DOMContentLoaded', initAppointmentWidget);
+            }} else {{
+                initAppointmentWidget();
+            }}
+        }})();
+    </script>
 </body>
 </html>"""
         

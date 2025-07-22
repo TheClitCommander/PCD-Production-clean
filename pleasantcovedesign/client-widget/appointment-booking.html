@@ -745,6 +745,26 @@ SUPPORT: pleasantcovedesign@gmail.com | (207) 380-5680
                                 <div class="loading-message">Loading available times...</div>
                             </div>
                         </div>
+                        
+                        <!-- Meeting Type Selection -->
+                        <div class="form-group" style="margin-top: 30px;">
+                            <label>How would you like to meet? *</label>
+                            <div class="services-grid" style="grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));" role="radiogroup" aria-required="true">
+                                <div class="service-option meeting-type-option" data-meeting-type="zoom" role="radio" aria-checked="false" tabindex="0">
+                                    <h4>📹 Zoom</h4>
+                                    <p>Video call</p>
+                                </div>
+                                <div class="service-option meeting-type-option" data-meeting-type="phone" role="radio" aria-checked="false" tabindex="0">
+                                    <h4>📞 Phone</h4>
+                                    <p>Voice call</p>
+                                </div>
+                                <div class="service-option meeting-type-option" data-meeting-type="facetime" role="radio" aria-checked="false" tabindex="0">
+                                    <h4>📱 FaceTime</h4>
+                                    <p>Apple devices</p>
+                                </div>
+                            </div>
+                            <div class="field-error" id="meetingType-error">Please select a meeting type</div>
+                        </div>
                     </div>
 
                     <!-- Step 4: Confirmation -->
@@ -802,6 +822,7 @@ SUPPORT: pleasantcovedesign@gmail.com | (207) 380-5680
             timeline: '',
             appointmentDate: '',
             appointmentTime: '',
+            meetingType: '',
             additionalNotes: ''
         };
 
@@ -815,9 +836,20 @@ SUPPORT: pleasantcovedesign@gmail.com | (207) 380-5680
             document.addEventListener('click', function(e) {
                 if (e.target.closest('.service-option')) {
                     const serviceOption = e.target.closest('.service-option');
-                    const serviceType = serviceOption.getAttribute('data-service');
-                    if (serviceType) {
-                        selectService(serviceType, serviceOption);
+                    
+                    // Handle meeting type selection
+                    if (serviceOption.classList.contains('meeting-type-option')) {
+                        const meetingType = serviceOption.getAttribute('data-meeting-type');
+                        if (meetingType) {
+                            selectMeetingType(meetingType, serviceOption);
+                        }
+                    } 
+                    // Handle service selection
+                    else {
+                        const serviceType = serviceOption.getAttribute('data-service');
+                        if (serviceType) {
+                            selectService(serviceType, serviceOption);
+                        }
                     }
                 }
             });
@@ -1130,10 +1162,12 @@ SUPPORT: pleasantcovedesign@gmail.com | (207) 380-5680
             // Check actual selected values, not formData
             const date = selectedDate;
             const time = selectedTime;
+            const meetingType = formData.meetingType;
             
             console.log('📝 Step 3 Values:', {
                 selectedDate: date,
-                selectedTime: time
+                selectedTime: time,
+                meetingType: meetingType
             });
             
             let isValid = true;
@@ -1147,6 +1181,13 @@ SUPPORT: pleasantcovedesign@gmail.com | (207) 380-5680
             if (!time) {
                 console.log('❌ Time validation failed');
                 showError('Please select an appointment time');
+                isValid = false;
+            }
+            
+            if (!meetingType) {
+                console.log('❌ Meeting type validation failed');
+                showError('Please select how you would like to meet');
+                showFieldError('meetingType', 'Please select a meeting type');
                 isValid = false;
             }
             
@@ -1225,6 +1266,29 @@ SUPPORT: pleasantcovedesign@gmail.com | (207) 380-5680
                 selectedServices.push(serviceType);
                 element.classList.add('selected');
                 element.setAttribute('aria-checked', 'true');
+            }
+        }
+
+        // ==================
+        // MEETING TYPE SELECTION
+        // ==================
+        
+        function selectMeetingType(meetingType, element) {
+            // Clear all previous selections
+            document.querySelectorAll('.meeting-type-option').forEach(opt => {
+                opt.classList.remove('selected');
+                opt.setAttribute('aria-checked', 'false');
+            });
+            
+            // Select the new meeting type
+            element.classList.add('selected');
+            element.setAttribute('aria-checked', 'true');
+            formData.meetingType = meetingType;
+            
+            // Clear any previous error
+            const errorElement = document.getElementById('meetingType-error');
+            if (errorElement) {
+                errorElement.style.display = 'none';
             }
         }
 
@@ -1586,6 +1650,10 @@ SUPPORT: pleasantcovedesign@gmail.com | (207) 380-5680
                     <span class="summary-label">Appointment Time:</span>
                     <span class="summary-value">${formData.appointmentTime}</span>
                 </div>
+                <div class="summary-item">
+                    <span class="summary-label">Meeting Type:</span>
+                    <span class="summary-value">${formData.meetingType === 'zoom' ? '📹 Zoom Video Call' : formData.meetingType === 'phone' ? '📞 Phone Call' : '📱 FaceTime'}</span>
+                </div>
             `;
             
             summaryContainer.innerHTML = summaryHTML;
@@ -1640,6 +1708,7 @@ SUPPORT: pleasantcovedesign@gmail.com | (207) 380-5680
                     timeline: formData.timeline,
                     appointmentDate: formData.appointmentDate,
                     appointmentTime: formData.appointmentTime,
+                    meetingType: formData.meetingType,
                     additionalNotes: formData.additionalNotes,
                     source: 'local_development_widget',
                     timestamp: new Date().toISOString()

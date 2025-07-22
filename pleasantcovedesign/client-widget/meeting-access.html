@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meeting Access - Pleasant Cove Design</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: #f9fafb;
+            color: #1f2937;
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .meeting-widget {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .widget-header {
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            color: white;
+            padding: 24px;
+            text-align: center;
+        }
+
+        .widget-header h1 {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+
+        .widget-header p {
+            opacity: 0.9;
+            font-size: 16px;
+        }
+
+        .widget-content {
+            padding: 24px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 48px 24px;
+            color: #6b7280;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 32px;
+            height: 32px;
+            border: 3px solid #e5e7eb;
+            border-top-color: #3b82f6;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 16px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .error-message {
+            background-color: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #dc2626;
+            padding: 16px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .appointment-list {
+            space-y: 16px;
+        }
+
+        .appointment-card {
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 16px;
+            transition: all 0.2s ease;
+        }
+
+        .appointment-card:hover {
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .appointment-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .meeting-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .meeting-icon.zoom { background-color: #dbeafe; }
+        .meeting-icon.phone { background-color: #d1fae5; }
+        .meeting-icon.facetime { background-color: #e9d5ff; }
+        .meeting-icon.in-person { background-color: #fed7aa; }
+
+        .appointment-title h3 {
+            font-size: 18px;
+            margin-bottom: 4px;
+        }
+
+        .appointment-time {
+            color: #6b7280;
+            font-size: 14px;
+        }
+
+        .meeting-details {
+            background-color: #f3f4f6;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        .detail-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .detail-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .detail-label {
+            font-weight: 600;
+            font-size: 14px;
+            min-width: 100px;
+        }
+
+        .detail-value {
+            font-size: 14px;
+            flex: 1;
+        }
+
+        .join-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background-color: #3b82f6;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: background-color 0.2s;
+            width: 100%;
+            justify-content: center;
+        }
+
+        .join-button:hover {
+            background-color: #2563eb;
+        }
+
+        .copy-button {
+            background: none;
+            border: 1px solid #d1d5db;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            color: #6b7280;
+            transition: all 0.2s;
+        }
+
+        .copy-button:hover {
+            background-color: #f3f4f6;
+            color: #374151;
+        }
+
+        .meeting-instructions {
+            background-color: #eff6ff;
+            border: 1px solid #bfdbfe;
+            border-radius: 8px;
+            padding: 16px;
+            margin-top: 16px;
+        }
+
+        .meeting-instructions h4 {
+            color: #1e40af;
+            margin-bottom: 8px;
+            font-size: 16px;
+        }
+
+        .meeting-instructions pre {
+            white-space: pre-wrap;
+            font-family: inherit;
+            font-size: 14px;
+            color: #1e40af;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 12px;
+            border-radius: 16px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .status-badge.scheduled {
+            background-color: #dbeafe;
+            color: #1d4ed8;
+        }
+
+        .status-badge.completed {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+
+        .status-badge.cancelled {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+
+        .no-appointments {
+            text-align: center;
+            padding: 48px 24px;
+            color: #6b7280;
+        }
+
+        .no-appointments svg {
+            width: 64px;
+            height: 64px;
+            margin: 0 auto 16px;
+            opacity: 0.3;
+        }
+
+        @media (max-width: 640px) {
+            .widget-header {
+                padding: 20px;
+            }
+
+            .widget-header h1 {
+                font-size: 20px;
+            }
+
+            .widget-content {
+                padding: 16px;
+            }
+
+            .detail-row {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .detail-label {
+                min-width: auto;
+                margin-bottom: 4px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="meeting-widget">
+        <div class="widget-header">
+            <h1>Your Appointments</h1>
+            <p>Pleasant Cove Design</p>
+        </div>
+        
+        <div class="widget-content" id="widgetContent">
+            <div class="loading">
+                <div class="loading-spinner"></div>
+                <p>Loading your appointments...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        const API_BASE_URL = window.location.hostname === 'localhost' 
+            ? 'http://localhost:3000/api'
+            : 'https://pleasantcovedesign-production.up.railway.app/api';
+
+        let projectToken = null;
+
+        // Get project token from URL or data attribute
+        function getProjectToken() {
+            // Check URL parameter
+            const urlParams = new URLSearchParams(window.location.search);
+            const tokenFromUrl = urlParams.get('token');
+            if (tokenFromUrl) return tokenFromUrl;
+
+            // Check data attribute on script tag
+            const scriptTag = document.currentScript || document.querySelector('script[data-project-token]');
+            if (scriptTag && scriptTag.dataset.projectToken) {
+                return scriptTag.dataset.projectToken;
+            }
+
+            return null;
+        }
+
+        // Format date and time
+        function formatDateTime(dateString) {
+            const date = new Date(dateString);
+            const options = {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: 'numeric',
+                minute: '2-digit',
+                hour12: true
+            };
+            return date.toLocaleString('en-US', options);
+        }
+
+        // Copy to clipboard
+        function copyToClipboard(text, label) {
+            navigator.clipboard.writeText(text).then(() => {
+                alert(`${label} copied to clipboard!`);
+            }).catch(() => {
+                // Fallback for older browsers
+                const textArea = document.createElement('textarea');
+                textArea.value = text;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                alert(`${label} copied to clipboard!`);
+            });
+        }
+
+        // Get meeting icon
+        function getMeetingIcon(type) {
+            switch (type) {
+                case 'zoom': return '📹';
+                case 'phone': return '📞';
+                case 'facetime': return '📱';
+                case 'in-person': return '📍';
+                default: return '📅';
+            }
+        }
+
+        // Get meeting type label
+        function getMeetingTypeLabel(type) {
+            switch (type) {
+                case 'zoom': return 'Zoom Video Call';
+                case 'phone': return 'Phone Call';
+                case 'facetime': return 'FaceTime';
+                case 'in-person': return 'In-Person Meeting';
+                default: return 'Meeting';
+            }
+        }
+
+        // Render appointment card
+        function renderAppointment(appointment) {
+            const isUpcoming = new Date(appointment.datetime) > new Date();
+            const meetingType = appointment.meetingType || 'zoom';
+
+            let meetingDetailsHtml = '';
+
+            if (meetingType === 'zoom' && appointment.meetingLink) {
+                meetingDetailsHtml = `
+                    <div class="meeting-details">
+                        ${appointment.meetingLink ? `
+                            <div class="detail-row">
+                                <span class="detail-label">Meeting Link:</span>
+                                <span class="detail-value">
+                                    <a href="${appointment.meetingLink}" target="_blank" style="color: #3b82f6; text-decoration: underline;">
+                                        ${appointment.meetingLink}
+                                    </a>
+                                </span>
+                            </div>
+                        ` : ''}
+                        ${appointment.meetingId ? `
+                            <div class="detail-row">
+                                <span class="detail-label">Meeting ID:</span>
+                                <span class="detail-value">
+                                    <code style="background: white; padding: 2px 6px; border-radius: 4px;">${appointment.meetingId}</code>
+                                    <button class="copy-button" onclick="copyToClipboard('${appointment.meetingId}', 'Meeting ID')">Copy</button>
+                                </span>
+                            </div>
+                        ` : ''}
+                        ${appointment.meetingPassword ? `
+                            <div class="detail-row">
+                                <span class="detail-label">Password:</span>
+                                <span class="detail-value">
+                                    <code style="background: white; padding: 2px 6px; border-radius: 4px;">${appointment.meetingPassword}</code>
+                                    <button class="copy-button" onclick="copyToClipboard('${appointment.meetingPassword}', 'Password')">Copy</button>
+                                </span>
+                            </div>
+                        ` : ''}
+                    </div>
+                    ${isUpcoming && appointment.meetingLink ? `
+                        <a href="${appointment.meetingLink}" target="_blank" class="join-button">
+                            Join Zoom Meeting
+                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                            </svg>
+                        </a>
+                    ` : ''}
+                `;
+            } else if (meetingType === 'phone') {
+                meetingDetailsHtml = `
+                    <div class="meeting-details">
+                        <p style="color: #059669; margin-bottom: 8px;">We'll call you at the scheduled time on the phone number you provided.</p>
+                    </div>
+                `;
+            } else if (meetingType === 'facetime') {
+                meetingDetailsHtml = `
+                    <div class="meeting-details">
+                        <p style="color: #7c3aed; margin-bottom: 8px;">We'll FaceTime you at the scheduled time. Please ensure you're available on your Apple device.</p>
+                    </div>
+                `;
+            }
+
+            if (appointment.meetingInstructions) {
+                meetingDetailsHtml += `
+                    <div class="meeting-instructions">
+                        <h4>Additional Instructions</h4>
+                        <pre>${appointment.meetingInstructions}</pre>
+                    </div>
+                `;
+            }
+
+            return `
+                <div class="appointment-card">
+                    <div class="appointment-header">
+                        <div class="meeting-icon ${meetingType}">
+                            ${getMeetingIcon(meetingType)}
+                        </div>
+                        <div style="flex: 1;">
+                            <h3>${getMeetingTypeLabel(meetingType)}</h3>
+                            <div class="appointment-time">${formatDateTime(appointment.datetime)}</div>
+                        </div>
+                        <span class="status-badge ${appointment.status}">
+                            ${appointment.status}
+                        </span>
+                    </div>
+                    ${meetingDetailsHtml}
+                </div>
+            `;
+        }
+
+        // Load appointments
+        async function loadAppointments() {
+            const contentDiv = document.getElementById('widgetContent');
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/client-dashboard/${projectToken}`);
+                
+                if (!response.ok) {
+                    throw new Error('Failed to load appointments');
+                }
+
+                const data = await response.json();
+                
+                if (!data.appointments || data.appointments.length === 0) {
+                    contentDiv.innerHTML = `
+                        <div class="no-appointments">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                            </svg>
+                            <p>No appointments scheduled yet.</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                // Sort appointments by date (upcoming first)
+                const sortedAppointments = data.appointments.sort((a, b) => 
+                    new Date(a.datetime).getTime() - new Date(b.datetime).getTime()
+                );
+
+                // Separate upcoming and past appointments
+                const now = new Date();
+                const upcomingAppointments = sortedAppointments.filter(apt => 
+                    new Date(apt.datetime) > now && apt.status !== 'cancelled'
+                );
+                const pastAppointments = sortedAppointments.filter(apt => 
+                    new Date(apt.datetime) <= now || apt.status === 'cancelled'
+                );
+
+                let html = '';
+
+                if (upcomingAppointments.length > 0) {
+                    html += '<h2 style="margin-bottom: 16px; font-size: 18px;">Upcoming Appointments</h2>';
+                    upcomingAppointments.forEach(apt => {
+                        html += renderAppointment(apt);
+                    });
+                }
+
+                if (pastAppointments.length > 0) {
+                    if (upcomingAppointments.length > 0) {
+                        html += '<hr style="margin: 24px 0; border: none; border-top: 1px solid #e5e7eb;">';
+                    }
+                    html += '<h2 style="margin-bottom: 16px; font-size: 18px; color: #6b7280;">Past Appointments</h2>';
+                    pastAppointments.forEach(apt => {
+                        html += renderAppointment(apt);
+                    });
+                }
+
+                contentDiv.innerHTML = html;
+
+            } catch (error) {
+                console.error('Error loading appointments:', error);
+                contentDiv.innerHTML = `
+                    <div class="error-message">
+                        <p>Unable to load appointments. Please try again later.</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            projectToken = getProjectToken();
+            
+            if (!projectToken) {
+                document.getElementById('widgetContent').innerHTML = `
+                    <div class="error-message">
+                        <p>No project token provided. Please contact support.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Load appointments
+            loadAppointments();
+
+            // Refresh every 30 seconds
+            setInterval(loadAppointments, 30000);
+        });
+
+        // Make copyToClipboard available globally
+        window.copyToClipboard = copyToClipboard;
+    </script>
+</body>
+</html> 

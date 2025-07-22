@@ -25,44 +25,70 @@ export const PROJECT_TYPES = [
 
 // Company interface (core client information)
 export interface Company {
-  id?: number;
+  id: string;
   name: string;
+  phone?: string;
   email?: string;
-  phone: string;
-  address: string;
-  city: string;
-  state: string;
-  industry: string; // renamed from businessType for clarity
   website?: string;
-  priority?: string;
+  address?: string;
+  businessType?: string;
+  description?: string;
+  score?: number;
   tags?: string[];
-  contactApproved?: boolean; // Approval gate for outreach
-  createdAt?: string;
-  updatedAt?: string;
+  notes?: string;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 // Project interface (specific deliverables/jobs)
 export interface Project {
-  id?: number;
-  companyId: number;
-  title: string;
-  type: string; // website, seo, ecommerce, branding, etc.
-  stage: string;
-  status: string; // active, archived, cancelled
-  score?: number;
+  id: number;
+  companyId: string;
+  name: string;
+  type: 'website' | 'seo' | 'maintenance' | 'other';
+  status: 'lead' | 'quoted' | 'approved' | 'in_progress' | 'completed' | 'cancelled';
+  value?: number;
+  description?: string;
+  startDate?: Date;
+  endDate?: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+// NEW: Order tracking for billing
+export interface Order {
+  id: string;
+  companyId: string;
+  projectId?: number;
+  status: 'draft' | 'sent' | 'accepted' | 'rejected' | 'in_progress' | 'completed';
+  package?: 'starter' | 'growth' | 'professional';
+  customItems?: OrderItem[];
+  subtotal: number;
+  tax: number;
+  total: number;
   notes?: string;
-  totalAmount?: number;
-  paidAmount?: number;
-  scheduledTime?: string;
-  appointmentStatus?: string;
-  paymentStatus?: string;
-  stripeCustomerId?: string;
-  stripePaymentLinkId?: string;
-  lastPaymentDate?: string;
-  paymentNotes?: string;
-  accessToken?: string; // NEW: UUID token for client portal access
-  createdAt?: string;
-  updatedAt?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface OrderItem {
+  id: string;
+  orderId: string;
+  description: string;
+  category: 'core' | 'addon' | 'custom';
+  quantity: number;
+  unitPrice: number;
+  total: number;
+}
+
+// NEW: Lead status with order tracking
+export interface LeadStatus {
+  companyId: string;
+  stage: 'scraped' | 'contacted' | 'demo_sent' | 'interested' | 'quoted' | 'customer' | 'lost';
+  lastActivity?: Date;
+  demoViewed?: boolean;
+  orderId?: string;  // Links to their order
+  invoiceId?: string; // Links to billing
 }
 
 // Business interface (legacy - for backward compatibility)
@@ -149,6 +175,14 @@ export interface Appointment {
   duration?: number; // Duration in minutes
   serviceType?: string; // Type of service booked
   appointmentTypeId?: string; // Acuity appointment type ID
+  
+  // Meeting fields
+  meetingType?: 'zoom' | 'facetime' | 'phone' | 'in-person'; // Type of meeting
+  meetingLink?: string; // Zoom meeting URL
+  meetingId?: string; // Zoom meeting ID
+  meetingPassword?: string; // Zoom meeting password (encrypted)
+  dialInNumber?: string; // Phone number for phone meetings
+  meetingInstructions?: string; // Custom instructions for the meeting
   
   status: string; // scheduled, completed, cancelled, rescheduled
   notes?: string;

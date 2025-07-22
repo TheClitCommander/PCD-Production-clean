@@ -9,7 +9,7 @@ const getApiBaseUrl = () => {
     return `${env.VITE_API_URL}/api`;
   }
   
-  // Use local development server
+  // Use your main backend server - FIXED: Force cache refresh
   return 'http://localhost:3000/api';
 };
 
@@ -67,5 +67,36 @@ api.interceptors.request.use(async (config: any) => {
   }
   return config
 })
+
+// CRM Tracking API functions
+export const tracking = {
+  // Get lead tracking data
+  getLeadTracking: (leadId: string) => 
+    api.get(`/leads/${leadId}/tracking`),
+  
+  // Get tracking summary for all leads  
+  getTrackingSummary: () =>
+    api.get('/leads/tracking/summary'),
+  
+  // Update lead status
+  updateLeadStatus: (leadId: string, status: string, notes?: string) =>
+    api.post(`/leads/${leadId}/status`, { status, notes }),
+  
+  // Generate tracked demo
+  generateDemo: (leadId: string, businessData: any) =>
+    api.post(`/leads/${leadId}/generate-demo`, businessData),
+  
+  // Track demo view (usually called from demo pages)
+  trackView: (demoId: string, leadId?: string, trackingToken?: string) =>
+    api.post('/track/view', { demo_id: demoId, lead_id: leadId, tracking_token: trackingToken }),
+  
+  // Track CTA click (usually called from demo pages)
+  trackClick: (demoId: string, leadId: string, ctaType: string) =>
+    api.post('/track/click', { demo_id: demoId, lead_id: leadId, cta_type: ctaType }),
+  
+  // Log inbound message
+  logMessage: (contactInfo: string, messageContent: string, messageType: string) =>
+    api.post('/track/message', { contact_info: contactInfo, message_content: messageContent, message_type: messageType })
+};
 
 export default api 

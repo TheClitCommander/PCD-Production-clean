@@ -61,6 +61,11 @@ interface Appointment {
   companyName?: string;
   projectTitle?: string;
   projectType?: string;
+  meetingType?: 'zoom' | 'facetime' | 'phone' | 'in-person';
+  meetingLink?: string;
+  meetingId?: string;
+  meetingPassword?: string;
+  meetingInstructions?: string;
 }
 
 interface PendingAppointment {
@@ -101,6 +106,11 @@ interface CalendarEvent extends Event {
     companyName?: string;
     projectTitle?: string;
     projectType?: string;
+    meetingType?: 'zoom' | 'facetime' | 'phone' | 'in-person';
+    meetingLink?: string;
+    meetingId?: string;
+    meetingPassword?: string;
+    meetingInstructions?: string;
   };
 }
 
@@ -115,6 +125,11 @@ interface AppointmentModalData {
   email: string;
   client_id?: number;
   isEdit: boolean;
+  meetingType?: 'zoom' | 'facetime' | 'phone' | 'in-person';
+  meetingLink?: string;
+  meetingId?: string;
+  meetingPassword?: string;
+  meetingInstructions?: string;
 }
 
 // Error Boundary Component
@@ -295,7 +310,12 @@ export default function Schedule() {
               squarespaceId: apt.squarespaceId,
               companyName,
               projectTitle,
-              projectType
+              projectType,
+              meetingType: apt.meetingType,
+              meetingLink: apt.meetingLink,
+              meetingId: apt.meetingId,
+              meetingPassword: apt.meetingPassword,
+              meetingInstructions: apt.meetingInstructions
             }
           };
         })
@@ -442,7 +462,12 @@ export default function Schedule() {
       phone: event.resource?.phone || '',
       email: event.resource?.email || '',
       client_id: event.resource?.businessId,
-      isEdit: true
+      isEdit: true,
+      meetingType: event.resource?.meetingType,
+      meetingLink: event.resource?.meetingLink,
+      meetingId: event.resource?.meetingId,
+      meetingPassword: event.resource?.meetingPassword,
+      meetingInstructions: event.resource?.meetingInstructions
     });
     setShowModal(true);
   }, []);
@@ -961,6 +986,53 @@ export default function Schedule() {
                   placeholder="Add any notes or details about the appointment"
                 />
               </div>
+              
+              {/* Meeting Details Section */}
+              {modalData.meetingType && (
+                <div className="border-t pt-4">
+                  <h3 className="font-semibold mb-2">Meeting Details</h3>
+                  
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium">Type:</span>
+                      <span className="text-sm bg-blue-100 text-blue-700 px-2 py-1 rounded">
+                        {modalData.meetingType === 'zoom' ? '📹 Zoom' : 
+                         modalData.meetingType === 'phone' ? '📞 Phone' : 
+                         modalData.meetingType === 'facetime' ? '📱 FaceTime' : 
+                         '🏢 In-Person'}
+                      </span>
+                    </div>
+                    
+                    {modalData.meetingLink && (
+                      <div>
+                        <label className="block text-sm font-medium mb-1">Meeting Link:</label>
+                        <a 
+                          href={modalData.meetingLink} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:text-blue-800 underline text-sm break-all"
+                        >
+                          {modalData.meetingLink}
+                        </a>
+                      </div>
+                    )}
+                    
+                    {modalData.meetingPassword && (
+                      <div>
+                        <label className="block text-sm font-medium mb-1">Password:</label>
+                        <code className="text-sm bg-gray-100 px-2 py-1 rounded">{modalData.meetingPassword}</code>
+                      </div>
+                    )}
+                    
+                    {modalData.meetingInstructions && (
+                      <div>
+                        <label className="block text-sm font-medium mb-1">Instructions:</label>
+                        <pre className="text-sm bg-gray-50 p-2 rounded whitespace-pre-wrap">{modalData.meetingInstructions}</pre>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
             
             <div className="flex justify-between mt-6">

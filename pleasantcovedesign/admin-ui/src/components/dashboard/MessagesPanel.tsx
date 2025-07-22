@@ -1,99 +1,90 @@
-import React, { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
-import { Bell } from 'lucide-react'
-import Card from '../Card'
-import api from '../../api'
+import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import { MessageCircle, Trash2 } from 'lucide-react';
+import api from '../../api';
 
 interface Message {
-  id: number
-  projectId: number
-  projectToken: string
-  content: string
-  senderName: string
-  senderType: 'client' | 'admin'
-  createdAt: string
-  readAt?: string
-  attachments?: string[]
+  id: number;
+  content: string;
+  senderType: 'client' | 'admin';
+  createdAt: string;
+  readAt?: string;
 }
 
 interface Conversation {
-  projectToken: string
-  projectTitle: string
-  customerName: string
-  lastMessage: Message
-  lastMessageTime: string
-  messages: Message[]
+  projectId: number;
+  projectTitle: string;
+  customerName: string;
+  projectToken: string;
+  lastMessage: Message;
+  lastMessageTime: string;
+  messages: Message[];
 }
 
 const MessagesPanel: React.FC = () => {
-  const [conversations, setConversations] = useState<Conversation[]>([])
-  const [loading, setLoading] = useState(true)
-  const [totalMessages, setTotalMessages] = useState(0)
-  const [unreadCount, setUnreadCount] = useState(0)
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchMessages = async () => {
+  const fetchMessages = async () => {
+    try {
+      console.log('📬 [DASHBOARD] Fetching conversations...');
+      const response = await api.get('/admin/conversations');
+      
+      if (response.data && response.data.projectMessages) {
+        setConversations(response.data.projectMessages);
+        console.log(`✅ [DASHBOARD] Loaded ${response.data.projectMessages.length} conversations`);
+      } else {
+        console.warn('⚠️ [DASHBOARD] Unexpected response format:', response.data);
+        setConversations([]);
+      }
+    } catch (error) {
+      console.error('❌ [DASHBOARD] Failed to fetch messages:', error);
+      setConversations([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const deleteConversation = async (projectId: number, projectToken: string, e: React.MouseEvent) => {
+    e.preventDefault(); // Prevent navigation
+    e.stopPropagation();
+    
+    if (window.confirm('Are you sure you want to delete this conversation? This action cannot be undone.')) {
       try {
-        console.log('💬 [DASHBOARD] Fetching conversations...');
-        const response = await api.get('/admin/conversations')
-        console.log('💬 [DASHBOARD] Conversations response:', response.data);
+        // Call delete API (you'll need to implement this endpoint)
+        await api.delete(`/projects/${projectId}`);
         
-        const conversationData = response.data.projectMessages || []
+        // Remove from local state
+        setConversations(prev => prev.filter(conv => conv.projectToken !== projectToken));
         
-        // Calculate totals
-        let totalMsgs = 0
-        let unreadMsgs = 0
-        
-        conversationData.forEach((conv: any) => {
-          if (conv.messages) {
-            totalMsgs += conv.messages.length
-            unreadMsgs += conv.messages.filter((msg: any) => 
-              msg.senderType === 'client' && !msg.readAt
-            ).length
-          }
-        })
-        
-        console.log('💬 [DASHBOARD] Message stats:', { totalMsgs, unreadMsgs });
-        
-        setTotalMessages(totalMsgs)
-        setUnreadCount(unreadMsgs)
-        
-        // Get the latest 5 conversations
-        const sortedConversations = conversationData
-          .filter((conv: any) => conv.messages && conv.messages.length > 0)
-          .sort((a: any, b: any) => 
-            new Date(b.lastMessageTime).getTime() - new Date(a.lastMessageTime).getTime()
-          )
-          .slice(0, 5)
-          
-        console.log('💬 [DASHBOARD] Sorted conversations:', sortedConversations);
-        setConversations(sortedConversations)
+        console.log(`✅ Conversation ${projectToken} deleted successfully`);
       } catch (error) {
-        console.error('❌ [DASHBOARD] Failed to fetch messages:', error)
-      } finally {
-        setLoading(false)
+        console.error('❌ Failed to delete conversation:', error);
+        alert('Failed to delete conversation. Please try again.');
       }
     }
+  };
 
-    fetchMessages()
-  }, [])
+  useEffect(() => {
+    fetchMessages();
+  }, []);
 
-  const truncateMessage = (content: string, maxLength: number = 50) => {
-    if (!content) return 'Sent an attachment'
-    if (content.length <= maxLength) return content
-    return content.substring(0, maxLength) + '...'
-  }
+  const truncateMessage = (content: string, maxLength: number = 60) => {
+    if (content.length <= maxLength) return content;
+    return content.substring(0, maxLength) + '...';
+  };
 
   return (
-    <Card>
-      <Link to="/inbox" className="block">
-        <div className="flex items-center gap-2 mb-4 hover:text-blue-600 transition-colors cursor-pointer">
-          <Bell className="w-5 h-5" />
-          <h3 className="text-lg font-semibold">
-            {unreadCount > 0 ? `${unreadCount} unread` : 'Messages'} / {totalMessages} total
-          </h3>
-        </div>
-      </Link>
+    <div className="bg-white p-6 rounded-lg shadow-sm border">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-lg font-semibold flex items-center">
+          <MessageCircle className="w-5 h-5 mr-2 text-blue-600" />
+          Recent Messages
+        </h3>
+        <span className="text-sm text-gray-500">
+          {conversations.length} conversation{conversations.length !== 1 ? 's' : ''}
+        </span>
+      </div>
 
       {loading ? (
         <div className="text-center py-4 text-gray-500">Loading...</div>
@@ -108,25 +99,35 @@ const MessagesPanel: React.FC = () => {
             )
             
             return (
-              <Link
-                key={conversation.projectToken}
-                to={`/inbox/${conversation.projectToken}`}
-                className="block hover:bg-gray-50 -mx-2 px-2 py-2 rounded transition-colors cursor-pointer"
-              >
-                <div className="flex items-start gap-2">
-                  {hasUnread && (
-                    <div className="w-2 h-2 bg-blue-600 rounded-full mt-1.5 flex-shrink-0"></div>
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium truncate">
-                      {lastMsg.senderType === 'client' ? conversation.customerName : 'You'}
-                    </p>
-                    <p className="text-sm text-gray-600 truncate">
-                      {truncateMessage(lastMsg.content)}
-                    </p>
+              <div key={conversation.projectToken} className="flex items-center group hover:bg-gray-50 -mx-2 px-2 py-2 rounded transition-colors">
+                <Link
+                  to={`/inbox/${conversation.projectToken}`}
+                  className="flex-1 cursor-pointer"
+                >
+                  <div className="flex items-start gap-2">
+                    {hasUnread && (
+                      <div className="w-2 h-2 bg-blue-600 rounded-full mt-1.5 flex-shrink-0"></div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium truncate">
+                        {lastMsg.senderType === 'client' ? conversation.customerName : 'You'}
+                      </p>
+                      <p className="text-sm text-gray-600 truncate">
+                        {truncateMessage(lastMsg.content)}
+                      </p>
+                    </div>
                   </div>
-                </div>
-              </Link>
+                </Link>
+                
+                {/* Delete Button */}
+                <button
+                  onClick={(e) => deleteConversation(conversation.projectId, conversation.projectToken, e)}
+                  className="opacity-0 group-hover:opacity-100 ml-2 p-1 text-red-600 hover:text-red-800 transition-all"
+                  title="Delete conversation"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
             )
           })}
         </div>
@@ -138,8 +139,8 @@ const MessagesPanel: React.FC = () => {
       >
         View Inbox →
       </Link>
-    </Card>
-  )
-}
+    </div>
+  );
+};
 
-export default MessagesPanel 
+export default MessagesPanel; 

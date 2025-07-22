@@ -1,6 +1,15 @@
 import React from 'react';
-import { User, Building2, Phone, Mail, Globe, CreditCard, ChevronRight, ChevronDown, FolderOpen, Calendar, DollarSign, Activity, Star } from 'lucide-react';
-import type { Company, Project } from '../../shared/schema';
+import { User, Building2, Phone, Mail, Globe, CreditCard, ChevronRight, ChevronDown, FolderOpen, Calendar, DollarSign, Activity, Star, Eye, MousePointer, MessageCircle, Trash2, Smartphone } from 'lucide-react';
+import type { Company, Project } from '../../../shared/schema';
+import { deviceDetection } from '../utils/deviceDetection';
+
+interface TrackingData {
+  demo_views: number;
+  cta_clicks: number;
+  messages: number;
+  status: string;
+  last_activity?: string;
+}
 
 interface EntitySummaryCardProps {
   type: 'company' | 'project';
@@ -16,6 +25,11 @@ interface EntitySummaryCardProps {
   onContact?: () => void;
   onSchedule?: () => void;
   onNotes?: () => void;
+  onDelete?: () => void; // NEW: delete functionality
+  trackingData?: TrackingData; // NEW: tracking data prop
+  onPhoneClick?: () => void;
+  onEmailClick?: () => void;
+  onMessageClick?: () => void;
 }
 
 const EntitySummaryCard: React.FC<EntitySummaryCardProps> = ({
@@ -31,7 +45,12 @@ const EntitySummaryCard: React.FC<EntitySummaryCardProps> = ({
   showActions = true,
   onContact,
   onSchedule,
-  onNotes
+  onNotes,
+  onDelete,
+  trackingData,
+  onPhoneClick,
+  onEmailClick,
+  onMessageClick
 }) => {
   // Helper to get priority styling
   const getPriorityStyles = (priority?: string) => {
@@ -83,7 +102,7 @@ const EntitySummaryCard: React.FC<EntitySummaryCardProps> = ({
 
   const baseClasses = `
     border-2 rounded-lg p-4 transition-all duration-200 cursor-pointer
-    ${getPriorityStyles(type === 'company' ? (data as Company).priority : undefined)}
+    ${getPriorityStyles(type === 'company' ? (data as any).priority : undefined)}
     ${mode === 'draggable' ? 'shadow-lg' : 'shadow-sm hover:shadow-md'}
   `;
 
@@ -108,35 +127,123 @@ const EntitySummaryCard: React.FC<EntitySummaryCardProps> = ({
             </div>
           </div>
           
-          {/* Expand Button */}
-          {onExpandClick && projectCount > 0 && (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onExpandClick();
-              }}
-              className="p-1 hover:bg-gray-200 rounded transition-colors"
-            >
-              {expanded ? (
-                <ChevronDown className="w-5 h-5 text-gray-500" />
-              ) : (
-                <ChevronRight className="w-5 h-5 text-gray-500" />
-              )}
-            </button>
-          )}
+          {/* Tracking Badges & Expand Button */}
+          <div className="flex items-center space-x-2">
+            {/* Tracking Data */}
+            {trackingData && (
+              <div className="flex items-center space-x-1">
+                {trackingData.demo_views > 0 && (
+                  <span className="flex items-center gap-1 bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-medium">
+                    <Eye className="h-3 w-3" />
+                    {trackingData.demo_views}
+                  </span>
+                )}
+                
+                {trackingData.cta_clicks > 0 && (
+                  <span className="flex items-center gap-1 bg-orange-100 text-orange-800 px-2 py-1 rounded-full text-xs font-medium">
+                    <MousePointer className="h-3 w-3" />
+                    {trackingData.cta_clicks}
+                  </span>
+                )}
+                
+                {trackingData.messages > 0 && (
+                  <span className="flex items-center gap-1 bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-medium">
+                    <MessageCircle className="h-3 w-3" />
+                    {trackingData.messages}
+                  </span>
+                )}
+                
+                {/* Engagement Status Badge */}
+                <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                  trackingData.status === 'interested' || trackingData.status === 'messaged_back'
+                    ? 'bg-red-100 text-red-800'
+                    : trackingData.status === 'viewed_demo'
+                    ? 'bg-yellow-100 text-yellow-800'
+                    : trackingData.status === 'demo_sent'
+                    ? 'bg-blue-100 text-blue-800'
+                    : 'bg-gray-100 text-gray-800'
+                }`}>
+                  {trackingData.status.replace('_', ' ')}
+                </span>
+              </div>
+            )}
+            
+            {/* Expand Button */}
+            {onExpandClick && projectCount > 0 && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onExpandClick();
+                }}
+                className="p-1 hover:bg-gray-200 rounded transition-colors"
+              >
+                {expanded ? (
+                  <ChevronDown className="w-5 h-5 text-gray-500" />
+                ) : (
+                  <ChevronRight className="w-5 h-5 text-gray-500" />
+                )}
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Contact Info */}
         {mode !== 'compact' && (
           <div className="space-y-2 mb-3">
-            <div className="flex items-center text-sm text-gray-600">
-              <Phone className="w-4 h-4 mr-2 flex-shrink-0" />
-              <span className="truncate">{company.phone}</span>
+            <div className="flex items-center justify-between text-sm text-gray-600">
+              <div className="flex items-center">
+                <Phone className="w-4 h-4 mr-2 flex-shrink-0" />
+                <span className="truncate">{company.phone}</span>
+              </div>
+              <div className="flex items-center gap-1">
+                {onPhoneClick && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onPhoneClick();
+                    }}
+                    className="p-1 hover:bg-gray-100 rounded transition-colors"
+                    title={deviceDetection.isFaceTimeSupported() ? "Call/FaceTime" : "Call"}
+                  >
+                    {deviceDetection.isFaceTimeSupported() ? (
+                      <Smartphone className="w-4 h-4 text-purple-600" />
+                    ) : (
+                      <Phone className="w-4 h-4 text-green-600" />
+                    )}
+                  </button>
+                )}
+                {onMessageClick && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onMessageClick();
+                    }}
+                    className="p-1 hover:bg-gray-100 rounded transition-colors"
+                    title="Message"
+                  >
+                    <MessageCircle className="w-4 h-4 text-blue-600" />
+                  </button>
+                )}
+              </div>
             </div>
             {company.email && (
-              <div className="flex items-center text-sm text-gray-600">
-                <Mail className="w-4 h-4 mr-2 flex-shrink-0" />
-                <span className="truncate">{company.email}</span>
+              <div className="flex items-center justify-between text-sm text-gray-600">
+                <div className="flex items-center">
+                  <Mail className="w-4 h-4 mr-2 flex-shrink-0" />
+                  <span className="truncate">{company.email}</span>
+                </div>
+                {onEmailClick && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onEmailClick();
+                    }}
+                    className="p-1 hover:bg-gray-100 rounded transition-colors"
+                    title="Email"
+                  >
+                    <Mail className="w-4 h-4 text-blue-600" />
+                  </button>
+                )}
               </div>
             )}
             {company.website && (
@@ -224,6 +331,18 @@ const EntitySummaryCard: React.FC<EntitySummaryCardProps> = ({
             >
               Notes
             </button>
+            {onDelete && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDelete();
+                }}
+                className="flex-1 bg-red-50 text-red-700 px-3 py-2 rounded text-sm font-medium hover:bg-red-100 transition-colors"
+              >
+                <Trash2 className="w-4 h-4 inline mr-1" />
+                Delete
+              </button>
+            )}
           </div>
         )}
       </div>
@@ -346,6 +465,18 @@ const EntitySummaryCard: React.FC<EntitySummaryCardProps> = ({
           >
             Notes
           </button>
+          {onDelete && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onDelete();
+              }}
+              className="flex-1 bg-red-50 text-red-700 px-3 py-2 rounded text-sm font-medium hover:bg-red-100 transition-colors"
+            >
+              <Trash2 className="w-4 h-4 inline mr-1" />
+              Delete
+            </button>
+          )}
         </div>
       )}
     </div>

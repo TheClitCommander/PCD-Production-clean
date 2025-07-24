@@ -124,22 +124,61 @@ export const urlUtils = {
 
 // Communication fallback strategies
 export const communicationFallbacks = {
-  // Handle phone call with fallbacks
+  // Handle phone call with universal compatibility
   initiatePhoneCall(phone: string, companyName: string): void {
-    if (deviceDetection.isFaceTimeSupported()) {
-      // Offer choice on Apple devices
-      const useFaceTime = window.confirm(
-        `Call ${companyName}?\n\nOK for FaceTime\nCancel for regular phone call`
-      );
-      
-      if (useFaceTime) {
-        window.open(urlUtils.buildFaceTimeUrl(phone), '_blank');
-      } else {
-        window.open(urlUtils.buildTelUrl(phone), '_blank');
-      }
-    } else {
-      // Direct phone call on non-Apple devices
+    // Always use regular phone calls for universal compatibility
+    // FaceTime only works Apple-to-Apple, so avoid confusion
+    const makeCall = window.confirm(
+      `Call ${companyName} at ${phone}?\n\nThis will use your default phone app.`
+    );
+    
+    if (makeCall) {
       window.open(urlUtils.buildTelUrl(phone), '_blank');
+    }
+  },
+
+  // NEW: Offer video meeting options that work cross-platform
+  initiateVideoCall(phone: string, email: string, companyName: string): void {
+    const options = [
+      '📞 Regular Phone Call (Universal)',
+      '📹 Schedule Zoom Meeting (Cross-platform)',
+      '📱 FaceTime (Apple devices only)',
+      '❌ Cancel'
+    ];
+
+    const choice = window.prompt(
+      `Video/Call options for ${companyName}:\n\n` +
+      options.map((opt, i) => `${i + 1}. ${opt}`).join('\n') +
+      '\n\nChoose option (1-4):'
+    );
+
+    const choiceNum = parseInt(choice || '0');
+    
+    switch (choiceNum) {
+      case 1:
+        // Regular phone call (works everywhere)
+        window.open(urlUtils.buildTelUrl(phone), '_blank');
+        break;
+      case 2:
+        // Schedule Zoom meeting (suggest booking an appointment)
+        alert(`Let's schedule a Zoom meeting with ${companyName}!\n\nUse the "Schedule" button to book a video consultation.`);
+        break;
+      case 3:
+        // FaceTime (with warning)
+        if (deviceDetection.isAppleDevice()) {
+          const confirmFaceTime = window.confirm(
+            `FaceTime only works if ${companyName} has an Apple device.\n\nProceed with FaceTime?`
+          );
+          if (confirmFaceTime) {
+            window.open(urlUtils.buildFaceTimeUrl(phone), '_blank');
+          }
+        } else {
+          alert('FaceTime requires an Apple device (Mac, iPhone, iPad)');
+        }
+        break;
+      default:
+        // Cancel or invalid choice
+        break;
     }
   },
 
@@ -180,5 +219,52 @@ export const communicationFallbacks = {
     
     // Normal WebSocket connection
     return new WebSocket(url);
+  },
+
+  // NEW: Handle SMS with cross-platform compatibility
+  initiateSMS(phone: string, companyName: string, templateMessage?: string): void {
+    // Clean the phone number
+    const cleanPhone = urlUtils.cleanPhoneNumber(phone);
+    
+    // Default template message for new leads
+    const defaultMessage = templateMessage || 
+      `Hi ${companyName}! This is Ben from Pleasant Cove Design. I'd love to discuss creating a beautiful website for your business. When would be a good time for a quick call?`;
+    
+    // Encode the message for SMS URL
+    const encodedMessage = encodeURIComponent(defaultMessage);
+    
+    // Create SMS URL (works on most mobile devices)
+    const smsUrl = `sms:${cleanPhone}${deviceDetection.isMobile() ? '?body=' : '&body='}${encodedMessage}`;
+    
+    // Show confirmation with message preview
+    const confirmed = window.confirm(
+      `Send SMS to ${companyName} at ${phone}?\n\n` +
+      `Message preview:\n"${defaultMessage}"\n\n` +
+      `Note: This will open your SMS app. You can edit the message before sending.`
+    );
+    
+    if (confirmed) {
+      // Try to open SMS app
+      try {
+        window.open(smsUrl, '_blank');
+      } catch (error) {
+        // Fallback: copy message to clipboard
+        navigator.clipboard.writeText(
+          `Phone: ${phone}\nMessage: ${defaultMessage}`
+        ).then(() => {
+          alert(
+            `SMS app couldn't open automatically.\n\n` +
+            `Phone number and message copied to clipboard!\n\n` +
+            `Manually send to: ${phone}`
+          );
+        }).catch(() => {
+          alert(
+            `SMS app couldn't open automatically.\n\n` +
+            `Please manually text ${phone}:\n\n` +
+            `"${defaultMessage}"`
+          );
+        });
+      }
+    }
   }
 }; 

@@ -1,6 +1,6 @@
 import { db } from "./db.js";
 import { PostgreSQLStorage } from "./postgres-storage.js";
-import type { Business, NewBusiness, Activity, NewActivity, Company, NewCompany, Project, NewProject, ProjectMessage, ProjectFile } from "../shared/schema.js";
+import type { Business, NewBusiness, Activity, NewActivity, Company, NewCompany, Project, NewProject, ProjectMessage, ProjectFile, AIChatMessage } from "../shared/schema.js";
 import { eq } from "drizzle-orm";
 
 // Mock schema objects for the in-memory database
@@ -660,6 +660,29 @@ export class Storage {
     
     console.log(`✅ [STORAGE] Returning ${conversations.length} formatted conversations.`);
     return conversations;
+  }
+
+  // AI Chat Message methods (delegate to memoryDb)
+  async createAIChatMessage(message: Omit<AIChatMessage, 'id' | 'timestamp'> & { timestamp?: Date }): Promise<AIChatMessage> {
+    return await memoryDb.createAIChatMessage(message);
+  }
+
+  async getAIChatMessages(filters: {
+    leadId?: string;
+    projectId?: number;
+    sessionId?: string;
+    limit?: number;
+    messageType?: 'user' | 'ai' | 'function_call' | 'function_response';
+  } = {}): Promise<AIChatMessage[]> {
+    return await memoryDb.getAIChatMessages(filters);
+  }
+
+  async getLastAIChatMessage(leadId: string): Promise<AIChatMessage | null> {
+    return await memoryDb.getLastAIChatMessage(leadId);
+  }
+
+  async getAIChatContext(leadId?: string, projectId?: number, limit: number = 10): Promise<AIChatMessage[]> {
+    return await memoryDb.getAIChatContext(leadId, projectId, limit);
   }
 }
 

@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Website Demo | Pleasant Cove Design</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+        
+        .logo {
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .tagline {
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+        
+        .demo-container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        
+        .demo-header {
+            background: #003366;
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .demo-title {
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+        }
+        
+        .demo-subtitle {
+            opacity: 0.9;
+            font-size: 1rem;
+        }
+        
+        .demo-frame {
+            width: 100%;
+            height: 70vh;
+            border: none;
+            display: block;
+        }
+        
+        .action-section {
+            padding: 30px;
+            text-align: center;
+            background: #f8fafc;
+        }
+        
+        .action-title {
+            font-size: 1.5rem;
+            color: #1f2937;
+            margin-bottom: 15px;
+        }
+        
+        .action-text {
+            color: #6b7280;
+            margin-bottom: 25px;
+            font-size: 1.1rem;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-primary {
+            background: #0a8f08;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #0d7006;
+            transform: translateY(-2px);
+        }
+        
+        .btn-secondary {
+            background: #007acc;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #0069b3;
+            transform: translateY(-2px);
+        }
+        
+        .btn-outline {
+            background: white;
+            color: #374151;
+            border: 2px solid #d1d5db;
+        }
+        
+        .btn-outline:hover {
+            border-color: #9ca3af;
+            background: #f9fafb;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            color: white;
+            opacity: 0.8;
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 640px) {
+            .button-group {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .demo-frame {
+                height: 60vh;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">
+            ⛵ Pleasant Cove Design
+        </div>
+        <div class="tagline">Beautiful websites for Midcoast Maine businesses</div>
+    </div>
+    
+    <div class="demo-container">
+        <div class="demo-header">
+            <div class="demo-title">Your Custom Website Demo</div>
+            <div class="demo-subtitle">Here's how your new website could look</div>
+        </div>
+        
+        <iframe 
+            id="demo-frame"
+            class="demo-frame"
+            src="about:blank"
+            title="Website Demo">
+        </iframe>
+        
+        <div class="action-section">
+            <div class="action-title">Love what you see?</div>
+            <div class="action-text">Let's bring your vision to life with a professional website that drives results.</div>
+            
+            <div class="button-group">
+                <a href="https://www.pleasantcovedesign.com" class="btn btn-primary">
+                    📅 Schedule Free Consultation
+                </a>
+                <a href="mailto:info@pleasantcovedesign.com?subject=Website Demo Inquiry" class="btn btn-secondary">
+                    💬 Ask Questions
+                </a>
+                <button onclick="shareDemo()" class="btn btn-outline">
+                    📤 Share This Demo
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="footer">
+        © 2025 Pleasant Cove Design | Proudly serving Midcoast Maine
+    </div>
+    
+    <script>
+        // Get demo URL from query parameter
+        const urlParams = new URLSearchParams(window.location.search);
+        const demoUrl = urlParams.get('demo');
+        const companyName = urlParams.get('company');
+        
+        if (demoUrl) {
+            document.getElementById('demo-frame').src = demoUrl;
+        }
+        
+        if (companyName) {
+            document.querySelector('.demo-title').textContent = `${companyName} - Website Demo`;
+        }
+        
+        function shareDemo() {
+            if (navigator.share) {
+                navigator.share({
+                    title: 'Check out this website demo!',
+                    text: 'Pleasant Cove Design created this demo for us.',
+                    url: window.location.href
+                });
+            } else {
+                // Fallback for browsers that don't support Web Share API
+                navigator.clipboard.writeText(window.location.href).then(() => {
+                    alert('Demo link copied to clipboard!');
+                });
+            }
+        }
+        
+        // Track demo interaction
+        console.log('Customer demo preview loaded');
+    </script>
+</body>
+</html> 

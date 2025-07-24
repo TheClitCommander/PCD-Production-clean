@@ -3,7 +3,7 @@
 
 import fs from 'fs';
 import path from 'path';
-import { Company, Project, Message, ProjectFile, Activity } from '../shared/schema.js';
+import { Company, Project, Message, ProjectFile, Activity, AIChatMessage } from '../shared/schema.js';
 
 // Persistent storage file paths
 const DATA_DIR = path.join(process.cwd(), 'data');
@@ -117,6 +117,7 @@ class InMemoryDatabase {
   private companies: Company[] = [];
   private projects: Project[] = [];
   private projectMessages: ProjectMessage[] = []; // NEW: Storage for project messages
+  private aiChatMessages: AIChatMessage[] = []; // NEW: Storage for AI chat messages
   private projectFiles: ProjectFile[] = []; // NEW: Storage for project files
   private businesses: Business[] = [];
   private activities: Activity[] = [];
@@ -151,6 +152,7 @@ class InMemoryDatabase {
         companies: this.companies,
         projects: this.projects,
         projectMessages: this.projectMessages,
+        aiChatMessages: this.aiChatMessages,
         projectFiles: this.projectFiles,
         businesses: this.businesses,
         activities: this.activities,
@@ -175,9 +177,10 @@ class InMemoryDatabase {
       if (fs.existsSync(STORAGE_FILE)) {
         const data = JSON.parse(fs.readFileSync(STORAGE_FILE, 'utf8'));
         
-        this.companies = data.companies || [];
-        this.projects = data.projects || [];
-        this.projectMessages = data.projectMessages || [];
+              this.companies = data.companies || [];
+      this.projects = data.projects || [];
+      this.projectMessages = data.projectMessages || [];
+      this.aiChatMessages = data.aiChatMessages || [];
         this.projectFiles = data.projectFiles || [];
         this.businesses = data.businesses || [];
         this.activities = data.activities || [];
@@ -735,6 +738,61 @@ class InMemoryDatabase {
 
   async getProjectFiles(projectId: number): Promise<ProjectFile[]> {
     return this.projectFiles.filter(f => f.projectId === projectId);
+  }
+
+  // AI Chat Message methods for conversational recall
+  async createAIChatMessage(message: Omit<AIChatMessage, 'id' | 'timestamp'> & { timestamp?: Date }): Promise<AIChatMessage> {
+    const newId = Math.max(...this.aiChatMessages.map(m => m.id || 0), 0) + 1;
+    const newMessage: AIChatMessage = {
+      ...message,
+      id: newId,
+      timestamp: message.timestamp || new Date()
+    };
+    
+    this.aiChatMessages.push(newMessage);
+    this.saveToDisk();
+    return newMessage;
+  }
+
+  async getAIChatMessages(filters: {
+    leadId?: string;
+    projectId?: number;
+    sessionId?: string;
+    limit?: number;
+    messageType?: 'user' | 'ai' | 'function_call' | 'function_response';
+  } = {}): Promise<AIChatMessage[]> {
+    let messages = this.aiChatMessages;
+    
+    if (filters.leadId) {
+      messages = messages.filter(m => m.leadId === filters.leadId);
+    }
+    if (filters.projectId) {
+      messages = messages.filter(m => m.projectId === filters.projectId);
+    }
+    if (filters.sessionId) {
+      messages = messages.filter(m => m.sessionId === filters.sessionId);
+    }
+    if (filters.messageType) {
+      messages = messages.filter(m => m.messageType === filters.messageType);
+    }
+    
+    // Sort by timestamp (newest first)
+    messages = messages.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+    
+    if (filters.limit) {
+      messages = messages.slice(0, filters.limit);
+    }
+    
+    return messages;
+  }
+
+  async getLastAIChatMessage(leadId: string): Promise<AIChatMessage | null> {
+    const messages = await this.getAIChatMessages({ leadId, limit: 1 });
+    return messages.length > 0 ? messages[0] : null;
+  }
+
+  async getAIChatContext(leadId?: string, projectId?: number, limit: number = 10): Promise<AIChatMessage[]> {
+    return this.getAIChatMessages({ leadId, projectId, limit });
   }
 }
 

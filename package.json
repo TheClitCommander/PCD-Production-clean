@@ -14,7 +14,10 @@
     "start": "npm run dev"
   },
   "devDependencies": {
+    "@cypress/react": "^9.0.1",
     "concurrently": "^8.2.2",
+    "cypress": "^14.5.2",
+    "cypress-real-events": "^1.14.0",
     "serve": "^14.2.0"
   }
-} 
+}

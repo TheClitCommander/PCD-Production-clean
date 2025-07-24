@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 """
 Minerva Visual Generator - Creates professional website mockups for leads
-Now with cloud hosting and analytics support
+Now with template-style storefront system and mobile-first responsive design
 """
 
 import os
 import json
 import logging
+import argparse
 from datetime import datetime
 from typing import Dict, List, Optional
 import uuid
@@ -16,10 +17,85 @@ from image_validator import ImageValidator
 
 logger = logging.getLogger(__name__)
 
+# Template-style prompts for professional demos
+OCCUPATION_PROMPTS = {
+    "bakery": {
+        "presets": {
+            "storefront": {
+                "prompt": "Template-style storefront hero banner for an artisan bakery, clean layout, neutral palette, professional website design",
+                "description": "Welcome to {{company_name}}—freshly baked goodness baked daily just for you!"
+            },
+            "stylized": {
+                "prompt": "UI concept hero banner with heart-shaped artisan loaf on pastel background, stylish, minimal, modern web design",
+                "description": "Indulge in artisan bread crafted with love at {{company_name}}."
+            }
+        }
+    },
+    "plumbing": {
+        "presets": {
+            "storefront": {
+                "prompt": "Template-style storefront hero banner for a professional plumbing service, clean layout, neutral palette, trustworthy design",
+                "description": "Your neighborhood plumbing experts—fast, reliable service when you need it!"
+            },
+            "stylized": {
+                "prompt": "UI concept hero banner with modern plumbing tools on clean background, professional, sleek web design",
+                "description": "Professional plumbing solutions for {{company_name}}—we fix it right the first time."
+            }
+        }
+    },
+    "landscaping": {
+        "presets": {
+            "storefront": {
+                "prompt": "Template-style storefront hero banner for a premium landscaping company, clean layout, neutral palette, nature-inspired",
+                "description": "Transforming outdoor spaces into lush, vibrant landscapes."
+            },
+            "stylized": {
+                "prompt": "UI concept hero banner with geometric garden elements on gradient background, modern, eco-friendly design",
+                "description": "Creating beautiful outdoor environments at {{company_name}}—where nature meets design."
+            }
+        }
+    },
+    "dental": {
+        "presets": {
+            "storefront": {
+                "prompt": "Template-style storefront hero banner for a modern dental practice, clean layout, neutral palette, medical professional",
+                "description": "Gentle, comprehensive dental care for the whole family at {{company_name}}."
+            },
+            "stylized": {
+                "prompt": "UI concept hero banner with minimalist dental icons on soft blue background, modern healthcare design",
+                "description": "Your smile is our priority—expert dental care at {{company_name}}."
+            }
+        }
+    },
+    "general": {
+        "presets": {
+            "storefront": {
+                "prompt": "Template-style storefront hero banner for a professional business, clean layout, neutral palette, trustworthy design",
+                "description": "Professional services from {{company_name}}—your trusted local business."
+            },
+            "stylized": {
+                "prompt": "UI concept hero banner with modern business elements on clean background, professional web design",
+                "description": "Quality service and exceptional results from {{company_name}}."
+            }
+        }
+    }
+}
+
+def get_prompts_for_business(industry: str, style: str = "storefront") -> Dict[str, str]:
+    """Get the appropriate prompts for a business type and style"""
+    business_key = industry.lower() if industry else "general"
+    config = OCCUPATION_PROMPTS.get(business_key, OCCUPATION_PROMPTS["general"])
+    
+    if style in config["presets"]:
+        return config["presets"][style]
+    
+    # Default to storefront style
+    return config["presets"]["storefront"]
+
 class MinervaVisualGenerator:
     """
     Generates professional website mockups for businesses
-    With cloud hosting and click tracking
+    With template-style storefront system and cloud hosting
     """
     
     def __init__(self, output_dir="demos"):

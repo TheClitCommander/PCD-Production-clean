@@ -12,6 +12,7 @@ import Schedule from './pages/Schedule'
 import Settings from './pages/Settings'
 import ClientProfile from './pages/ClientProfile'
 import BookAppointment from './pages/BookAppointment'
+import AIChat from './components/AIChat'
 
 // Error boundary component
 class ErrorBoundary extends React.Component<
@@ -54,6 +55,23 @@ class ErrorBoundary extends React.Component<
 }
 
 const App: React.FC = () => {
+  const [isChatOpen, setIsChatOpen] = React.useState(false);
+  const [isChatMinimized, setIsChatMinimized] = React.useState(false);
+
+  const handleToggleChat = () => {
+    if (isChatOpen) {
+      setIsChatMinimized(!isChatMinimized);
+    } else {
+      setIsChatOpen(true);
+      setIsChatMinimized(false);
+    }
+  };
+
+  const handleCloseChat = () => {
+    setIsChatOpen(false);
+    setIsChatMinimized(false);
+  };
+
   return (
     <ErrorBoundary>
       <Router>
@@ -81,6 +99,27 @@ const App: React.FC = () => {
           {/* Fallback redirect */}
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>
+        
+        {/* AI Chat Component */}
+        {!isChatOpen && (
+          <div className="fixed bottom-4 right-4 z-50">
+            <button
+              onClick={handleToggleChat}
+              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white p-4 rounded-full shadow-lg transition-all transform hover:scale-105 flex items-center gap-2"
+            >
+              <span className="text-2xl">🤖</span>
+              <span className="text-sm font-medium hidden sm:block">AI Assistant</span>
+            </button>
+          </div>
+        )}
+        
+        {isChatOpen && (
+          <AIChat
+            isMinimized={isChatMinimized}
+            onToggleMinimize={handleToggleChat}
+            onClose={handleCloseChat}
+          />
+        )}
       </Router>
     </ErrorBoundary>
   )

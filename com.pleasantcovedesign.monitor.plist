@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.pleasantcovedesign.monitor</string>
+    
+    <key>ProgramArguments</key>
+    <array>
+        <string>/bin/bash</string>
+        <string>/Users/bendickinson/Desktop/pleasantcovedesign/ensure_pleasant_cove_running.sh</string>
+    </array>
+    
+    <!-- Run at startup -->
+    <key>RunAtLoad</key>
+    <true/>
+    
+    <!-- Run every 5 minutes (300 seconds) -->
+    <key>StartInterval</key>
+    <integer>300</integer>
+    
+    <!-- Keep running even if it crashes -->
+    <key>KeepAlive</key>
+    <true/>
+    
+    <!-- Log output -->
+    <key>StandardOutPath</key>
+    <string>/Users/bendickinson/Desktop/pleasantcovedesign/monitor-stdout.log</string>
+    
+    <key>StandardErrorPath</key>
+    <string>/Users/bendickinson/Desktop/pleasantcovedesign/monitor-stderr.log</string>
+    
+    <!-- Working directory -->
+    <key>WorkingDirectory</key>
+    <string>/Users/bendickinson/Desktop/pleasantcovedesign</string>
+</dict>
+</plist> 

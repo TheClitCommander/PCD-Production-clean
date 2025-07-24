@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pleasant Cove Design - Customer Preview System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(45deg, #2c3e50, #3498db);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        
+        .demo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+            padding: 40px;
+        }
+        
+        .demo-card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .demo-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+        }
+        
+        .demo-preview {
+            height: 200px;
+            background: #f8f9fa;
+            border-bottom: 3px solid #3498db;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .demo-preview iframe {
+            width: 100%;
+            height: 300px;
+            border: none;
+            transform: scale(0.6);
+            transform-origin: top left;
+        }
+        
+        .demo-info {
+            padding: 25px;
+        }
+        
+        .demo-title {
+            font-size: 1.4em;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        
+        .demo-industry {
+            color: #7f8c8d;
+            text-transform: uppercase;
+            font-size: 0.9em;
+            font-weight: 500;
+            margin-bottom: 15px;
+        }
+        
+        .demo-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            text-decoration: none;
+            text-align: center;
+            transition: all 0.3s ease;
+            flex: 1;
+        }
+        
+        .btn-primary {
+            background: #3498db;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #2980b9;
+        }
+        
+        .btn-secondary {
+            background: #ecf0f1;
+            color: #2c3e50;
+        }
+        
+        .btn-secondary:hover {
+            background: #d5dbdb;
+        }
+        
+        .stats {
+            background: #f8f9fa;
+            padding: 30px;
+            text-align: center;
+            border-top: 1px solid #ecf0f1;
+        }
+        
+        .stats h3 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+        
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+        }
+        
+        .stat {
+            color: #7f8c8d;
+        }
+        
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #3498db;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #7f8c8d;
+        }
+        
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .generate-section {
+            background: linear-gradient(45deg, #f39c12, #e67e22);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+        
+        .generate-form {
+            max-width: 500px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .form-group {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .form-input {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            border-radius: 6px;
+            font-size: 1em;
+        }
+        
+        .form-select {
+            padding: 15px;
+            border: none;
+            border-radius: 6px;
+            font-size: 1em;
+            background: white;
+        }
+        
+        .btn-generate {
+            background: #2c3e50;
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 6px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+        
+        .btn-generate:hover {
+            background: #34495e;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎨 Pleasant Cove Design</h1>
+            <p>Customer Demo Preview System - See What Your Prospects Experience</p>
+        </div>
+        
+        <div class="generate-section">
+            <h2 style="margin-bottom: 20px;">🚀 Generate New Demo</h2>
+            <div class="generate-form">
+                <div class="form-group">
+                    <input type="text" class="form-input" id="companyName" placeholder="Company Name (e.g., Ocean View Restaurant)">
+                    <select class="form-select" id="industry">
+                        <option value="restaurant">Restaurant</option>
+                        <option value="plumbing">Plumbing</option>
+                        <option value="landscaping">Landscaping</option>
+                        <option value="dental">Dental</option>
+                        <option value="auto">Auto Repair</option>
+                        <option value="electrical">Electrical</option>
+                        <option value="construction">Construction</option>
+                        <option value="consulting">Consulting</option>
+                        <option value="fitness">Fitness</option>
+                        <option value="beauty">Beauty/Salon</option>
+                    </select>
+                </div>
+                <button class="btn-generate" onclick="generateDemo()">🎯 Generate Professional Demo</button>
+            </div>
+        </div>
+        
+        <div id="loadingSection" class="loading" style="display: none;">
+            <div class="spinner"></div>
+            <h3>Creating Your Professional Website Demo...</h3>
+            <p>This usually takes 5-10 seconds</p>
+        </div>
+        
+        <div id="demoGrid" class="demo-grid">
+            <!-- Demos will be loaded here -->
+        </div>
+        
+        <div class="stats">
+            <h3>📊 Demo Performance Stats</h3>
+            <div class="stat-grid">
+                <div class="stat">
+                    <div class="stat-number" id="totalDemos">0</div>
+                    <div>Total Demos</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-number" id="uniqueIndustries">0</div>
+                    <div>Industries</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-number">⚡</div>
+                    <div>Instant Generation</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-number">🎨</div>
+                    <div>Professional Design</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let demos = [];
+        
+        async function loadDemos() {
+            try {
+                const response = await fetch('http://localhost:8005/api/demos');
+                const data = await response.json();
+                demos = data.demos;
+                renderDemos();
+                updateStats();
+            } catch (error) {
+                console.error('Failed to load demos:', error);
+                document.getElementById('demoGrid').innerHTML = `
+                    <div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: #e74c3c;">
+                        <h3>🚨 Demo Server Not Running</h3>
+                        <p>Please start the demo server: <code>python3 demo_server.py</code></p>
+                    </div>
+                `;
+            }
+        }
+        
+        function renderDemos() {
+            const grid = document.getElementById('demoGrid');
+            if (demos.length === 0) {
+                grid.innerHTML = `
+                    <div style="grid-column: 1 / -1; text-align: center; padding: 40px;">
+                        <h3>🎨 No Demos Yet</h3>
+                        <p>Generate your first demo using the form above!</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Show latest demos first
+            const sortedDemos = [...demos].reverse().slice(0, 12);
+            
+            grid.innerHTML = sortedDemos.map(demo => `
+                <div class="demo-card">
+                    <div class="demo-preview">
+                        <iframe src="${demo.url}" loading="lazy"></iframe>
+                    </div>
+                    <div class="demo-info">
+                        <div class="demo-title">${formatDemoName(demo.name)}</div>
+                        <div class="demo-industry">${extractIndustry(demo.name)}</div>
+                        <div class="demo-actions">
+                            <a href="${demo.url}" target="_blank" class="btn btn-primary">👁️ View Full Demo</a>
+                            <button onclick="copyLink('${demo.url}')" class="btn btn-secondary">📋 Copy Link</button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        function formatDemoName(name) {
+            return name
+                .replace(/_/g, ' ')
+                .replace(/\d{8}_\d{6}/g, '')
+                .replace(/\s+/g, ' ')
+                .trim()
+                .split(' ')
+                .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+                .join(' ');
+        }
+        
+        function extractIndustry(name) {
+            const industries = ['plumbing', 'landscaping', 'restaurant', 'dental', 'auto', 'electrical'];
+            for (let industry of industries) {
+                if (name.toLowerCase().includes(industry)) {
+                    return industry.charAt(0).toUpperCase() + industry.slice(1);
+                }
+            }
+            return 'Business';
+        }
+        
+        function updateStats() {
+            document.getElementById('totalDemos').textContent = demos.length;
+            const uniqueIndustries = new Set(demos.map(demo => extractIndustry(demo.name)));
+            document.getElementById('uniqueIndustries').textContent = uniqueIndustries.size;
+        }
+        
+        async function generateDemo() {
+            const companyName = document.getElementById('companyName').value.trim();
+            const industry = document.getElementById('industry').value;
+            
+            if (!companyName) {
+                alert('Please enter a company name');
+                return;
+            }
+            
+            document.getElementById('loadingSection').style.display = 'block';
+            document.getElementById('demoGrid').style.display = 'none';
+            
+            try {
+                const response = await fetch('http://localhost:3000/create_industry_demo_templates.py', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ companyName, industry })
+                });
+                
+                // For now, use direct Python call
+                const pythonResponse = await fetch('/generate-demo', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ company_name: companyName, industry: industry })
+                });
+                
+                setTimeout(() => {
+                    loadDemos();
+                    document.getElementById('loadingSection').style.display = 'none';
+                    document.getElementById('demoGrid').style.display = 'grid';
+                    document.getElementById('companyName').value = '';
+                }, 3000);
+                
+            } catch (error) {
+                console.error('Demo generation failed:', error);
+                alert('Demo generation failed. Please check if all services are running.');
+                document.getElementById('loadingSection').style.display = 'none';
+                document.getElementById('demoGrid').style.display = 'grid';
+            }
+        }
+        
+        function copyLink(url) {
+            navigator.clipboard.writeText(url).then(() => {
+                alert('Demo link copied to clipboard!');
+            });
+        }
+        
+        // Auto-refresh demos every 30 seconds
+        setInterval(loadDemos, 30000);
+        
+        // Load demos on page load
+        loadDemos();
+    </script>
+</body>
+</html> 

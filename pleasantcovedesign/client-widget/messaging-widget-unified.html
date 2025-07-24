@@ -975,82 +975,14 @@
                 return false;
             }
 
-            async detectMemberViaAPI() {
-                console.log('🌐 [API] Attempting to detect member via Squarespace API...');
+            // Skip Squarespace API detection for production - go directly to backend URL detection
+            detectMemberViaAPI() {
+                console.log('🔍 [API] Detecting member via API...');
                 
-                try {
-                    // Try Squarespace's member account API endpoints
-                    const endpoints = [
-                        '/api/member-areas/member',
-                        '/api/auth/status',
-                        '/api/commerce/customer/details'
-                    ];
-                    
-                    for (const endpoint of endpoints) {
-                        try {
-                            const response = await fetch(endpoint, {
-                                credentials: 'include',
-                                headers: {
-                                    'Accept': 'application/json'
-                                }
-                            });
-                            
-                            if (response.ok) {
-                                const data = await response.json();
-                                console.log(`📦 [API] Response from ${endpoint}:`, data);
-                                
-                                // Parse different response formats
-                                if (data.email || data.customerEmail || data.account?.email) {
-                                    const email = data.email || data.customerEmail || data.account.email;
-                                    const name = data.name || data.firstName || data.account?.displayName || 'Member';
-                                    
-                                    console.log(`✅ [API] Member found via ${endpoint}`);
-                                    return {
-                                        email: email,
-                                        name: name,
-                                        method: 'api'
-                                    };
-                                }
-                            }
-                        } catch (err) {
-                            console.debug(`[API] ${endpoint} failed:`, err.message);
-                        }
-                    }
-                    
-                    // Try Y.Squarespace.MemberAccounts if available
-                    if (window.Y?.Squarespace?.MemberAccounts) {
-                        console.log('🔧 [API] Trying Y.Squarespace.MemberAccounts...');
-                        
-                        return new Promise((resolve) => {
-                            // Set a timeout in case the API doesn't respond
-                            const timeout = setTimeout(() => resolve(null), 2000);
-                            
-                            try {
-                                window.Y.Squarespace.MemberAccounts.getMember((member) => {
-                                    clearTimeout(timeout);
-                                    if (member && member.email) {
-                                        console.log('✅ [API] Member found via Y.Squarespace.MemberAccounts');
-                                        resolve({
-                                            email: member.email,
-                                            name: member.firstName || member.displayName || 'Member',
-                                            method: 'yui-api'
-                                        });
-                                    } else {
-                                        resolve(null);
-                                    }
-                                });
-                            } catch (err) {
-                                clearTimeout(timeout);
-                                console.error('[API] Y.Squarespace.MemberAccounts error:', err);
-                                resolve(null);
-                            }
-                        });
-                    }
-                    
-                } catch (error) {
-                    console.error('❌ [API] Error detecting member via API:', error);
-                }
+                // Skip Squarespace member-areas detection for production compatibility
+                // These endpoints don't exist on Pleasant Cove Design's production server
                 
+                console.log('⚠️ [API] Skipping Squarespace member-areas detection for production compatibility');
                 return null;
             }
 
@@ -2079,9 +2011,13 @@
                     
                     if (response.ok) {
                         console.log('✅ [READ_RECEIPT] Marked messages as read:', messageIds);
+                    } else if (response.status === 404) {
+                        // Silently ignore 404 errors - the endpoint might not be deployed yet
+                        console.log('ℹ️ [READ_RECEIPT] Read receipts not available on this server version');
                     }
                 } catch (error) {
-                    console.error('❌ [READ_RECEIPT] Failed to mark messages as read:', error);
+                    // Silently ignore errors - read receipts are not critical
+                    console.log('ℹ️ [READ_RECEIPT] Read receipts not available:', error.message);
                 }
             }
 

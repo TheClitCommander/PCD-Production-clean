@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Website Demo is Ready - Pleasant Cove Design</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 600px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            padding: 50px;
+            text-align: center;
+        }
+        
+        .logo {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .company-name {
+            font-size: 2em;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+        
+        .tagline {
+            color: #7f8c8d;
+            font-size: 1.1em;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+        
+        .demo-preview {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 30px 0;
+            border: 2px solid #3498db;
+        }
+        
+        .preview-text {
+            color: #2c3e50;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+        
+        .demo-link {
+            display: inline-block;
+            background: linear-gradient(45deg, #3498db, #2980b9);
+            color: white;
+            padding: 18px 40px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.2em;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+        }
+        
+        .demo-link:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(52, 152, 219, 0.4);
+        }
+        
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+            margin: 40px 0;
+        }
+        
+        .feature {
+            padding: 15px;
+        }
+        
+        .feature-icon {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+        
+        .feature-text {
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+        
+        .contact-info {
+            background: linear-gradient(45deg, #f39c12, #e67e22);
+            color: white;
+            padding: 25px;
+            border-radius: 10px;
+            margin-top: 30px;
+        }
+        
+        .contact-text {
+            margin-bottom: 15px;
+        }
+        
+        .contact-details {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .contact-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9em;
+        }
+        
+        @media (max-width: 600px) {
+            .container {
+                padding: 30px 25px;
+            }
+            
+            .company-name {
+                font-size: 1.6em;
+            }
+            
+            .demo-link {
+                padding: 15px 30px;
+                font-size: 1.1em;
+            }
+            
+            .contact-details {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">🎨</div>
+        <h1 class="company-name" id="companyName">Your Business</h1>
+        <p class="tagline">Your custom website demo is ready! Click below to see how your professional online presence could look.</p>
+        
+        <div class="demo-preview">
+            <div class="preview-text">🚀 Your Website Demo</div>
+            <a href="#" class="demo-link" id="demoLink">View Your Demo</a>
+        </div>
+        
+        <div class="features">
+            <div class="feature">
+                <div class="feature-icon">⚡</div>
+                <div class="feature-text">5-7 Day Delivery</div>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">📱</div>
+                <div class="feature-text">Mobile Ready</div>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">🎯</div>
+                <div class="feature-text">Industry Focused</div>
+            </div>
+        </div>
+        
+        <div class="contact-info">
+            <div class="contact-text">
+                <strong>Love what you see? Let's make it yours!</strong>
+            </div>
+            <div class="contact-details">
+                <div class="contact-item">
+                    <span>📧</span>
+                    <span>hello@pleasantcovedesign.com</span>
+                </div>
+                <div class="contact-item">
+                    <span>📞</span>
+                    <span>(555) 123-4567</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Get parameters from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const demoUrl = urlParams.get('demo');
+        const companyName = urlParams.get('company') || 'Your Business';
+        
+        // Set company name and demo link
+        document.getElementById('companyName').textContent = companyName;
+        document.title = `${companyName} Demo - Pleasant Cove Design`;
+        
+        if (demoUrl) {
+            document.getElementById('demoLink').href = demoUrl;
+        } else {
+            // If no demo URL provided, try to find latest demo
+            findLatestDemo();
+        }
+        
+        async function findLatestDemo() {
+            try {
+                const response = await fetch('http://localhost:8005/api/demos');
+                const data = await response.json();
+                
+                // Find demo for this company
+                const companyDemos = data.demos.filter(demo => 
+                    demo.name.toLowerCase().includes(companyName.toLowerCase().replace(/\s+/g, '_'))
+                );
+                
+                if (companyDemos.length > 0) {
+                    const latestDemo = companyDemos[companyDemos.length - 1];
+                    document.getElementById('demoLink').href = latestDemo.url;
+                }
+            } catch (error) {
+                console.error('Could not load demo:', error);
+            }
+        }
+    </script>
+</body>
+</html> 

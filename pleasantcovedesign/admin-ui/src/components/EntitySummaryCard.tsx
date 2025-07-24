@@ -30,6 +30,10 @@ interface EntitySummaryCardProps {
   onPhoneClick?: () => void;
   onEmailClick?: () => void;
   onMessageClick?: () => void;
+  onMinervaDemo?: () => void;
+  onMinervaOutreach?: () => void;
+  onMinervaInvoice?: () => void;
+  onMinervaAnalytics?: () => void;
 }
 
 const EntitySummaryCard: React.FC<EntitySummaryCardProps> = ({
@@ -50,7 +54,11 @@ const EntitySummaryCard: React.FC<EntitySummaryCardProps> = ({
   trackingData,
   onPhoneClick,
   onEmailClick,
-  onMessageClick
+  onMessageClick,
+  onMinervaDemo,
+  onMinervaOutreach,
+  onMinervaInvoice,
+  onMinervaAnalytics
 }) => {
   // Helper to get priority styling
   const getPriorityStyles = (priority?: string) => {
@@ -203,13 +211,25 @@ const EntitySummaryCard: React.FC<EntitySummaryCardProps> = ({
                       onPhoneClick();
                     }}
                     className="p-1 hover:bg-gray-100 rounded transition-colors"
-                    title={deviceDetection.isFaceTimeSupported() ? "Call/FaceTime" : "Call"}
+                    title="Call (Universal)"
                   >
-                    {deviceDetection.isFaceTimeSupported() ? (
-                      <Smartphone className="w-4 h-4 text-purple-600" />
-                    ) : (
-                      <Phone className="w-4 h-4 text-green-600" />
-                    )}
+                    <Phone className="w-4 h-4 text-green-600" />
+                  </button>
+                )}
+                {/* NEW: Video call options button */}
+                {onPhoneClick && company.phone && company.email && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      // Use the enhanced video call function
+                      if (company.phone && company.email) {
+                        (window as any).initiateVideoCall?.(company.phone, company.email, company.name);
+                      }
+                    }}
+                    className="p-1 hover:bg-gray-100 rounded transition-colors"
+                    title="Video/Call Options"
+                  >
+                    <Smartphone className="w-4 h-4 text-purple-600" />
                   </button>
                 )}
                 {onMessageClick && (
@@ -219,13 +239,79 @@ const EntitySummaryCard: React.FC<EntitySummaryCardProps> = ({
                       onMessageClick();
                     }}
                     className="p-1 hover:bg-gray-100 rounded transition-colors"
-                    title="Message"
+                    title="Send SMS"
                   >
                     <MessageCircle className="w-4 h-4 text-blue-600" />
                   </button>
                 )}
               </div>
             </div>
+            
+            {/* MINERVA AI ACTIONS */}
+            {mode !== 'compact' && (
+              <div className="flex items-center justify-between text-sm text-gray-600 mt-2 pt-2 border-t border-gray-100">
+                <div className="flex items-center">
+                  <span className="text-xs font-medium text-purple-600 mr-2">🤖 MINERVA</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  {/* Generate Demo */}
+                  {onMinervaDemo && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onMinervaDemo();
+                      }}
+                      className="p-1 hover:bg-purple-50 rounded transition-colors"
+                      title="Generate Professional Demo"
+                    >
+                      <span className="text-lg">🎨</span>
+                    </button>
+                  )}
+                  
+                  {/* Smart Outreach */}
+                  {onMinervaOutreach && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onMinervaOutreach();
+                      }}
+                      className="p-1 hover:bg-purple-50 rounded transition-colors"
+                      title="AI Smart Outreach"
+                    >
+                      <span className="text-lg">🚀</span>
+                    </button>
+                  )}
+                  
+                  {/* Create Invoice */}
+                  {onMinervaInvoice && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onMinervaInvoice();
+                      }}
+                      className="p-1 hover:bg-purple-50 rounded transition-colors"
+                      title="Create Invoice"
+                    >
+                      <span className="text-lg">💰</span>
+                    </button>
+                  )}
+                  
+                  {/* Analytics */}
+                  {onMinervaAnalytics && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onMinervaAnalytics();
+                      }}
+                      className="p-1 hover:bg-purple-50 rounded transition-colors"
+                      title="View Analytics"
+                    >
+                      <span className="text-lg">📊</span>
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
             {company.email && (
               <div className="flex items-center justify-between text-sm text-gray-600">
                 <div className="flex items-center">

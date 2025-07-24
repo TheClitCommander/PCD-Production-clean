@@ -116,8 +116,15 @@ const Inbox: React.FC = () => {
       try {
         console.log(`📖 [READ_MESSAGES] Marking message ${msg.id} as read`);
         await api.post(`/messages/${msg.id}/read`);
-      } catch (error) {
-        console.error('Failed to mark message as read:', error);
+      } catch (error: any) {
+        // Handle 404 gracefully - production server might not have this endpoint yet
+        if (error.response?.status === 404) {
+          console.warn(`⚠️ Read receipt endpoint not available on production server - messages will appear unread until server is updated`);
+          // Don't spam console with repeated 404s
+          break;
+        } else {
+          console.error('Failed to mark message as read:', error);
+        }
       }
     }
     

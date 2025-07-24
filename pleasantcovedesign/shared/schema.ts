@@ -244,6 +244,22 @@ export interface ProjectFile {
   createdAt?: string;
 }
 
+// AI Chat Message interface for conversational recall
+export interface AIChatMessage {
+  id?: number;
+  leadId?: string; // Company ID or lead identifier
+  projectId?: number; // Optional project context
+  direction: 'inbound' | 'outbound'; // user -> AI or AI -> user
+  messageType: 'user' | 'ai' | 'function_call' | 'function_response';
+  content: string;
+  functionName?: string; // If this was a function call
+  functionArgs?: any; // Function arguments
+  functionResult?: any; // Function execution result
+  context?: any; // Additional context (current page, selected items, etc.)
+  timestamp: Date;
+  sessionId?: string; // Group related messages
+}
+
 // Mock schema objects for compatibility
 export const businesses = { tableName: 'businesses' };
 export const companies = { tableName: 'companies' }; // NEW

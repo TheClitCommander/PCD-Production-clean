@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Custom Website Demo | Pleasant Cove Design</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #1f2937;
+            background: #f8fafc;
+            min-height: 100vh;
+        }
+        
+        /* Header matching your messaging widget */
+        .header {
+            background: #000000;
+            color: white;
+            padding: 20px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .logo {
+            font-size: 20px;
+            font-weight: 600;
+            color: white;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 24px;
+            align-items: center;
+        }
+        
+        .nav-link {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+        
+        .nav-link:hover {
+            color: #667eea;
+        }
+        
+        /* Main Content */
+        .main-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        
+        /* Hero Section */
+        .hero {
+            text-align: center;
+            margin-bottom: 40px;
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .hero h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #000000;
+            margin-bottom: 16px;
+        }
+        
+        .company-name {
+            color: #667eea;
+            font-weight: 600;
+        }
+        
+        .hero p {
+            font-size: 1.2rem;
+            color: #6b7280;
+            margin-bottom: 32px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 40px;
+        }
+        
+        .btn {
+            padding: 14px 28px;
+            border-radius: 8px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-primary {
+            background: #667eea;
+            color: white;
+            box-shadow: 0 4px 6px rgba(102, 126, 234, 0.25);
+        }
+        
+        .btn-primary:hover {
+            background: #5a67d8;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 12px rgba(102, 126, 234, 0.35);
+        }
+        
+        .btn-secondary {
+            background: white;
+            color: #000000;
+            border: 2px solid #e5e7eb;
+        }
+        
+        .btn-secondary:hover {
+            border-color: #667eea;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .btn-tertiary {
+            background: #000000;
+            color: white;
+        }
+        
+        .btn-tertiary:hover {
+            background: #1f2937;
+            transform: translateY(-1px);
+        }
+        
+        /* Demo Preview */
+        .demo-preview {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            margin-bottom: 40px;
+        }
+        
+        .demo-header {
+            background: #f8fafc;
+            padding: 16px 24px;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .demo-controls {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .demo-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+        
+        .demo-dot.red { background: #ef4444; }
+        .demo-dot.yellow { background: #f59e0b; }
+        .demo-dot.green { background: #10b981; }
+        
+        .demo-url {
+            font-family: monospace;
+            font-size: 14px;
+            color: #6b7280;
+            flex: 1;
+            text-align: center;
+        }
+        
+        .demo-iframe {
+            width: 100%;
+            height: 70vh;
+            border: none;
+            background: white;
+        }
+        
+        /* Device Tabs */
+        .device-tabs {
+            display: flex;
+            gap: 4px;
+            background: #f8fafc;
+            padding: 4px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .device-tab {
+            flex: 1;
+            padding: 12px;
+            background: transparent;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+            color: #6b7280;
+        }
+        
+        .device-tab.active {
+            background: white;
+            color: #000000;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .device-tab:hover:not(.active) {
+            color: #667eea;
+        }
+        
+        /* Features Section */
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+            margin-bottom: 40px;
+        }
+        
+        .feature-card {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        
+        .feature-icon {
+            width: 48px;
+            height: 48px;
+            background: #667eea;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 16px;
+            font-size: 24px;
+        }
+        
+        .feature-card h3 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #000000;
+            margin-bottom: 8px;
+        }
+        
+        .feature-card p {
+            color: #6b7280;
+            font-size: 14px;
+        }
+        
+        /* Footer */
+        .footer {
+            background: #000000;
+            color: white;
+            text-align: center;
+            padding: 24px;
+            margin-top: 40px;
+        }
+        
+        .footer p {
+            color: #9ca3af;
+            font-size: 14px;
+        }
+        
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                gap: 16px;
+                text-align: center;
+            }
+            
+            .nav-links {
+                justify-content: center;
+            }
+            
+            .hero h1 {
+                font-size: 2rem;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .demo-iframe {
+                height: 50vh;
+            }
+            
+            .device-tabs {
+                flex-direction: column;
+            }
+        }
+        
+        /* Loading Animation */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header matching Pleasant Cove Design -->
+    <header class="header">
+        <div class="logo">⛵ Pleasant Cove Design</div>
+        <nav class="nav-links">
+            <a href="https://www.pleasantcovedesign.com" class="nav-link">Schedule Consultation</a>
+        </nav>
+    </header>
+
+    <div class="main-container">
+        <!-- Hero Section -->
+        <section class="hero">
+            <h1>Your Website Demo is Ready, <span class="company-name" id="companyName">Blue Ocean Marketing</span>!</h1>
+            <p>"Web Design: 200% conversions & 400% leads" – Forrester Research<br>
+            "SEO & Rebrand: 748% ROI & 10–20% revenue" – SagaPixel & Marq<br><br>
+            Pleasant Cove Design takes these proven tactics and delivers them locally—crafting custom websites and SEO campaigns that drive real revenue growth for Maine businesses.</p>
+            
+            <div class="action-buttons">
+                <a href="#" class="btn btn-tertiary" id="shareBtn">
+                    📤 Share This Demo
+                </a>
+                <a href="#" class="btn btn-tertiary" id="viewFullBtn">
+                    🖥️ View Full Website
+                </a>
+            </div>
+        </section>
+
+        <!-- Device Preview Tabs -->
+        <div class="device-tabs">
+            <button class="device-tab active" data-device="desktop">🖥️ Desktop</button>
+            <button class="device-tab" data-device="tablet">📱 Tablet</button>
+            <button class="device-tab" data-device="mobile">📱 Mobile</button>
+        </div>
+
+        <!-- Demo Preview -->
+        <section class="demo-preview">
+            <div class="demo-header">
+                <div class="demo-controls">
+                    <div class="demo-dot red"></div>
+                    <div class="demo-dot yellow"></div>
+                    <div class="demo-dot green"></div>
+                </div>
+                <div class="demo-url" id="demoUrl">blueoceanmarketing.com</div>
+                <div style="width: 60px;"></div>
+            </div>
+            <iframe 
+                class="demo-iframe" 
+                id="demoFrame"
+                src="http://localhost:8005/blue_ocean_marketing_consulting_20250722_232653.html"
+                title="Website Demo">
+            </iframe>
+        </section>
+
+        <!-- Features -->
+        <section class="features">
+            <div class="feature-card">
+                <div class="feature-icon">⚡</div>
+                <h3>Fast Delivery</h3>
+                <p>Your website will be ready in 48-72 hours, not weeks.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📱</div>
+                <h3>Mobile Optimized</h3>
+                <p>Looks perfect on all devices - desktop, tablet, and mobile.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🎯</div>
+                <h3>Industry Focused</h3>
+                <p>Designed specifically for your business type and target customers.</p>
+            </div>
+        </section>
+
+        <!-- Call to Action -->
+        <section class="hero">
+            <h2 style="font-size: 2rem; margin-bottom: 16px;">Love what you see? Let's make it yours!</h2>
+            <p style="margin-bottom: 24px;">Ready to get started? Visit our website to schedule a free consultation or give us a call!</p>
+            <div class="action-buttons">
+                <a href="https://www.pleasantcovedesign.com" class="btn btn-primary">
+                    📅 Schedule Free Consultation
+                </a>
+                <a href="tel:2073805680" class="btn btn-secondary">
+                    📞 Call (207) 380-5680
+                </a>
+            </div>
+        </section>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>&copy; 2025 Pleasant Cove Design. All rights reserved. | Beautiful, affordable websites for Maine businesses.</p>
+    </footer>
+
+    <script>
+        // Get URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const companyName = urlParams.get('company') || 'Blue Ocean Marketing';
+        const demoUrl = urlParams.get('demo') || 'http://localhost:8005/blue_ocean_marketing_consulting_20250722_223324.html';
+        
+        // Update page content
+        document.getElementById('companyName').textContent = companyName;
+        document.getElementById('demoFrame').src = demoUrl;
+        document.getElementById('demoUrl').textContent = companyName.toLowerCase().replace(/\s+/g, '') + '.com';
+        
+        // Device preview functionality
+        const deviceTabs = document.querySelectorAll('.device-tab');
+        const demoFrame = document.getElementById('demoFrame');
+        
+        deviceTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                // Remove active class from all tabs
+                deviceTabs.forEach(t => t.classList.remove('active'));
+                // Add active class to clicked tab
+                tab.classList.add('active');
+                
+                // Update iframe size based on device
+                const device = tab.dataset.device;
+                switch(device) {
+                    case 'mobile':
+                        demoFrame.style.width = '375px';
+                        demoFrame.style.margin = '0 auto';
+                        demoFrame.style.display = 'block';
+                        break;
+                    case 'tablet':
+                        demoFrame.style.width = '768px';
+                        demoFrame.style.margin = '0 auto';
+                        demoFrame.style.display = 'block';
+                        break;
+                    default:
+                        demoFrame.style.width = '100%';
+                        demoFrame.style.margin = '0';
+                        demoFrame.style.display = 'block';
+                }
+            });
+        });
+        
+        // Button actions
+        document.getElementById('viewFullBtn').href = demoUrl;
+        
+        document.getElementById('shareBtn').addEventListener('click', (e) => {
+            e.preventDefault();
+            if (navigator.share) {
+                navigator.share({
+                    title: `Website Demo for ${companyName}`,
+                    text: `Check out this custom website demo created for ${companyName}`,
+                    url: window.location.href
+                });
+            } else {
+                // Fallback - copy to clipboard
+                navigator.clipboard.writeText(window.location.href);
+                alert('Demo link copied to clipboard!');
+            }
+        });
+        
+        // Track demo views
+        fetch('/api/track/view', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                company: companyName,
+                demo_url: demoUrl,
+                timestamp: new Date().toISOString(),
+                user_agent: navigator.userAgent
+            })
+        }).catch(() => {}); // Silent fail for tracking
+    </script>
+</body>
+</html> 

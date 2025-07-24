@@ -4,6 +4,46 @@ import { Search, Filter, Plus, Building2, Eye, MousePointer, MessageCircle, Tren
 import EntitySummaryCard from '../components/EntitySummaryCard'
 import api from '../api'
 import { deviceDetection, communicationFallbacks, urlUtils } from '../utils/deviceDetection'
+import { authenticatedFetch, checkAuthStatus, AuthAPI } from '../utils/auth'
+
+// Make communication functions available globally for UI components
+(window as any).initiateVideoCall = communicationFallbacks.initiateVideoCall;
+
+// MINERVA API Integration
+const MINERVA_API_URL = 'http://localhost:8001/api/minerva';
+
+interface MinervaResponse {
+  success: boolean;
+  message?: string;
+  demo_url?: string;
+  invoice?: any;
+  analytics?: any;
+  error?: string;
+  details?: any;
+  demos?: {
+    storefront: any;
+    stylized: any;
+  };
+}
+
+async function callMinervaAPI(endpoint: string, data: any): Promise<MinervaResponse> {
+  try {
+    const response = await authenticatedFetch(`${MINERVA_API_URL}${endpoint}`, {
+      method: 'POST',
+      body: JSON.stringify(data)
+    });
+    
+    const result = await response.json();
+    return result;
+  } catch (error) {
+    console.error('Minerva API Error:', error);
+    return {
+      success: false,
+      error: 'Failed to connect to Minerva AI',
+      details: error
+    };
+  }
+}
 
 interface Company {
   id: number;
@@ -187,6 +227,13 @@ const Leads: React.FC = () => {
     }
   }
 
+  // NEW: Enhanced video/call options
+  const handleVideoCallClick = (company: CompanyWithProjects) => {
+    if (company.phone && company.email && company.phone.trim()) {
+      communicationFallbacks.initiateVideoCall(company.phone, company.email, company.name)
+    }
+  }
+
   const handleEmailClick = (company: CompanyWithProjects) => {
     if (company.email && company.email.includes('@')) {
       const subject = `Following up from Pleasant Cove Design`
@@ -202,22 +249,232 @@ const Leads: React.FC = () => {
   }
 
   const handleMessageClick = (company: CompanyWithProjects) => {
-    if (company.projects && company.projects.length > 0) {
-      // Navigate to the project inbox
-      const project = company.projects[0]
-      if (project.accessToken) {
-        navigate(`/inbox/${project.accessToken}`)
-      } else {
-        alert('No project conversation available. Create a project first.')
-      }
+    if (company.phone && company.phone.trim()) {
+      // Use SMS for lead outreach
+      communicationFallbacks.initiateSMS(company.phone, company.name);
     } else {
-      // No projects yet - prompt to create one
-      if (window.confirm(`No projects exist for ${company.name} yet.\n\nWould you like to create a project to start messaging?`)) {
-        // TODO: Implement project creation flow
-        alert('Project creation coming soon! For now, use the "Schedule" option to book an appointment which creates a project.')
-      }
+      alert(`No phone number available for ${company.name}`);
     }
   }
+
+  // MINERVA AI HANDLERS
+  
+  const handleMinervaDemo = async (company: CompanyWithProjects) => {
+    try {
+      // Style selection dialog
+      const styleOptions = [
+        '1. 🏪 Storefront Style (Clean template, professional)',
+        '2. 🎨 Stylized Style (UI concept, modern design)',
+        '3. 🔄 Generate Both Styles for Comparison',
+        '4. ❌ Cancel'
+      ];
+      
+      const choice = window.prompt(
+        `Generate professional demo for ${company.name}:\n\n` +
+        styleOptions.join('\n') +
+        '\n\nChoose style (1-4):'
+      );
+      
+      const choiceNum = parseInt(choice || '0');
+      if (choiceNum < 1 || choiceNum > 3) return;
+      
+      let selectedStyle = 'storefront';
+      let bothStyles = false;
+      
+      if (choiceNum === 1) {
+        selectedStyle = 'storefront';
+      } else if (choiceNum === 2) {
+        selectedStyle = 'stylized';
+      } else if (choiceNum === 3) {
+        bothStyles = true;
+      }
+      
+      // Show loading state
+      const loadingMessage = bothStyles 
+        ? '🤖 Minerva is generating both demo styles...\n\nThis may take 30-60 seconds.'
+        : `🤖 Minerva is generating a professional ${selectedStyle} demo...\n\nThis may take 30-60 seconds.`;
+      
+      alert(loadingMessage);
+      
+      if (bothStyles) {
+        // Generate both styles for comparison
+        const result = await callMinervaAPI('/generate-both-styles', {
+          company_id: company.id,
+          company_name: company.name,
+          industry: (company as any).industry || 'general'
+        });
+        
+        if (result.success) {
+          const storefront = result.demos?.storefront;
+          const stylized = result.demos?.stylized;
+          
+          const viewChoice = window.prompt(
+            `✅ Both demo styles created successfully!\n\n` +
+            `🏪 Storefront: ${storefront?.demo_url}\n` +
+            `🎨 Stylized: ${stylized?.demo_url}\n\n` +
+            `Which would you like to view?\n` +
+            `1. Storefront Style\n` +
+            `2. Stylized Style\n` +
+            `3. View Both (opens 2 tabs)\n` +
+            `4. View Later\n\n` +
+            `Choose option (1-4):`
+          );
+          
+          const viewNum = parseInt(viewChoice || '0');
+          if (viewNum === 1) {
+            window.open(storefront?.demo_url, '_blank');
+          } else if (viewNum === 2) {
+            window.open(stylized?.demo_url, '_blank');
+          } else if (viewNum === 3) {
+            window.open(storefront?.demo_url, '_blank');
+            setTimeout(() => window.open(stylized?.demo_url, '_blank'), 500);
+          }
+        } else {
+          alert(`❌ Demo generation failed:\n\n${result.error || 'Unknown error'}`);
+        }
+      } else {
+        // Generate single style
+        const result = await callMinervaAPI('/generate-demo', {
+          company_id: company.id,
+          company_name: company.name,
+          industry: (company as any).industry || 'general',
+          phone: company.phone,
+          email: company.email,
+          style: selectedStyle
+        });
+        
+        if (result.success && result.demo_url) {
+          const viewDemo = window.confirm(
+            `✅ ${selectedStyle === 'storefront' ? '🏪 Storefront' : '🎨 Stylized'} demo created successfully!\n\n` +
+            `${result.message}\n\n` +
+            `Would you like to view the demo now?`
+          );
+          
+          if (viewDemo) {
+            window.open(result.demo_url, '_blank');
+          }
+        } else {
+          alert(`❌ Demo generation failed:\n\n${result.error || 'Unknown error'}`);
+        }
+      }
+    } catch (error) {
+      console.error('Demo generation error:', error);
+      alert('❌ Failed to generate demo. Please try again.');
+    }
+  };
+
+  const handleMinervaOutreach = async (company: CompanyWithProjects) => {
+    try {
+      const confirmed = window.confirm(
+        `Run AI smart outreach for ${company.name}?\n\n` +
+        `Minerva will:\n` +
+        `• Generate a professional demo\n` +
+        `• Create personalized messaging\n` +
+        `• Send outreach via SMS/email\n\n` +
+        `Continue?`
+      );
+      
+      if (!confirmed) return;
+      
+      // Show loading state
+      alert('🤖 Minerva is running smart outreach...\n\nThis includes demo generation and personalized messaging.');
+      
+      const result = await callMinervaAPI('/smart-outreach', {
+        company_id: company.id,
+        company_name: company.name,
+        industry: (company as any).industry || 'general',
+        phone: company.phone,
+        email: company.email
+      });
+      
+      if (result.success) {
+        alert(
+          `✅ Smart outreach completed!\n\n` +
+          `${result.message}\n\n` +
+          `Check your outreach logs for details.`
+        );
+      } else {
+        alert(`❌ Smart outreach failed:\n\n${result.error || 'Unknown error'}`);
+      }
+    } catch (error) {
+      console.error('Smart outreach error:', error);
+      alert('❌ Failed to run smart outreach. Please try again.');
+    }
+  };
+
+  const handleMinervaInvoice = async (company: CompanyWithProjects) => {
+    try {
+      // Show package selection dialog
+      const packageOptions = [
+        '1. Starter Package ($997)',
+        '2. Growth Package ($2,497)', 
+        '3. Professional Package ($4,997)',
+        '4. Cancel'
+      ];
+      
+      const choice = window.prompt(
+        `Create invoice for ${company.name}:\n\n` +
+        packageOptions.join('\n') +
+        '\n\nEnter your choice (1-4):'
+      );
+      
+      const choiceNum = parseInt(choice || '0');
+      if (choiceNum < 1 || choiceNum > 3) return;
+      
+      const packageTypes = ['starter', 'growth', 'professional'];
+      const selectedPackage = packageTypes[choiceNum - 1];
+      
+      // Show loading state
+      alert('🤖 Minerva is creating your invoice...');
+      
+      const result = await callMinervaAPI('/create-invoice', {
+        company_id: company.id,
+        company_name: company.name,
+        package_type: selectedPackage,
+        notes: `Invoice created via Minerva AI for ${company.name}`
+      });
+      
+      if (result.success) {
+        alert(
+          `✅ Invoice created successfully!\n\n` +
+          `${result.message}\n\n` +
+          `Invoice details have been saved to your billing system.`
+        );
+      } else {
+        alert(`❌ Invoice creation failed:\n\n${result.error || 'Unknown error'}`);
+      }
+    } catch (error) {
+      console.error('Invoice creation error:', error);
+      alert('❌ Failed to create invoice. Please try again.');
+    }
+  };
+
+  const handleMinervaAnalytics = async (company: CompanyWithProjects) => {
+    try {
+      // Show loading state
+      alert('🤖 Minerva is gathering analytics...');
+      
+      const response = await fetch(`${MINERVA_API_URL}/analytics/${company.id}`);
+      const result = await response.json();
+      
+      if (result.success) {
+        const analytics = result.analytics;
+        alert(
+          `📊 Analytics for ${company.name}:\n\n` +
+          `Demo Views: ${analytics.demo_views || 0}\n` +
+          `Email Opens: ${analytics.email_opens || 0}\n` +
+          `Click-through Rate: ${analytics.ctr || '0%'}\n` +
+          `Engagement Score: ${analytics.engagement_score || 'N/A'}\n\n` +
+          `Last Activity: ${analytics.last_activity || 'No activity yet'}`
+        );
+      } else {
+        alert(`❌ Analytics retrieval failed:\n\n${result.error || 'Unknown error'}`);
+      }
+    } catch (error) {
+      console.error('Analytics error:', error);
+      alert('❌ Failed to retrieve analytics. Please try again.');
+    }
+  };
 
   const scheduleWithCompany = (company: CompanyWithProjects) => {
     // Create a scheduling link or calendar event
@@ -423,6 +680,10 @@ const Leads: React.FC = () => {
                       onPhoneClick={() => handlePhoneClick(company)}
                       onEmailClick={() => handleEmailClick(company)}
                       onMessageClick={() => handleMessageClick(company)}
+                      onMinervaDemo={() => handleMinervaDemo(company)}
+                      onMinervaOutreach={() => handleMinervaOutreach(company)}
+                      onMinervaInvoice={() => handleMinervaInvoice(company)}
+                      onMinervaAnalytics={() => handleMinervaAnalytics(company)}
                     />
                     
                     {isExpanded && filteredProjects.length > 0 && (

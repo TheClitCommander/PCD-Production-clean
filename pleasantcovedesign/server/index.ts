@@ -17,6 +17,7 @@ console.log('🔧 Environment variables loaded');
 import express, { type Express } from "express";
 import cors from "cors";
 import { createR2Storage } from './storage/r2-storage.js';
+import { requestLogger, errorHandler, performanceMonitor } from './middleware/logging.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -192,6 +193,10 @@ const corsOptions: cors.CorsOptions = {
 console.log('🔧 CORS Allowed Origins:', allowedOrigins);
 app.use(cors(corsOptions));
 // --- End of CORS Configuration ---
+
+// Logging and monitoring middleware
+app.use(requestLogger);
+app.use(performanceMonitor);
 
 // Parse JSON bodies with increased limit for webhook data
 app.use(express.json({ limit: '50mb' }));
@@ -371,6 +376,9 @@ async function startServer() {
   try {
     // Register all routes
     await registerRoutes(app, io);
+    
+    // Error handling middleware (must be last)
+    app.use(errorHandler);
     
     // Handle React Router - serve index.html for non-API routes
     app.get('*', (req, res) => {

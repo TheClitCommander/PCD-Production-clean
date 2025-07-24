@@ -1,6 +1,6 @@
 // @ts-nocheck
 import { Pool } from 'pg';
-import type { Business, NewBusiness, Activity, NewActivity, Company, NewCompany, Project, NewProject, ProjectMessage, ProjectFile } from "../shared/schema.js";
+import type { Business, NewBusiness, Activity, NewActivity, Company, NewCompany, Project, NewProject, ProjectMessage, ProjectFile, AIChatMessage } from "../shared/schema.js";
 
 export class PostgreSQLStorage {
   private pool: Pool;
@@ -477,5 +477,28 @@ export class PostgreSQLStorage {
       console.error('❌ Error in findOrCreateCustomerProject:', error);
       throw error;
     }
+  }
+
+  // AI Chat Message methods (not implemented in PostgreSQL yet)
+  async createAIChatMessage(message: Omit<AIChatMessage, 'id' | 'timestamp'> & { timestamp?: Date }): Promise<AIChatMessage> {
+    throw new Error('AI Chat messages not implemented in PostgreSQL storage yet. Switch to in-memory storage for AI features.');
+  }
+
+  async getAIChatMessages(filters: {
+    leadId?: string;
+    projectId?: number;
+    sessionId?: string;
+    limit?: number;
+    messageType?: 'user' | 'ai' | 'function_call' | 'function_response';
+  } = {}): Promise<AIChatMessage[]> {
+    throw new Error('AI Chat messages not implemented in PostgreSQL storage yet. Switch to in-memory storage for AI features.');
+  }
+
+  async getLastAIChatMessage(leadId: string): Promise<AIChatMessage | null> {
+    throw new Error('AI Chat messages not implemented in PostgreSQL storage yet. Switch to in-memory storage for AI features.');
+  }
+
+  async getAIChatContext(leadId?: string, projectId?: number, limit: number = 10): Promise<AIChatMessage[]> {
+    throw new Error('AI Chat messages not implemented in PostgreSQL storage yet. Switch to in-memory storage for AI features.');
   }
 } 

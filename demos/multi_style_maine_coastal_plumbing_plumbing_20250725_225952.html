@@ -19,7 +19,7 @@
             min-height: 100vh;
         }
         
-        /* Header matching your messaging widget */
+        /* Header */
         .header {
             background: #000000;
             color: white;
@@ -53,50 +53,30 @@
             color: #667eea;
         }
         
-        /* Main Content */
-        .main-container {
+        /* Container */
+        .container {
             max-width: 1200px;
             margin: 0 auto;
-            padding: 40px 20px;
+            padding: 0 24px;
         }
         
         /* Hero Section */
         .hero {
             text-align: center;
-            margin-bottom: 40px;
-            background: white;
-            padding: 40px;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 60px 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
         }
         
         .hero h1 {
-            font-size: 2.5rem;
+            font-size: 3rem;
             font-weight: 700;
-            color: #000000;
             margin-bottom: 16px;
-        }
-        
-        .company-name {
-            color: #667eea;
-            font-weight: 600;
         }
         
         .hero p {
             font-size: 1.2rem;
-            color: #6b7280;
-            margin-bottom: 32px;
-            max-width: 600px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-        
-        /* Action Buttons */
-        .action-buttons {
-            display: flex;
-            gap: 16px;
-            justify-content: center;
-            flex-wrap: wrap;
+            opacity: 0.9;
             margin-bottom: 40px;
         }
         
@@ -138,29 +118,74 @@
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
         
-        .btn-tertiary {
-            background: #000000;
-            color: white;
+        /* Style Selector */
+        .style-selector {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
         }
         
-        .btn-tertiary:hover {
-            background: #1f2937;
-            transform: translateY(-1px);
-        }
-        
-        /* All Demos Container */
-        .all-demos {
+        .style-tabs {
             display: flex;
-            flex-direction: column;
-            gap: 40px;
+            gap: 8px;
+            background: #f8fafc;
+            padding: 8px;
+            border-radius: 12px;
+            overflow-x: auto;
         }
-
+        
+        .style-tab {
+            flex: 1;
+            min-width: 180px;
+            padding: 16px 12px;
+            background: transparent;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+            color: #6b7280;
+            text-align: center;
+        }
+        
+        .style-tab.active {
+            background: white;
+            color: #000000;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .style-tab:hover:not(.active) {
+            color: #667eea;
+            background: rgba(102, 126, 234, 0.05);
+        }
+        
+        .style-tab .emoji {
+            font-size: 1.2rem;
+            display: block;
+            margin-bottom: 4px;
+        }
+        
+        .style-tab .name {
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 2px;
+        }
+        
+        .style-tab .description {
+            font-size: 11px;
+            opacity: 0.7;
+            line-height: 1.3;
+        }
+        
         /* Demo Preview */
         .demo-preview {
             background: white;
             border-radius: 12px;
             overflow: hidden;
             box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            margin-bottom: 40px;
         }
         
         .demo-header {
@@ -197,7 +222,7 @@
         
         .demo-iframe {
             width: 100%;
-            height: 60vh;
+            height: 70vh;
             border: none;
             background: white;
         }
@@ -232,6 +257,15 @@
         
         .device-tab:hover:not(.active) {
             color: #667eea;
+        }
+        
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            justify-content: center;
+            margin-bottom: 40px;
         }
         
         /* Features Section */
@@ -304,174 +338,123 @@
                 font-size: 2rem;
             }
             
+            .style-tabs {
+                flex-direction: column;
+            }
+            
+            .style-tab {
+                min-width: auto;
+            }
+            
             .action-buttons {
                 flex-direction: column;
-                align-items: center;
             }
-            
-            .demo-iframe {
-                height: 50vh;
-            }
-            
-            .device-tabs {
-                flex-direction: column;
-            }
-        }
-        
-        /* Loading Animation */
-        .loading {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 2px solid #f3f3f3;
-            border-top: 2px solid #667eea;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
         }
     </style>
 </head>
 <body>
-    <!-- Header matching Pleasant Cove Design -->
+    <!-- Header -->
     <header class="header">
-        <div class="logo">⛵ Pleasant Cove Design</div>
+        <div class="logo">Pleasant Cove Design</div>
         <nav class="nav-links">
-            <a href="https://www.pleasantcovedesign.com" class="nav-link">Schedule Consultation</a>
+            <a href="https://www.pleasantcovedesign.com" class="nav-link">Home</a>
+            <a href="https://www.pleasantcovedesign.com/#services" class="nav-link">Services</a>
+            <a href="https://www.pleasantcovedesign.com/#contact" class="nav-link">Contact</a>
         </nav>
     </header>
 
-    <div class="main-container">
+    <div class="container">
         <!-- Hero Section -->
         <section class="hero">
-            <h1>5 Website Concepts for <span class="company-name" id="companyName">Your Business</span></h1>
-            <p>We created these custom designs specifically for your business. Which style feels most like your brand?<br><br>
-            "Web Design: 200% conversions & 400% leads" – Forrester Research<br>
-            "SEO & Rebrand: 748% ROI & 10–20% revenue" – SagaPixel & Marq<br><br>
-            Pleasant Cove Design takes these proven tactics and delivers them locally—crafting custom websites and SEO campaigns that drive real revenue growth for Maine businesses.</p>
-            
-            <div class="action-buttons">
-                <a href="#" class="btn btn-tertiary" id="shareBtn">
-                    📤 Share This Demo
-                </a>
-                <a href="#" class="btn btn-tertiary" id="viewFullBtn">
-                    🖥️ View Full Website
-                </a>
+            <h1>5 Website Concepts for <span id="companyName">Your Business</span></h1>
+            <p>We created these custom designs specifically for your business. Which style feels most like your brand?</p>
+        </section>
+
+        <!-- Style Selector -->
+        <section class="style-selector">
+            <div class="style-tabs">
+                <button class="style-tab active" data-style="modern">
+                    <span class="emoji">🎨</span>
+                    <div class="name">Modern & Clean</div>
+                    <div class="description">Contemporary design with bold typography</div>
+                </button>
+                <button class="style-tab" data-style="professional">
+                    <span class="emoji">💼</span>
+                    <div class="name">Professional Business</div>
+                    <div class="description">Corporate-style that builds trust</div>
+                </button>
+                <button class="style-tab" data-style="minimal">
+                    <span class="emoji">✨</span>
+                    <div class="name">Minimalist</div>
+                    <div class="description">Clean, simple design focusing on content</div>
+                </button>
+                <button class="style-tab" data-style="classic">
+                    <span class="emoji">🏛️</span>
+                    <div class="name">Classic & Timeless</div>
+                    <div class="description">Traditional design that never goes out of style</div>
+                </button>
+                <button class="style-tab" data-style="bold">
+                    <span class="emoji">🚀</span>
+                    <div class="name">Bold & Dynamic</div>
+                    <div class="description">Eye-catching design that stands out</div>
+                </button>
             </div>
         </section>
 
-        <!-- All 5 Demos Stacked -->
-        <section class="all-demos">
-            <!-- Modern Demo -->
-            <div class="demo-preview">
-                <div class="demo-header">
-                    <div class="demo-controls">
-                        <div class="demo-dot red"></div>
-                        <div class="demo-dot yellow"></div>
-                        <div class="demo-dot green"></div>
-                    </div>
-                    <div class="demo-url">🎨 Modern & Clean Style</div>
-                    <div style="width: 60px;"></div>
-                </div>
-                <iframe 
-                    class="demo-iframe" 
-                    id="modernFrame"
-                    title="Modern Style Demo">
-                </iframe>
-            </div>
+        <!-- Device Preview Tabs -->
+        <div class="device-tabs">
+            <button class="device-tab active" data-device="desktop">🖥️ Desktop</button>
+            <button class="device-tab" data-device="tablet">📱 Tablet</button>
+            <button class="device-tab" data-device="mobile">📲 Mobile</button>
+        </div>
 
-            <!-- Professional Demo -->
-            <div class="demo-preview">
-                <div class="demo-header">
-                    <div class="demo-controls">
-                        <div class="demo-dot red"></div>
-                        <div class="demo-dot yellow"></div>
-                        <div class="demo-dot green"></div>
-                    </div>
-                    <div class="demo-url">💼 Professional Business Style</div>
-                    <div style="width: 60px;"></div>
+        <!-- Demo Preview -->
+        <section class="demo-preview">
+            <div class="demo-header">
+                <div class="demo-controls">
+                    <div class="demo-dot red"></div>
+                    <div class="demo-dot yellow"></div>
+                    <div class="demo-dot green"></div>
                 </div>
-                <iframe 
-                    class="demo-iframe" 
-                    id="professionalFrame"
-                    title="Professional Style Demo">
-                </iframe>
+                <div class="demo-url" id="demoUrl">yourcompany.com</div>
             </div>
-
-            <!-- Minimalist Demo -->
-            <div class="demo-preview">
-                <div class="demo-header">
-                    <div class="demo-controls">
-                        <div class="demo-dot red"></div>
-                        <div class="demo-dot yellow"></div>
-                        <div class="demo-dot green"></div>
-                    </div>
-                    <div class="demo-url">✨ Minimalist Style</div>
-                    <div style="width: 60px;"></div>
-                </div>
-                <iframe 
-                    class="demo-iframe" 
-                    id="minimalFrame"
-                    title="Minimalist Style Demo">
-                </iframe>
-            </div>
-
-            <!-- Classic Demo -->
-            <div class="demo-preview">
-                <div class="demo-header">
-                    <div class="demo-controls">
-                        <div class="demo-dot red"></div>
-                        <div class="demo-dot yellow"></div>
-                        <div class="demo-dot green"></div>
-                    </div>
-                    <div class="demo-url">🏛️ Classic & Timeless Style</div>
-                    <div style="width: 60px;"></div>
-                </div>
-                <iframe 
-                    class="demo-iframe" 
-                    id="classicFrame"
-                    title="Classic Style Demo">
-                </iframe>
-            </div>
-
-            <!-- Bold Demo -->
-            <div class="demo-preview">
-                <div class="demo-header">
-                    <div class="demo-controls">
-                        <div class="demo-dot red"></div>
-                        <div class="demo-dot yellow"></div>
-                        <div class="demo-dot green"></div>
-                    </div>
-                    <div class="demo-url">🚀 Bold & Dynamic Style</div>
-                    <div style="width: 60px;"></div>
-                </div>
-                <iframe 
-                    class="demo-iframe" 
-                    id="boldFrame"
-                    title="Bold Style Demo">
-                </iframe>
-            </div>
+            <iframe id="demoFrame" class="demo-iframe" src=""></iframe>
         </section>
 
-        <!-- Features -->
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <a href="#" id="viewFullBtn" class="btn btn-primary" target="_blank">
+                🚀 View Full Size
+            </a>
+            <a href="#" id="shareBtn" class="btn btn-secondary">
+                📤 Share This Demo
+            </a>
+            <a href="https://www.pleasantcovedesign.com" class="btn btn-primary">
+                📅 Let's Build This!
+            </a>
+        </div>
+
+        <!-- Features Section -->
         <section class="features">
             <div class="feature-card">
                 <div class="feature-icon">⚡</div>
-                <h3>Fast Delivery</h3>
-                <p>Your website will be ready in 48-72 hours, not weeks.</p>
+                <h3>Fast & Modern</h3>
+                <p>Built with the latest technology for lightning-fast loading and perfect mobile experience.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🎨</div>
+                <h3>Custom Design</h3>
+                <p>Every element is designed specifically for your business type and target customers.</p>
             </div>
             <div class="feature-card">
                 <div class="feature-icon">📱</div>
                 <h3>Mobile Optimized</h3>
-                <p>Looks perfect on all devices - desktop, tablet, and mobile.</p>
+                <p>Looks perfect on every device - desktop, tablet, and mobile phone.</p>
             </div>
             <div class="feature-card">
-                <div class="feature-icon">🎯</div>
-                <h3>Industry Focused</h3>
-                <p>Designed specifically for your business type and target customers.</p>
+                <div class="feature-icon">🔍</div>
+                <h3>SEO Ready</h3>
+                <p>Built to rank well in Google search results and attract local customers.</p>
             </div>
         </section>
 
@@ -483,8 +466,8 @@
                 <a href="https://www.pleasantcovedesign.com" class="btn btn-primary">
                     📅 Schedule Free Consultation
                 </a>
-                <a href="tel:2073805680" class="btn btn-secondary">
-                    📞 Call (207) 380-5680
+                <a href="tel:2072004281" class="btn btn-secondary">
+                    📞 Call (207) 200-4281
                 </a>
             </div>
         </section>
@@ -499,7 +482,7 @@
         // Get URL parameters
         const urlParams = new URLSearchParams(window.location.search);
         const companyName = urlParams.get('company') || 'Your Business';
-        const baseUrl = urlParams.get('base_url') || 'https://pleasantcovedesign-production.up.railway.app/api/demos';
+        const baseUrl = urlParams.get('base_url') || 'http://localhost:8005';
         const industry = urlParams.get('industry') || 'general';
         const timestamp = urlParams.get('timestamp') || '20250725_000000';
         
@@ -514,51 +497,80 @@
         
         // Update page content
         document.getElementById('companyName').textContent = companyName;
+        document.getElementById('demoUrl').textContent = companyName.toLowerCase().replace(/\s+/g, '') + '.com';
         
-        // Load all 5 demos into their respective iframes (only if demos exist)
-        if (timestamp !== '20250725_000000') {
-            document.getElementById('modernFrame').src = demoUrls.modern;
-            document.getElementById('professionalFrame').src = demoUrls.professional;
-            document.getElementById('minimalFrame').src = demoUrls.minimal;
-            document.getElementById('classicFrame').src = demoUrls.classic;
-            document.getElementById('boldFrame').src = demoUrls.bold;
-        } else {
-            // Show placeholder message when opened directly without proper parameters
-            const placeholderMessage = `
-                <div style="display: flex; align-items: center; justify-content: center; height: 100%; background: #f8fafc; color: #6b7280; font-size: 16px; text-align: center; padding: 40px;">
-                    <div>
-                        <h3>Demo Not Available</h3>
-                        <p>This page needs to be accessed through a generated demo link.</p>
-                    </div>
-                </div>
-            `;
-            
-            document.getElementById('modernFrame').srcdoc = placeholderMessage;
-            document.getElementById('professionalFrame').srcdoc = placeholderMessage;
-            document.getElementById('minimalFrame').srcdoc = placeholderMessage;
-            document.getElementById('classicFrame').srcdoc = placeholderMessage;
-            document.getElementById('boldFrame').srcdoc = placeholderMessage;
-        }
+        // Current style state
+        let currentStyle = 'modern';
         
-        // Add loading effects for all iframes
-        const allFrames = document.querySelectorAll('.demo-iframe');
-        allFrames.forEach(frame => {
-            frame.style.opacity = '0.3';
-            frame.onload = () => {
-                frame.style.opacity = '1';
-                frame.style.transition = 'opacity 0.3s ease';
-            };
+        // Load initial demo
+        document.getElementById('demoFrame').src = demoUrls[currentStyle];
+        document.getElementById('viewFullBtn').href = demoUrls[currentStyle];
+        
+        // Style tab functionality
+        const styleTabs = document.querySelectorAll('.style-tab');
+        const demoFrame = document.getElementById('demoFrame');
+        const viewFullBtn = document.getElementById('viewFullBtn');
+        
+        styleTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                // Remove active class from all tabs
+                styleTabs.forEach(t => t.classList.remove('active'));
+                // Add active class to clicked tab
+                tab.classList.add('active');
+                
+                // Update current style
+                currentStyle = tab.dataset.style;
+                
+                // Update iframe and view full button
+                demoFrame.src = demoUrls[currentStyle];
+                viewFullBtn.href = demoUrls[currentStyle];
+                
+                // Add loading effect
+                demoFrame.style.opacity = '0.5';
+                demoFrame.onload = () => {
+                    demoFrame.style.opacity = '1';
+                };
+            });
         });
         
-        // Button actions - use the first demo URL for view full
-        document.getElementById('viewFullBtn').href = demoUrls.modern;
+        // Device preview functionality
+        const deviceTabs = document.querySelectorAll('.device-tab');
         
+        deviceTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                // Remove active class from all tabs
+                deviceTabs.forEach(t => t.classList.remove('active'));
+                // Add active class to clicked tab
+                tab.classList.add('active');
+                
+                // Update iframe size based on device
+                const device = tab.dataset.device;
+                switch(device) {
+                    case 'mobile':
+                        demoFrame.style.width = '375px';
+                        demoFrame.style.margin = '0 auto';
+                        demoFrame.style.display = 'block';
+                        break;
+                    case 'tablet':
+                        demoFrame.style.width = '768px';
+                        demoFrame.style.margin = '0 auto';
+                        demoFrame.style.display = 'block';
+                        break;
+                    default:
+                        demoFrame.style.width = '100%';
+                        demoFrame.style.margin = '0';
+                        demoFrame.style.display = 'block';
+                }
+            });
+        });
+        
+        // Share functionality
         document.getElementById('shareBtn').addEventListener('click', (e) => {
             e.preventDefault();
             if (navigator.share) {
                 navigator.share({
-                    title: `Website Demo for ${companyName}`,
-                    text: `Check out this custom website demo created for ${companyName}`,
+                    title: `5 Website Concepts for ${companyName}`,
+                    text: `Check out these 5 custom website designs created for ${companyName}`,
                     url: window.location.href
                 });
             } else {

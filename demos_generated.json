@@ -1,0 +1,44 @@
+{
+  "1": {
+    "business_id": 1,
+    "business_name": "Maine Coastal Plumbing",
+    "business_type": "plumbing",
+    "demo_url": "http://localhost:8005/maine_coastal_plumbing_plumbing_20250725_090917.html",
+    "demo_path": "demos/maine_coastal_plumbing_plumbing_20250725_090917.html",
+    "generated_at": "2025-07-25T09:09:17.802600",
+    "business_data": {
+      "id": 1,
+      "name": "Maine Coastal Plumbing",
+      "businessType": "plumbing",
+      "city": "Portland",
+      "phone": "(207) 555-0123",
+      "email": "info@mainecoastalplumbing.com",
+      "address": "123 Commercial St, Portland, ME 04101",
+      "website": "",
+      "rating": 4.5,
+      "reviews": 28,
+      "priority": "high"
+    }
+  },
+  "2": {
+    "business_id": 2,
+    "business_name": "Atlantic Electric Solutions",
+    "business_type": "electrical",
+    "demo_url": "http://localhost:8005/atlantic_electric_solutions_electrical_20250725_090917.html",
+    "demo_path": "demos/atlantic_electric_solutions_electrical_20250725_090917.html",
+    "generated_at": "2025-07-25T09:09:17.830224",
+    "business_data": {
+      "id": 2,
+      "name": "Atlantic Electric Solutions",
+      "businessType": "electrical",
+      "city": "Freeport",
+      "phone": "(207) 555-0456",
+      "email": "contact@atlanticelectricsolutions.com",
+      "address": "456 Main St, Freeport, ME 04032",
+      "website": "",
+      "rating": 4.8,
+      "reviews": 45,
+      "priority": "high"
+    }
+  }
+}

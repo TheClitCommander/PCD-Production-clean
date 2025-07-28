@@ -1,0 +1,80 @@
+[
+  {
+    "id": 1,
+    "name": "Maine Coastal Plumbing",
+    "businessType": "plumbing",
+    "city": "Portland",
+    "phone": "(207) 555-0123",
+    "email": "info@mainecoastalplumbing.com",
+    "address": "123 Commercial St, Portland, ME 04101",
+    "website": "",
+    "rating": 4.5,
+    "reviews": 28,
+    "priority": "high"
+  },
+  {
+    "id": 2,
+    "name": "Atlantic Electric Solutions",
+    "businessType": "electrical",
+    "city": "Freeport",
+    "phone": "(207) 555-0456",
+    "email": "contact@atlanticelectricsolutions.com",
+    "address": "456 Main St, Freeport, ME 04032",
+    "website": "",
+    "rating": 4.8,
+    "reviews": 45,
+    "priority": "high"
+  },
+  {
+    "id": 3,
+    "name": "Pine Tree Landscaping",
+    "businessType": "landscaping",
+    "city": "Brunswick",
+    "phone": "(207) 555-0789",
+    "email": "hello@pinetreelandscaping.com",
+    "address": "789 Pine St, Brunswick, ME 04011",
+    "website": "",
+    "rating": 4.2,
+    "reviews": 18,
+    "priority": "medium"
+  },
+  {
+    "id": 4,
+    "name": "Midcoast Auto Repair",
+    "businessType": "automotive",
+    "city": "Bath",
+    "phone": "(207) 555-0321",
+    "email": "service@midcoastauto.com",
+    "address": "321 Washington St, Bath, ME 04530",
+    "website": "",
+    "rating": 4.6,
+    "reviews": 67,
+    "priority": "high"
+  },
+  {
+    "id": 5,
+    "name": "Harbor View Restaurant",
+    "businessType": "restaurant",
+    "city": "Camden",
+    "phone": "(207) 555-0654",
+    "email": "info@harborviewrestaurant.com",
+    "address": "654 Harbor Rd, Camden, ME 04843",
+    "website": "",
+    "rating": 4.4,
+    "reviews": 92,
+    "priority": "medium"
+  },
+  {
+    "id": 6,
+    "name": "Coastal Roofing & Gutters",
+    "businessType": "roofing",
+    "city": "Rockland",
+    "phone": "(207) 555-0987",
+    "email": "estimates@coastalroofing.com",
+    "address": "987 Old County Rd, Rockland, ME 04841",
+    "website": "",
+    "rating": 4.7,
+    "reviews": 34,
+    "priority": "high"
+  }
+] 

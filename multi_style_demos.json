@@ -1,0 +1,61 @@
+{
+  "1": {
+    "business_id": 1,
+    "business_name": "Maine Coastal Plumbing",
+    "business_type": "plumbing",
+    "styles": {
+      "modern": {
+        "style": "modern",
+        "style_name": "Modern & Clean",
+        "demo_url": "https://pleasantcovedesign-production.up.railway.app/api/demos/maine_coastal_plumbing_plumbing_modern_20250726_010650.html",
+        "demo_path": "demos/maine_coastal_plumbing_plumbing_modern_20250726_010650.html",
+        "generated_at": "2025-07-26T01:06:50.713974"
+      },
+      "professional": {
+        "style": "professional",
+        "style_name": "Professional Business",
+        "demo_url": "https://pleasantcovedesign-production.up.railway.app/api/demos/maine_coastal_plumbing_plumbing_professional_20250726_010650.html",
+        "demo_path": "demos/maine_coastal_plumbing_plumbing_professional_20250726_010650.html",
+        "generated_at": "2025-07-26T01:06:50.741242"
+      },
+      "minimal": {
+        "style": "minimal",
+        "style_name": "Minimalist",
+        "demo_url": "https://pleasantcovedesign-production.up.railway.app/api/demos/maine_coastal_plumbing_plumbing_minimal_20250726_010650.html",
+        "demo_path": "demos/maine_coastal_plumbing_plumbing_minimal_20250726_010650.html",
+        "generated_at": "2025-07-26T01:06:50.765625"
+      },
+      "classic": {
+        "style": "classic",
+        "style_name": "Classic & Timeless",
+        "demo_url": "https://pleasantcovedesign-production.up.railway.app/api/demos/maine_coastal_plumbing_plumbing_classic_20250726_010650.html",
+        "demo_path": "demos/maine_coastal_plumbing_plumbing_classic_20250726_010650.html",
+        "generated_at": "2025-07-26T01:06:50.789125"
+      },
+      "bold": {
+        "style": "bold",
+        "style_name": "Bold & Dynamic",
+        "demo_url": "https://pleasantcovedesign-production.up.railway.app/api/demos/maine_coastal_plumbing_plumbing_bold_20250726_010650.html",
+        "demo_path": "demos/maine_coastal_plumbing_plumbing_bold_20250726_010650.html",
+        "generated_at": "2025-07-26T01:06:50.813379"
+      }
+    },
+    "unified_demo_url": "https://pleasantcovedesign-production.up.railway.app/api/demos/multi_style_maine_coastal_plumbing_plumbing_20250726_010650.html?company=Maine Coastal Plumbing&industry=plumbing&timestamp=20250726_010650&base_url=https://pleasantcovedesign-production.up.railway.app/api/demos",
+    "generated_at": "2025-07-26T01:06:50.813939",
+    "business_data": {
+      "id": 1,
+      "name": "Maine Coastal Plumbing",
+      "businessType": "plumbing",
+      "city": "Portland",
+      "phone": "(207) 555-0123",
+      "email": "info@mainecoastalplumbing.com",
+      "address": "123 Commercial St, Portland, ME 04101",
+      "website": "",
+      "rating": 4.5,
+      "reviews": 28,
+      "priority": "high"
+    },
+    "total_styles": 5,
+    "timestamp": "20250726_010650"
+  }
+}

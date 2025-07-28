@@ -479,19 +479,95 @@ def get_best_template_match(industry):
     print(f"⚠️ Warning: No specific template for '{industry}', using consulting template as fallback", file=sys.stderr)
     return INDUSTRY_TEMPLATES["consulting"]
 
+def get_style_overrides(style="modern"):
+    """Get visual style overrides for different demo styles"""
+    
+    style_configs = {
+        "modern": {
+            "primary_color": "#2563eb",      # Modern blue
+            "accent_color": "#06b6d4",       # Cyan accent
+            "text_color": "#1f2937",         # Dark gray
+            "background": "#ffffff",         # Clean white
+            "secondary_bg": "#f8fafc",       # Light gray
+            "border_radius": "12px",         # Rounded corners
+            "font_family": "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
+            "hero_overlay": "rgba(37, 99, 235, 0.8)",  # Blue overlay
+            "box_shadow": "0 10px 25px rgba(0,0,0,0.1)",
+            "button_style": "background: linear-gradient(135deg, #2563eb, #06b6d4); border-radius: 8px; padding: 12px 24px;"
+        },
+        
+        "professional": {
+            "primary_color": "#1e40af",      # Deep blue
+            "accent_color": "#059669",       # Professional green
+            "text_color": "#374151",         # Professional gray
+            "background": "#ffffff",         # Clean white
+            "secondary_bg": "#f9fafb",       # Very light gray
+            "border_radius": "4px",          # Sharp corners
+            "font_family": "'Roboto', 'Helvetica Neue', Arial, sans-serif",
+            "hero_overlay": "rgba(30, 64, 175, 0.9)",  # Deep blue overlay
+            "box_shadow": "0 4px 12px rgba(0,0,0,0.15)",
+            "button_style": "background: #1e40af; border-radius: 4px; padding: 14px 28px; text-transform: uppercase; letter-spacing: 0.5px;"
+        },
+        
+        "minimal": {
+            "primary_color": "#000000",      # Pure black
+            "accent_color": "#6b7280",       # Subtle gray
+            "text_color": "#374151",         # Dark gray
+            "background": "#ffffff",         # Pure white
+            "secondary_bg": "#fafafa",       # Very subtle gray
+            "border_radius": "0px",          # No rounded corners
+            "font_family": "'Helvetica Neue', Arial, sans-serif",
+            "hero_overlay": "rgba(0, 0, 0, 0.6)",      # Minimal overlay
+            "box_shadow": "none",
+            "button_style": "background: #000000; border-radius: 0; padding: 16px 32px; border: 2px solid #000;"
+        },
+        
+        "classic": {
+            "primary_color": "#92400e",      # Classic brown
+            "accent_color": "#d97706",       # Golden accent
+            "text_color": "#451a03",         # Dark brown
+            "background": "#fefdf8",         # Warm white
+            "secondary_bg": "#fef3c7",       # Light golden
+            "border_radius": "8px",          # Traditional corners
+            "font_family": "'Georgia', 'Times New Roman', serif",
+            "hero_overlay": "rgba(146, 64, 14, 0.8)",  # Brown overlay
+            "box_shadow": "0 8px 20px rgba(146, 64, 14, 0.2)",
+            "button_style": "background: linear-gradient(to bottom, #d97706, #92400e); border-radius: 6px; padding: 12px 24px; border: 1px solid #92400e;"
+        },
+        
+        "bold": {
+            "primary_color": "#dc2626",      # Bold red
+            "accent_color": "#f59e0b",       # Vibrant yellow
+            "text_color": "#1f2937",         # Strong contrast
+            "background": "#ffffff",         # Clean white
+            "secondary_bg": "#fef2f2",       # Light red tint
+            "border_radius": "16px",         # Very rounded
+            "font_family": "'Nunito', 'Poppins', sans-serif",
+            "hero_overlay": "rgba(220, 38, 38, 0.85)",  # Bold red overlay
+            "box_shadow": "0 15px 35px rgba(220, 38, 38, 0.2)",
+            "button_style": "background: linear-gradient(45deg, #dc2626, #f59e0b); border-radius: 25px; padding: 14px 32px; transform: scale(1.05);"
+        }
+    }
+    
+    return style_configs.get(style, style_configs["modern"])
+
 def generate_demo_html(company_name, industry, style="modern"):
     """Generate a complete HTML demo for the company"""
     
     # Get best matching template with intelligent fallbacks
     template = get_best_template_match(industry)
     
+    # Get style overrides for visual variations
+    style_config = get_style_overrides(style)
+    
     # Sanitize company name for HTML and create safe version for search
     safe_company_name = html.escape(company_name)
     # Create a version for content validation that handles special characters
     search_company_name = company_name.replace('&', 'and').replace("'", "")
     
-    # Generate timestamp for unique demo ID
+    # Generate timestamp for unique demo ID (include style for uniqueness)
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    demo_filename = f"{company_name.lower().replace(' ', '_').replace('&', 'and')}_{industry}_{style}_{timestamp}.html"
     
     # Create the HTML
     html_content = f"""<!DOCTYPE html>
@@ -508,10 +584,10 @@ def generate_demo_html(company_name, industry, style="modern"):
         }}
         
         body {{
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: {style_config['font_family']};
             line-height: 1.6;
-            color: {template['colors']['text']};
-            background: {template['colors']['background']};
+            color: {style_config['text_color']};
+            background: {style_config['background']};
         }}
         
         .container {{
@@ -522,14 +598,14 @@ def generate_demo_html(company_name, industry, style="modern"):
         
         /* Header */
         header {{
-            background: {template['colors']['primary']};
+            background: {style_config['primary_color']};
             color: white;
             padding: 1rem 0;
             position: fixed;
             width: 100%;
             top: 0;
             z-index: 1000;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            box-shadow: {style_config['box_shadow']};
         }}
         
         nav {{
@@ -556,12 +632,12 @@ def generate_demo_html(company_name, industry, style="modern"):
         }}
         
         .nav-links a:hover {{
-            color: {template['colors']['accent']};
+            color: {style_config['accent_color']};
         }}
         
         /* Hero Section */
         .hero {{
-            background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('{template['images']['hero']}');
+            background: linear-gradient({style_config['hero_overlay']}), url('{template['images']['hero']}');
             background-size: cover;
             background-position: center;
             height: 100vh;
@@ -584,7 +660,7 @@ def generate_demo_html(company_name, industry, style="modern"):
         }}
         
         .cta-button {{
-            background: {template['colors']['accent']};
+            {style_config['button_style']}
             color: white;
             padding: 15px 30px;
             font-size: 1.1rem;
@@ -597,21 +673,21 @@ def generate_demo_html(company_name, industry, style="modern"):
         }}
         
         .cta-button:hover {{
-            background: {template['colors']['secondary']};
+            background: {style_config['accent_color']};
             transform: translateY(-2px);
         }}
         
         /* Services Section */
         .services {{
             padding: 80px 0;
-            background: #f8fafc;
+            background: {style_config['secondary_bg']};
         }}
         
         .section-title {{
             text-align: center;
             font-size: 2.5rem;
             margin-bottom: 3rem;
-            color: {template['colors']['primary']};
+            color: {style_config['primary_color']};
         }}
         
         .services-grid {{
@@ -624,8 +700,8 @@ def generate_demo_html(company_name, industry, style="modern"):
         .service-card {{
             background: white;
             padding: 2rem;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-radius: {style_config['border_radius']};
+            box-shadow: {style_config['box_shadow']};
             transition: transform 0.3s;
         }}
         
@@ -634,7 +710,7 @@ def generate_demo_html(company_name, industry, style="modern"):
         }}
         
         .service-card h3 {{
-            color: {template['colors']['primary']};
+            color: {style_config['primary_color']};
             margin-bottom: 1rem;
             font-size: 1.3rem;
         }}
@@ -642,7 +718,7 @@ def generate_demo_html(company_name, industry, style="modern"):
         /* Contact Section */
         .contact {{
             padding: 80px 0;
-            background: {template['colors']['primary']};
+            background: {style_config['primary_color']};
             color: white;
             text-align: center;
         }}
@@ -662,12 +738,12 @@ def generate_demo_html(company_name, industry, style="modern"):
         
         .contact-item h3 {{
             margin-bottom: 1rem;
-            color: {template['colors']['accent']};
+            color: {style_config['accent_color']};
         }}
         
         /* Footer */
         footer {{
-            background: {template['colors']['text']};
+            background: {style_config['text_color']};
             color: white;
             text-align: center;
             padding: 2rem 0;
@@ -702,7 +778,7 @@ def generate_demo_html(company_name, industry, style="modern"):
         }}
         
         .watermark a {{
-            color: {template['colors']['accent']};
+            color: {style_config['accent_color']};
             text-decoration: none;
         }}
     </style>
@@ -814,7 +890,7 @@ def generate_demo_html(company_name, industry, style="modern"):
     
     return html_content, timestamp
 
-def save_demo_file(html_content, company_name, industry, timestamp):
+def save_demo_file(html_content, company_name, industry, timestamp, style="modern"):
     """Save the demo HTML file"""
     
     # Create demos directory if it doesn't exist
@@ -822,16 +898,15 @@ def save_demo_file(html_content, company_name, industry, timestamp):
     if not os.path.exists(demos_dir):
         os.makedirs(demos_dir)
     
-    # Generate filename
-    safe_name = company_name.lower().replace(' ', '_').replace('&', 'and')
-    filename = f"{safe_name}_{industry}_{timestamp}.html"
-    filepath = os.path.join(demos_dir, filename)
+    # Generate style-specific filename
+    demo_filename = f"{company_name.lower().replace(' ', '_').replace('&', 'and')}_{industry}_{style}_{timestamp}.html"
+    filepath = os.path.join(demos_dir, demo_filename)
     
     # Write the file
     with open(filepath, 'w', encoding='utf-8') as f:
         f.write(html_content)
     
-    return filepath, filename
+    return filepath, demo_filename
 
 def validate_demo_content(html_content, company_name, industry, template):
     """Validate that demo content matches the requested industry"""
@@ -870,10 +945,10 @@ def generate_demo(company_name, industry="general", style="modern"):
         validation_issues = validate_demo_content(html_content, company_name, industry, template)
         
         # Save the file
-        filepath, filename = save_demo_file(html_content, company_name, industry, timestamp)
+        filepath, filename = save_demo_file(html_content, company_name, industry, timestamp, style)
         
-        # Generate URLs (assuming local development server)
-        demo_url = f"http://localhost:8005/{filename}"
+        # Generate URLs for production Railway backend
+        demo_url = f"https://pleasantcovedesign-production.up.railway.app/api/demos/{filename}"
         
         result = {
             "success": True,

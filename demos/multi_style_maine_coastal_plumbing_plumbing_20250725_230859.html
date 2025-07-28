@@ -499,7 +499,7 @@
         // Get URL parameters
         const urlParams = new URLSearchParams(window.location.search);
         const companyName = urlParams.get('company') || 'Your Business';
-        const baseUrl = urlParams.get('base_url') || 'https://pleasantcovedesign-production.up.railway.app/api/demos';
+        const baseUrl = urlParams.get('base_url') || 'http://localhost:8005';
         const industry = urlParams.get('industry') || 'general';
         const timestamp = urlParams.get('timestamp') || '20250725_000000';
         
@@ -515,30 +515,12 @@
         // Update page content
         document.getElementById('companyName').textContent = companyName;
         
-        // Load all 5 demos into their respective iframes (only if demos exist)
-        if (timestamp !== '20250725_000000') {
-            document.getElementById('modernFrame').src = demoUrls.modern;
-            document.getElementById('professionalFrame').src = demoUrls.professional;
-            document.getElementById('minimalFrame').src = demoUrls.minimal;
-            document.getElementById('classicFrame').src = demoUrls.classic;
-            document.getElementById('boldFrame').src = demoUrls.bold;
-        } else {
-            // Show placeholder message when opened directly without proper parameters
-            const placeholderMessage = `
-                <div style="display: flex; align-items: center; justify-content: center; height: 100%; background: #f8fafc; color: #6b7280; font-size: 16px; text-align: center; padding: 40px;">
-                    <div>
-                        <h3>Demo Not Available</h3>
-                        <p>This page needs to be accessed through a generated demo link.</p>
-                    </div>
-                </div>
-            `;
-            
-            document.getElementById('modernFrame').srcdoc = placeholderMessage;
-            document.getElementById('professionalFrame').srcdoc = placeholderMessage;
-            document.getElementById('minimalFrame').srcdoc = placeholderMessage;
-            document.getElementById('classicFrame').srcdoc = placeholderMessage;
-            document.getElementById('boldFrame').srcdoc = placeholderMessage;
-        }
+        // Load all 5 demos into their respective iframes
+        document.getElementById('modernFrame').src = demoUrls.modern;
+        document.getElementById('professionalFrame').src = demoUrls.professional;
+        document.getElementById('minimalFrame').src = demoUrls.minimal;
+        document.getElementById('classicFrame').src = demoUrls.classic;
+        document.getElementById('boldFrame').src = demoUrls.bold;
         
         // Add loading effects for all iframes
         const allFrames = document.querySelectorAll('.demo-iframe');
@@ -569,12 +551,12 @@
         });
         
         // Track demo views
-        fetch('/api/track/multi-style-view', {
+        fetch('/api/track/view', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 company: companyName,
-                demo_urls: demoUrls,
+                demo_url: demoUrl,
                 timestamp: new Date().toISOString(),
                 user_agent: navigator.userAgent
             })

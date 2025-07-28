@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
-import { Search, Filter, Plus, Building2, Eye, MousePointer, MessageCircle, TrendingUp } from 'lucide-react'
+import { Search, Filter, Plus, Building2, Eye, MousePointer, MessageCircle, TrendingUp, ShoppingCart, Loader2, MapPin } from 'lucide-react'
 import EntitySummaryCard from '../components/EntitySummaryCard'
+import OrderBuilder from '../components/OrderBuilder'
 import api from '../api'
 import { deviceDetection, communicationFallbacks, urlUtils } from '../utils/deviceDetection'
 import { authenticatedFetch, checkAuthStatus, AuthAPI } from '../utils/auth'
@@ -53,6 +54,7 @@ interface Company {
   industry: string;
   priority: string;
   stage?: string;
+  website?: string;
   projects?: any[];
   trackingData?: {
     demo_views: number;
@@ -75,9 +77,14 @@ const Leads: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('')
   const [stageFilter, setStageFilter] = useState<string>('all')
   const [priorityFilter, setPriorityFilter] = useState<string>('all')
+  const [ordersView, setOrdersView] = useState<boolean>(false)
+  const [smartFilter, setSmartFilter] = useState<string>('all')
   const [companies, setCompanies] = useState<CompanyWithProjects[]>([])
   const [loading, setLoading] = useState(true)
   const [expandedCompanies, setExpandedCompanies] = useState<Set<number>>(new Set())
+  const [orderBuilderOpen, setOrderBuilderOpen] = useState(false)
+  const [selectedCompany, setSelectedCompany] = useState<CompanyWithProjects | null>(null)
+  const [scrapingLoading, setScrapingLoading] = useState(false)
 
   useEffect(() => {
     const fetchData = async () => {
@@ -95,32 +102,41 @@ const Leads: React.FC = () => {
           return acc
         }, {})
 
+        // Fetch orders for all companies
+        const orderPromises = companiesRes.data.map((company: Company) => 
+          api.get(`/companies/${company.id}/orders`).catch(() => ({ data: [] }))
+        )
+        const ordersResponses = await Promise.all(orderPromises)
+        
+        const ordersByCompany = ordersResponses.reduce((acc: any, res, index) => {
+          const companyId = companiesRes.data[index].id
+          acc[companyId] = res.data
+          return acc
+        }, {})
+
         const companiesWithProjects: CompanyWithProjects[] = companiesRes.data.map((company: Company) => {
           const companyProjects = projectsByCompany[company.id] || []
+          const companyOrders = ordersByCompany[company.id] || []
           const totalPaid = companyProjects.reduce((sum: number, project: any) => {
             return sum + (project.amountPaid || 0)
           }, 0)
 
-          // Add mock tracking data based on company ID
+          // Get real tracking data if available
           let trackingData = undefined
-          
-          if (company.id <= 4) {
-            // Add tracking data for first 4 companies
-            const mockTrackingData = {
-              1: { demo_views: 0, cta_clicks: 0, messages: 0, status: 'demo_sent' },
-              2: { demo_views: 0, cta_clicks: 0, messages: 0, status: 'demo_sent' },
-              3: { demo_views: 3, cta_clicks: 0, messages: 0, status: 'viewed_demo' },
-              4: { demo_views: 3, cta_clicks: 1, messages: 0, status: 'viewed_demo' }
-            }
-            trackingData = mockTrackingData[company.id] || undefined
-          }
+          // trackingData will be fetched from real API when available
 
           return {
             ...company,
             projects: companyProjects,
             totalPaid,
             stage: company.stage || 'scraped',
-            trackingData
+            trackingData,
+            // Get the most recent order for the company
+            order: companyOrders.length > 0 
+              ? companyOrders.sort((a: any, b: any) => 
+                  new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+                )[0] 
+              : undefined
           }
         })
 
@@ -135,14 +151,79 @@ const Leads: React.FC = () => {
     fetchData()
   }, [])
 
+  const handleScrapeLeads = async () => {
+    if (scrapingLoading) return // Prevent double clicks
+    
+    setScrapingLoading(true)
+    try {
+      console.log('🔍 Starting lead scraping process...')
+      
+      const response = await api.post('/bot/scrape', {
+        location: 'Maine',
+        businessType: 'restaurant', 
+        maxResults: 50
+      })
+      
+      if (response.data && response.data.success) {
+        // Refresh using existing fetchData logic - just re-trigger the useEffect
+        window.location.reload() // Simple refresh for now, can be optimized later
+        
+        const count = response.data.count || response.data.newLeads || 0
+        alert(`✅ Scraping completed successfully!\n\nFound ${count} new leads.\nPage will refresh to show new data.`)
+      } else {
+        const errorMsg = response.data?.error || 'Unknown error occurred'
+        alert(`❌ Scraping failed: ${errorMsg}\n\nPlease try again or contact support if the issue persists.`)
+      }
+    } catch (error: any) {
+      console.error('Scraping error:', error)
+      
+      let errorMessage = '❌ Scraping failed. '
+      if (error.response?.status === 404) {
+        errorMessage += 'Scraping service not available. Please ensure the backend is running.'
+      } else if (error.response?.status === 500) {
+        errorMessage += 'Server error occurred. Please try again later.'
+      } else if (error.code === 'NETWORK_ERROR' || !error.response) {
+        errorMessage += 'Network connection failed. Please check your connection.'
+      } else {
+        errorMessage += 'Please try again or contact support if the issue persists.'
+      }
+      
+      alert(errorMessage)
+    } finally {
+      setScrapingLoading(false)
+    }
+  }
+
   const filteredCompanies = companies.filter(company => {
     const matchesSearch = searchTerm === '' || 
       company.name.toLowerCase().includes(searchTerm.toLowerCase())
 
     const matchesStage = stageFilter === 'all' || company.stage === stageFilter
     const matchesPriority = priorityFilter === 'all' || company.priority === priorityFilter
+    
+    // Orders view filter - only show companies with orders
+    const matchesOrdersView = !ordersView || (company as any).order
 
-    return matchesSearch && matchesStage && matchesPriority
+    // Smart filters
+    const matchesSmartFilter = (() => {
+      switch (smartFilter) {
+        case 'no_website':
+          return !company.website || company.website.trim() === ''
+        case 'high_score':
+          // Remove mock score assumption - will use real scoring when available
+          return false // Placeholder until real scoring is implemented
+        case 'recent_activity':
+          return company.trackingData && company.trackingData.last_activity && 
+                 new Date(company.trackingData.last_activity) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+        case 'needs_follow_up':
+          return company.stage === 'contacted' && 
+                 (!company.trackingData || company.trackingData.messages === 0)
+        default:
+          return true
+      }
+    })()
+
+    return matchesSearch && matchesStage && matchesPriority && matchesOrdersView && matchesSmartFilter
   })
 
   const toggleCompanyExpansion = (companyId: number) => {
@@ -476,6 +557,52 @@ const Leads: React.FC = () => {
     }
   };
 
+  const handleCreateOrder = (company: CompanyWithProjects) => {
+    setSelectedCompany(company);
+    setOrderBuilderOpen(true);
+  };
+
+  const handleOrderCreated = (orderId: string) => {
+    console.log(`✅ Order created: ${orderId}`);
+    setOrderBuilderOpen(false);
+    setSelectedCompany(null);
+    alert(`✅ Order ${orderId} created successfully!`);
+    // TODO: Refresh company data to show order status
+  };
+
+  const handleSendInvoice = async (orderId: string) => {
+    try {
+      const response = await api.post(`/orders/${orderId}/send-invoice`);
+      if (response.data.success) {
+        alert(`✅ Invoice sent successfully!`);
+        // TODO: Refresh order data to update invoice status
+      }
+    } catch (error) {
+      console.error('❌ Failed to send invoice:', error);
+      alert('❌ Failed to send invoice. Please try again.');
+    }
+  };
+
+  const handleViewInvoice = async (orderId: string) => {
+    try {
+      const response = await api.get(`/orders/${orderId}/invoice`);
+      const invoice = response.data;
+      
+      // For now, show invoice details in an alert
+      // TODO: Create a proper invoice modal
+      alert(`Invoice Details:
+      
+Invoice #: ${invoice.invoice_id}
+Company: ${invoice.company_name}
+Total: $${invoice.total}
+Status: ${invoice.status}
+Due Date: ${new Date(invoice.due_date).toLocaleDateString()}`);
+    } catch (error) {
+      console.error('❌ Failed to fetch invoice:', error);
+      alert('❌ Failed to fetch invoice. Please try again.');
+    }
+  };
+
   const scheduleWithCompany = (company: CompanyWithProjects) => {
     // Create a scheduling link or calendar event
     const schedulingUrl = `https://www.pleasantcovedesign.com/schedule?company=${encodeURIComponent(company.name)}&email=${encodeURIComponent(company.email || '')}`
@@ -542,6 +669,40 @@ const Leads: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      {/* Header */}
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Leads</h1>
+          <p className="text-gray-600">Manage your prospects and outreach campaigns</p>
+        </div>
+        <div className="flex gap-3">
+          <button
+            onClick={handleScrapeLeads}
+            disabled={scrapingLoading}
+            className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
+          >
+            {scrapingLoading ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Scraping...
+              </>
+            ) : (
+              <>
+                <MapPin className="h-4 w-4" />
+                Scrape New Leads
+              </>
+            )}
+          </button>
+          <button
+            onClick={() => setOrderBuilderOpen(true)}
+            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
+          >
+            <Plus className="h-4 w-4" />
+            Create Order
+          </button>
+        </div>
+      </div>
+
       {/* Tracking Summary Cards */}
       {companiesWithTracking.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -629,6 +790,17 @@ const Leads: React.FC = () => {
           </div>
 
           <div className="flex gap-2">
+            <button 
+              onClick={() => setOrdersView(!ordersView)}
+              className={`px-3 py-2 rounded-lg border text-sm font-medium transition-colors ${
+                ordersView 
+                  ? 'bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100' 
+                  : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
+              }`}
+            >
+              <ShoppingCart className="h-4 w-4 mr-1 inline" />
+              Orders View
+            </button>
             <button className="btn-secondary">
               <Filter className="h-4 w-4" />
             </button>
@@ -643,7 +815,7 @@ const Leads: React.FC = () => {
       <div className="bg-white rounded-xl shadow-sm border border-border p-6">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-lg font-semibold text-foreground">
-            Companies ({filteredCompanies.length})
+            {ordersView ? `Companies with Orders (${filteredCompanies.length})` : `Companies (${filteredCompanies.length})`}
           </h2>
           <div className="text-sm text-muted">
             {companiesWithTracking.length} leads being tracked
@@ -684,6 +856,10 @@ const Leads: React.FC = () => {
                       onMinervaOutreach={() => handleMinervaOutreach(company)}
                       onMinervaInvoice={() => handleMinervaInvoice(company)}
                       onMinervaAnalytics={() => handleMinervaAnalytics(company)}
+                      onCreateOrder={() => handleCreateOrder(company)}
+                      order={(company as any).order} // TODO: Add order data to company
+                      onSendInvoice={handleSendInvoice}
+                      onViewInvoice={handleViewInvoice}
                     />
                     
                     {isExpanded && filteredProjects.length > 0 && (
@@ -715,6 +891,19 @@ const Leads: React.FC = () => {
           )}
         </div>
       </div>
+
+      {/* Order Builder Modal */}
+      {orderBuilderOpen && selectedCompany && (
+        <OrderBuilder
+          companyId={selectedCompany.id.toString()}
+          companyName={selectedCompany.name}
+          onClose={() => {
+            setOrderBuilderOpen(false);
+            setSelectedCompany(null);
+          }}
+          onOrderCreated={handleOrderCreated}
+        />
+      )}
     </div>
   )
 }

@@ -1,6 +1,6 @@
 import { db } from "./db.js";
 import { PostgreSQLStorage } from "./postgres-storage.js";
-import type { Business, NewBusiness, Activity, NewActivity, Company, NewCompany, Project, NewProject, ProjectMessage, ProjectFile, AIChatMessage } from "../shared/schema.js";
+import type { Business, NewBusiness, Activity, NewActivity, Company, NewCompany, Project, NewProject, ProjectMessage, ProjectFile, AIChatMessage, Order } from "../shared/schema.js";
 import { eq } from "drizzle-orm";
 
 // Mock schema objects for the in-memory database
@@ -683,6 +683,31 @@ export class Storage {
 
   async getAIChatContext(leadId?: string, projectId?: number, limit: number = 10): Promise<AIChatMessage[]> {
     return await memoryDb.getAIChatContext(leadId, projectId, limit);
+  }
+
+  // Order Management Methods
+  async createOrder(order: Omit<Order, 'createdAt' | 'updatedAt'>): Promise<Order> {
+    return await memoryDb.createOrder(order);
+  }
+
+  async getOrderById(orderId: string): Promise<Order | null> {
+    return await memoryDb.getOrderById(orderId);
+  }
+
+  async getOrdersByCompanyId(companyId: string): Promise<Order[]> {
+    return await memoryDb.getOrdersByCompanyId(companyId);
+  }
+
+  async updateOrder(orderId: string, updates: Partial<Order>): Promise<Order | null> {
+    return await memoryDb.updateOrder(orderId, updates);
+  }
+
+  async getOrders(): Promise<Order[]> {
+    return await memoryDb.getOrders();
+  }
+
+  async deleteOrder(orderId: string): Promise<boolean> {
+    return await memoryDb.deleteOrder(orderId);
   }
 }
 

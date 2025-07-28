@@ -1,0 +1,211 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maine Coast Plumbing - Expert Plumbing Services</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #333;
+        }
+        
+        .hero {
+            background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800');
+            background-size: cover;
+            background-position: center;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: white;
+        }
+        
+        .hero-content {
+            max-width: 800px;
+            padding: 2rem;
+        }
+        
+        .hero h1 {
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+            font-weight: 700;
+        }
+        
+        .hero p {
+            font-size: 1.5rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+        }
+        
+        .cta-button {
+            display: inline-block;
+            background: #1e40af;
+            color: white;
+            padding: 1rem 2rem;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            transition: transform 0.2s;
+        }
+        
+        .cta-button:hover {
+            transform: translateY(-2px);
+        }
+        
+        .services {
+            padding: 6rem 2rem;
+            background: #f8fafc;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .services h2 {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 3rem;
+            color: #1e40af;
+        }
+        
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+        }
+        
+        .service-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .contact {
+            padding: 6rem 2rem;
+            background: #1e40af;
+            color: white;
+            text-align: center;
+        }
+        
+        .contact h2 {
+            font-size: 2.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .contact-info {
+            display: flex;
+            justify-content: center;
+            gap: 4rem;
+            margin-top: 2rem;
+        }
+        
+        .contact-item {
+            font-size: 1.2rem;
+        }
+        
+        .rating {
+            display: inline-block;
+            background: #dc2626;
+            color: #1e40af;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 600;
+            margin: 1rem 0;
+        }
+        
+        .demo-watermark {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            z-index: 1000;
+        }
+        
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 2.5rem; }
+            .hero p { font-size: 1.2rem; }
+            .contact-info { flex-direction: column; gap: 1rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-watermark">
+        🎨 Demo by Pleasant Cove Design
+    </div>
+    
+    <section class="hero">
+        <div class="hero-content">
+            <h1>Maine Coast Plumbing - Expert Plumbing Services</h1>
+            <p>Fast, Reliable, Local Plumbing Solutions</p>
+            <div class="rating">⭐ 4.8 (127 reviews)</div>
+            <br><br>
+            <a href="tel:(207) 555-0123" class="cta-button">Call Now: (207) 555-0123</a>
+        </div>
+    </section>
+    
+    <section class="services">
+        <div class="container">
+            <h2>Our Services</h2>
+            <div class="services-grid">
+
+                <div class="service-card">
+                    <h3>Emergency Repairs</h3>
+                    <p>Professional emergency repairs services you can trust.</p>
+                </div>
+
+                <div class="service-card">
+                    <h3>Drain Cleaning</h3>
+                    <p>Professional drain cleaning services you can trust.</p>
+                </div>
+
+                <div class="service-card">
+                    <h3>Water Heater Installation</h3>
+                    <p>Professional water heater installation services you can trust.</p>
+                </div>
+
+                <div class="service-card">
+                    <h3>Leak Detection</h3>
+                    <p>Professional leak detection services you can trust.</p>
+                </div>
+
+            </div>
+        </div>
+    </section>
+    
+    <section class="contact">
+        <div class="container">
+            <h2>Get In Touch</h2>
+            <p>Ready to get started? Contact us today for a free consultation!</p>
+            <div class="contact-info">
+                <div class="contact-item">
+                    📞 (207) 555-0123
+                </div>
+                <div class="contact-item">
+                    ✉️ info@mainecoastplumbing.com
+                </div>
+                <div class="contact-item">
+                    📍 Portland, ME
+                </div>
+            </div>
+        </div>
+    </section>
+</body>
+</html>

@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Confirmation - Pleasant Cove Design</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <style>
+        .confirmation-card {
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+        .status-badge {
+            @apply inline-flex items-center px-3 py-1 rounded-full text-sm font-medium;
+        }
+        .status-pending {
+            @apply bg-yellow-100 text-yellow-800;
+        }
+        .status-approved {
+            @apply bg-green-100 text-green-800;
+        }
+        .color-swatch {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 2px solid #e5e7eb;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+    <div class="container mx-auto px-4 py-8 max-w-4xl">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <div class="flex items-center justify-center mb-4">
+                <div class="bg-white p-3 rounded-full shadow-md">
+                    <i data-lucide="file-check" class="h-8 w-8 text-blue-600"></i>
+                </div>
+            </div>
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">Project Confirmation</h1>
+            <p class="text-lg text-gray-600 mb-4">Please review and confirm your project details</p>
+            <div class="bg-white rounded-lg p-4 inline-block shadow-sm">
+                <div class="flex items-center space-x-4">
+                    <div>
+                        <p class="text-sm text-gray-500">Company</p>
+                        <p class="font-semibold" id="company-name">Loading...</p>
+                    </div>
+                    <div class="h-8 w-px bg-gray-300"></div>
+                    <div>
+                        <p class="text-sm text-gray-500">Order</p>
+                        <p class="font-mono text-sm" id="order-id">Loading...</p>
+                    </div>
+                    <div class="h-8 w-px bg-gray-300"></div>
+                    <div>
+                        <p class="text-sm text-gray-500">Status</p>
+                        <span id="project-status" class="status-badge status-pending">Pending Review</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Project Details -->
+        <div id="project-details" class="space-y-6">
+            <!-- Meeting Summary -->
+            <div class="bg-white rounded-lg shadow-md p-6 confirmation-card">
+                <div class="flex items-center mb-4">
+                    <i data-lucide="calendar" class="h-5 w-5 text-blue-600 mr-2"></i>
+                    <h2 class="text-xl font-semibold text-gray-900">Meeting Summary</h2>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <p class="text-sm text-gray-500 mb-1">Meeting Date</p>
+                        <p id="meeting-date" class="font-medium">-</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500 mb-1">Attendees</p>
+                        <div id="attendees" class="space-y-1">-</div>
+                    </div>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-500 mb-2">Key Discussion Points</p>
+                    <div id="meeting-notes" class="bg-gray-50 p-3 rounded-md text-sm">-</div>
+                </div>
+            </div>
+
+            <!-- Brand & Design -->
+            <div class="bg-white rounded-lg shadow-md p-6 confirmation-card">
+                <div class="flex items-center mb-4">
+                    <i data-lucide="palette" class="h-5 w-5 text-blue-600 mr-2"></i>
+                    <h2 class="text-xl font-semibold text-gray-900">Brand & Design Direction</h2>
+                </div>
+                
+                <!-- Brand Colors -->
+                <div class="mb-6">
+                    <h3 class="font-medium text-gray-900 mb-3">Brand Colors</h3>
+                    <div class="flex items-center space-x-4 mb-3">
+                        <div class="flex items-center space-x-2">
+                            <div id="primary-color" class="color-swatch" style="background-color: #3b82f6;"></div>
+                            <div>
+                                <p class="text-xs text-gray-500">Primary</p>
+                                <p id="primary-color-text" class="text-sm font-mono">#3b82f6</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <div id="secondary-color" class="color-swatch" style="background-color: #6b7280;"></div>
+                            <div>
+                                <p class="text-xs text-gray-500">Secondary</p>
+                                <p id="secondary-color-text" class="text-sm font-mono">#6b7280</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <div id="accent-color" class="color-swatch" style="background-color: #f59e0b;"></div>
+                            <div>
+                                <p class="text-xs text-gray-500">Accent</p>
+                                <p id="accent-color-text" class="text-sm font-mono">#f59e0b</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="color-preferences" class="bg-gray-50 p-3 rounded-md text-sm">-</div>
+                </div>
+
+                <!-- Logo & Style -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <h3 class="font-medium text-gray-900 mb-3">Logo Information</h3>
+                        <div class="space-y-2">
+                            <div class="flex items-center">
+                                <span class="text-sm text-gray-500 w-24">Existing Logo:</span>
+                                <span id="has-logo" class="text-sm font-medium">-</span>
+                            </div>
+                            <div class="flex items-center">
+                                <span class="text-sm text-gray-500 w-24">Style:</span>
+                                <span id="logo-style" class="text-sm font-medium capitalize">-</span>
+                            </div>
+                        </div>
+                        <div id="logo-notes" class="mt-3 bg-gray-50 p-3 rounded-md text-sm">-</div>
+                    </div>
+                    <div>
+                        <h3 class="font-medium text-gray-900 mb-3">Design Style</h3>
+                        <div class="space-y-2">
+                            <div class="flex items-center">
+                                <span class="text-sm text-gray-500 w-24">Overall:</span>
+                                <span id="design-style" class="text-sm font-medium capitalize">-</span>
+                            </div>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500 mb-2 mt-3">Inspiration Sites:</p>
+                            <div id="inspiration-sites" class="space-y-1">-</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Content & Features -->
+            <div class="bg-white rounded-lg shadow-md p-6 confirmation-card">
+                <div class="flex items-center mb-4">
+                    <i data-lucide="file-text" class="h-5 w-5 text-blue-600 mr-2"></i>
+                    <h2 class="text-xl font-semibold text-gray-900">Content & Features</h2>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <div>
+                        <h3 class="font-medium text-gray-900 mb-3">Content Plan</h3>
+                        <div class="space-y-2">
+                            <div class="flex items-center">
+                                <span class="text-sm text-gray-500 w-24">Copy Writer:</span>
+                                <span id="copy-writer" class="text-sm font-medium capitalize">-</span>
+                            </div>
+                            <div class="flex items-center">
+                                <span class="text-sm text-gray-500 w-24">Photography:</span>
+                                <span id="photography" class="text-sm font-medium capitalize">-</span>
+                            </div>
+                            <div class="flex items-center">
+                                <span class="text-sm text-gray-500 w-24">Video Content:</span>
+                                <span id="video-needs" class="text-sm font-medium">-</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="font-medium text-gray-900 mb-3">Timeline</h3>
+                        <div class="space-y-2">
+                            <div class="flex items-center">
+                                <span class="text-sm text-gray-500 w-24">Launch Goal:</span>
+                                <span id="launch-goal" class="text-sm font-medium">-</span>
+                            </div>
+                            <div class="flex items-center">
+                                <span class="text-sm text-gray-500 w-24">Priority:</span>
+                                <span id="urgency" class="text-sm font-medium capitalize">-</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pages & Features -->
+                <div class="space-y-4">
+                    <div>
+                        <h3 class="font-medium text-gray-900 mb-3">Website Pages</h3>
+                        <div id="site-pages" class="space-y-2">-</div>
+                    </div>
+                    <div>
+                        <h3 class="font-medium text-gray-900 mb-3">Special Features</h3>
+                        <div id="special-features" class="flex flex-wrap gap-2">-</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Team & Communication -->
+            <div class="bg-white rounded-lg shadow-md p-6 confirmation-card">
+                <div class="flex items-center mb-4">
+                    <i data-lucide="users" class="h-5 w-5 text-blue-600 mr-2"></i>
+                    <h2 class="text-xl font-semibold text-gray-900">Team & Communication</h2>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <h3 class="font-medium text-gray-900 mb-3">Key Contacts</h3>
+                        <div class="space-y-2">
+                            <div>
+                                <span class="text-sm text-gray-500">Decision Maker:</span>
+                                <p id="decision-maker" class="font-medium">-</p>
+                            </div>
+                            <div>
+                                <span class="text-sm text-gray-500">Primary Contact:</span>
+                                <p id="primary-contact" class="font-medium">-</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="font-medium text-gray-900 mb-3">Additional Reviewers</h3>
+                        <div id="reviewers" class="space-y-1">-</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Feedback Section -->
+            <div class="bg-white rounded-lg shadow-md p-6 confirmation-card">
+                <div class="flex items-center mb-4">
+                    <i data-lucide="message-circle" class="h-5 w-5 text-blue-600 mr-2"></i>
+                    <h2 class="text-xl font-semibold text-gray-900">Your Feedback</h2>
+                </div>
+                
+                <div class="mb-4">
+                    <label for="client-feedback" class="block text-sm font-medium text-gray-700 mb-2">
+                        Any corrections or additional information?
+                    </label>
+                    <textarea
+                        id="client-feedback"
+                        rows="4"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="Please let us know if anything needs to be changed or if you have additional requirements..."
+                    ></textarea>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex flex-col sm:flex-row gap-3">
+                    <button
+                        id="approve-btn"
+                        class="flex-1 bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-6 rounded-md transition-colors flex items-center justify-center"
+                    >
+                        <i data-lucide="check-circle" class="h-5 w-5 mr-2"></i>
+                        Approve & Start Project
+                    </button>
+                    <button
+                        id="request-changes-btn"
+                        class="flex-1 bg-yellow-600 hover:bg-yellow-700 text-white font-medium py-3 px-6 rounded-md transition-colors flex items-center justify-center"
+                    >
+                        <i data-lucide="edit" class="h-5 w-5 mr-2"></i>
+                        Request Changes
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading State -->
+        <div id="loading-state" class="text-center py-12">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p class="text-gray-600">Loading project details...</p>
+        </div>
+
+        <!-- Success Message -->
+        <div id="success-message" class="hidden bg-green-50 border border-green-200 rounded-lg p-6 text-center">
+            <div class="flex items-center justify-center mb-4">
+                <div class="bg-green-100 p-3 rounded-full">
+                    <i data-lucide="check-circle" class="h-8 w-8 text-green-600"></i>
+                </div>
+            </div>
+            <h3 class="text-lg font-semibold text-green-900 mb-2">Thank You!</h3>
+            <p class="text-green-700">Your response has been received. We'll start working on your project based on your feedback.</p>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+
+        // Get URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const briefId = urlParams.get('brief_id');
+        const token = urlParams.get('token');
+
+        let projectBrief = null;
+
+        // Load project brief data
+        async function loadProjectBrief() {
+            if (!briefId || !token) {
+                showError('Invalid confirmation link. Please check the URL and try again.');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/project-briefs/${briefId}?token=${token}`);
+                if (!response.ok) throw new Error('Failed to load project brief');
+                
+                projectBrief = await response.json();
+                displayProjectBrief(projectBrief);
+                
+                document.getElementById('loading-state').style.display = 'none';
+                document.getElementById('project-details').style.display = 'block';
+            } catch (error) {
+                console.error('Error loading project brief:', error);
+                showError('Failed to load project details. Please try again or contact support.');
+            }
+        }
+
+        function displayProjectBrief(brief) {
+            // Header information
+            document.getElementById('company-name').textContent = brief.companyName || 'N/A';
+            document.getElementById('order-id').textContent = brief.orderId?.slice(-8) || 'N/A';
+            
+            // Update status
+            const statusEl = document.getElementById('project-status');
+            if (brief.clientStatus === 'approved') {
+                statusEl.textContent = 'Approved';
+                statusEl.className = 'status-badge status-approved';
+            }
+
+            // Meeting information
+            if (brief.meetingDate) {
+                document.getElementById('meeting-date').textContent = new Date(brief.meetingDate).toLocaleDateString();
+            }
+            
+            if (brief.attendees && brief.attendees.length > 0) {
+                const attendeesEl = document.getElementById('attendees');
+                attendeesEl.innerHTML = brief.attendees.map(attendee => 
+                    `<p class="text-sm">${attendee}</p>`
+                ).join('');
+            }
+            
+            if (brief.meetingNotes) {
+                document.getElementById('meeting-notes').textContent = brief.meetingNotes;
+            }
+
+            // Brand colors
+            if (brief.brandColors) {
+                const colors = brief.brandColors;
+                if (colors.primary) {
+                    document.getElementById('primary-color').style.backgroundColor = colors.primary;
+                    document.getElementById('primary-color-text').textContent = colors.primary;
+                }
+                if (colors.secondary) {
+                    document.getElementById('secondary-color').style.backgroundColor = colors.secondary;
+                    document.getElementById('secondary-color-text').textContent = colors.secondary;
+                }
+                if (colors.accent) {
+                    document.getElementById('accent-color').style.backgroundColor = colors.accent;
+                    document.getElementById('accent-color-text').textContent = colors.accent;
+                }
+                if (colors.preferences) {
+                    document.getElementById('color-preferences').textContent = colors.preferences;
+                }
+            }
+
+            // Logo information
+            if (brief.logoInfo) {
+                document.getElementById('has-logo').textContent = brief.logoInfo.hasExistingLogo ? 'Yes' : 'No';
+                document.getElementById('logo-style').textContent = brief.logoInfo.logoStyle || '-';
+                if (brief.logoInfo.logoNotes) {
+                    document.getElementById('logo-notes').textContent = brief.logoInfo.logoNotes;
+                }
+            }
+
+            // Design style
+            if (brief.designStyle) {
+                document.getElementById('design-style').textContent = brief.designStyle.overall || '-';
+                
+                if (brief.designStyle.inspiration && brief.designStyle.inspiration.length > 0) {
+                    const inspirationEl = document.getElementById('inspiration-sites');
+                    inspirationEl.innerHTML = brief.designStyle.inspiration
+                        .filter(site => site.trim())
+                        .map(site => `<a href="${site}" target="_blank" class="text-sm text-blue-600 hover:underline flex items-center">
+                            <i data-lucide="external-link" class="h-3 w-3 mr-1"></i>
+                            ${site}
+                        </a>`).join('');
+                    lucide.createIcons();
+                }
+            }
+
+            // Content plan
+            if (brief.contentPlan) {
+                document.getElementById('copy-writer').textContent = brief.contentPlan.copyWriter || '-';
+                document.getElementById('photography').textContent = brief.contentPlan.photography || '-';
+                document.getElementById('video-needs').textContent = brief.contentPlan.videoNeeds ? 'Yes' : 'No';
+            }
+
+            // Timeline
+            if (brief.timeline) {
+                if (brief.timeline.launchGoal) {
+                    document.getElementById('launch-goal').textContent = new Date(brief.timeline.launchGoal).toLocaleDateString();
+                }
+                document.getElementById('urgency').textContent = brief.timeline.urgency || '-';
+            }
+
+            // Site pages
+            if (brief.siteStructure && brief.siteStructure.pages) {
+                const pagesEl = document.getElementById('site-pages');
+                pagesEl.innerHTML = brief.siteStructure.pages.map(page => `
+                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-md">
+                        <div>
+                            <p class="font-medium">${page.name}</p>
+                            <p class="text-sm text-gray-600">${page.purpose}</p>
+                        </div>
+                        <span class="text-xs px-2 py-1 rounded-full ${
+                            page.priority === 'must-have' ? 'bg-red-100 text-red-800' : 'bg-blue-100 text-blue-800'
+                        }">${page.priority}</span>
+                    </div>
+                `).join('');
+            }
+
+            // Special features
+            if (brief.siteStructure && brief.siteStructure.specialFeatures) {
+                const featuresEl = document.getElementById('special-features');
+                featuresEl.innerHTML = brief.siteStructure.specialFeatures
+                    .filter(feature => feature.trim())
+                    .map(feature => `
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm bg-blue-100 text-blue-800">
+                            ${feature}
+                        </span>
+                    `).join('');
+            }
+
+            // Stakeholders
+            if (brief.stakeholders) {
+                document.getElementById('decision-maker').textContent = brief.stakeholders.decisionMaker || '-';
+                document.getElementById('primary-contact').textContent = brief.stakeholders.primaryContact || '-';
+                
+                if (brief.stakeholders.reviewers && brief.stakeholders.reviewers.length > 0) {
+                    const reviewersEl = document.getElementById('reviewers');
+                    reviewersEl.innerHTML = brief.stakeholders.reviewers
+                        .filter(reviewer => reviewer.trim())
+                        .map(reviewer => `<p class="text-sm">${reviewer}</p>`)
+                        .join('');
+                }
+            }
+        }
+
+        // Handle approval
+        document.getElementById('approve-btn').addEventListener('click', async () => {
+            await submitResponse('approved');
+        });
+
+        // Handle request changes
+        document.getElementById('request-changes-btn').addEventListener('click', async () => {
+            await submitResponse('requested_changes');
+        });
+
+        async function submitResponse(status) {
+            const feedback = document.getElementById('client-feedback').value;
+            
+            try {
+                const response = await fetch(`/api/project-briefs/${briefId}/respond`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        token,
+                        clientStatus: status,
+                        clientFeedback: feedback
+                    })
+                });
+
+                if (!response.ok) throw new Error('Failed to submit response');
+
+                // Show success message
+                document.getElementById('project-details').style.display = 'none';
+                document.getElementById('success-message').style.display = 'block';
+
+            } catch (error) {
+                console.error('Error submitting response:', error);
+                alert('Failed to submit your response. Please try again.');
+            }
+        }
+
+        function showError(message) {
+            document.getElementById('loading-state').innerHTML = `
+                <div class="text-center py-12">
+                    <div class="bg-red-100 p-3 rounded-full inline-block mb-4">
+                        <i data-lucide="alert-circle" class="h-8 w-8 text-red-600"></i>
+                    </div>
+                    <p class="text-red-600">${message}</p>
+                </div>
+            `;
+            lucide.createIcons();
+        }
+
+        // Load data on page load
+        loadProjectBrief();
+    </script>
+</body>
+</html> 

@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>5 Custom Website Concepts | Pleasant Cove Design</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #1f2937;
+            background: #f8fafc;
+            min-height: 100vh;
+        }
+        
+        /* Header */
+        .header {
+            background: #000000;
+            color: white;
+            padding: 20px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .logo {
+            font-size: 20px;
+            font-weight: 600;
+            color: white;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 24px;
+            align-items: center;
+        }
+        
+        .nav-link {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+        
+        .nav-link:hover {
+            color: #667eea;
+        }
+        
+        /* Container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+        
+        /* Hero Section */
+        .hero {
+            text-align: center;
+            padding: 60px 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .hero h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+        
+        .hero p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            margin-bottom: 40px;
+        }
+        
+        .btn {
+            padding: 14px 28px;
+            border-radius: 8px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-primary {
+            background: #667eea;
+            color: white;
+            box-shadow: 0 4px 6px rgba(102, 126, 234, 0.25);
+        }
+        
+        .btn-primary:hover {
+            background: #5a67d8;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 12px rgba(102, 126, 234, 0.35);
+        }
+        
+        .btn-secondary {
+            background: white;
+            color: #000000;
+            border: 2px solid #e5e7eb;
+        }
+        
+        .btn-secondary:hover {
+            border-color: #667eea;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+
+        
+        /* All Demos Container */
+        .all-demos {
+            display: flex;
+            flex-direction: column;
+            gap: 40px;
+        }
+
+        /* Demo Preview */
+        .demo-preview {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+        }
+        
+        .demo-header {
+            background: #f8fafc;
+            padding: 16px 24px;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .demo-controls {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .demo-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+        
+        .demo-dot.red { background: #ef4444; }
+        .demo-dot.yellow { background: #f59e0b; }
+        .demo-dot.green { background: #10b981; }
+        
+        .demo-url {
+            font-family: monospace;
+            font-size: 14px;
+            color: #6b7280;
+            flex: 1;
+            text-align: center;
+        }
+        
+        .demo-iframe {
+            width: 100%;
+            height: 60vh;
+            border: none;
+            background: white;
+        }
+        
+
+        
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            justify-content: center;
+            margin-bottom: 40px;
+        }
+        
+        /* Features Section */
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+            margin-bottom: 40px;
+        }
+        
+        .feature-card {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        
+        .feature-icon {
+            width: 48px;
+            height: 48px;
+            background: #667eea;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 16px;
+            font-size: 24px;
+        }
+        
+        .feature-card h3 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #000000;
+            margin-bottom: 8px;
+        }
+        
+        .feature-card p {
+            color: #6b7280;
+            font-size: 14px;
+        }
+        
+        /* Footer */
+        .footer {
+            background: #000000;
+            color: white;
+            text-align: center;
+            padding: 24px;
+            margin-top: 40px;
+        }
+        
+        .footer p {
+            color: #9ca3af;
+            font-size: 14px;
+        }
+        
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                gap: 16px;
+                text-align: center;
+            }
+            
+            .nav-links {
+                justify-content: center;
+            }
+            
+            .hero h1 {
+                font-size: 2rem;
+            }
+            
+
+            
+            .action-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="logo">Pleasant Cove Design</div>
+        <nav class="nav-links">
+            <a href="https://www.pleasantcovedesign.com" class="nav-link">Home</a>
+            <a href="https://www.pleasantcovedesign.com/#services" class="nav-link">Services</a>
+            <a href="https://www.pleasantcovedesign.com/#contact" class="nav-link">Contact</a>
+        </nav>
+    </header>
+
+    <div class="container">
+        <!-- Hero Section -->
+        <section class="hero">
+            <h1>5 Website Concepts for <span id="companyName">Your Business</span></h1>
+            <p>We created these custom designs specifically for your business. Which style feels most like your brand?</p>
+        </section>
+
+        <!-- All 5 Demos Stacked -->
+        <section class="all-demos">
+            <!-- Modern Demo -->
+            <div class="demo-preview">
+                <div class="demo-header">
+                    <div class="demo-controls">
+                        <div class="demo-dot red"></div>
+                        <div class="demo-dot yellow"></div>
+                        <div class="demo-dot green"></div>
+                    </div>
+                    <div class="demo-url">🎨 Modern & Clean Style</div>
+                </div>
+                <iframe id="modernFrame" class="demo-iframe" src=""></iframe>
+            </div>
+
+            <!-- Professional Demo -->
+            <div class="demo-preview">
+                <div class="demo-header">
+                    <div class="demo-controls">
+                        <div class="demo-dot red"></div>
+                        <div class="demo-dot yellow"></div>
+                        <div class="demo-dot green"></div>
+                    </div>
+                    <div class="demo-url">💼 Professional Business Style</div>
+                </div>
+                <iframe id="professionalFrame" class="demo-iframe" src=""></iframe>
+            </div>
+
+            <!-- Minimalist Demo -->
+            <div class="demo-preview">
+                <div class="demo-header">
+                    <div class="demo-controls">
+                        <div class="demo-dot red"></div>
+                        <div class="demo-dot yellow"></div>
+                        <div class="demo-dot green"></div>
+                    </div>
+                    <div class="demo-url">✨ Minimalist Style</div>
+                </div>
+                <iframe id="minimalFrame" class="demo-iframe" src=""></iframe>
+            </div>
+
+            <!-- Classic Demo -->
+            <div class="demo-preview">
+                <div class="demo-header">
+                    <div class="demo-controls">
+                        <div class="demo-dot red"></div>
+                        <div class="demo-dot yellow"></div>
+                        <div class="demo-dot green"></div>
+                    </div>
+                    <div class="demo-url">🏛️ Classic & Timeless Style</div>
+                </div>
+                <iframe id="classicFrame" class="demo-iframe" src=""></iframe>
+            </div>
+
+            <!-- Bold Demo -->
+            <div class="demo-preview">
+                <div class="demo-header">
+                    <div class="demo-controls">
+                        <div class="demo-dot red"></div>
+                        <div class="demo-dot yellow"></div>
+                        <div class="demo-dot green"></div>
+                    </div>
+                    <div class="demo-url">🚀 Bold & Dynamic Style</div>
+                </div>
+                <iframe id="boldFrame" class="demo-iframe" src=""></iframe>
+            </div>
+        </section>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <a href="#" id="shareBtn" class="btn btn-secondary">
+                📤 Share This Demo
+            </a>
+            <a href="https://www.pleasantcovedesign.com" class="btn btn-primary">
+                📅 Let's Build This!
+            </a>
+        </div>
+
+        <!-- Features Section -->
+        <section class="features">
+            <div class="feature-card">
+                <div class="feature-icon">⚡</div>
+                <h3>Fast & Modern</h3>
+                <p>Built with the latest technology for lightning-fast loading and perfect mobile experience.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🎨</div>
+                <h3>Custom Design</h3>
+                <p>Every element is designed specifically for your business type and target customers.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📱</div>
+                <h3>Mobile Optimized</h3>
+                <p>Looks perfect on every device - desktop, tablet, and mobile phone.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🔍</div>
+                <h3>SEO Ready</h3>
+                <p>Built to rank well in Google search results and attract local customers.</p>
+            </div>
+        </section>
+
+        <!-- Call to Action -->
+        <section class="hero">
+            <h2 style="font-size: 2rem; margin-bottom: 16px;">Love what you see? Let's make it yours!</h2>
+            <p style="margin-bottom: 24px;">Ready to get started? Visit our website to schedule a free consultation or give us a call!</p>
+            <div class="action-buttons">
+                <a href="https://www.pleasantcovedesign.com" class="btn btn-primary">
+                    📅 Schedule Free Consultation
+                </a>
+                <a href="tel:2072004281" class="btn btn-secondary">
+                    📞 Call (207) 200-4281
+                </a>
+            </div>
+        </section>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>&copy; 2025 Pleasant Cove Design. All rights reserved. | Beautiful, affordable websites for Maine businesses.</p>
+    </footer>
+
+    <script>
+        // Get URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const companyName = urlParams.get('company') || 'Your Business';
+        const baseUrl = urlParams.get('base_url') || 'http://localhost:8005';
+        const industry = urlParams.get('industry') || 'general';
+        const timestamp = urlParams.get('timestamp') || '20250725_000000';
+        
+        // Demo URLs for all 5 styles
+        const demoUrls = {
+            modern: `${baseUrl}/${companyName.toLowerCase().replace(/\s+/g, '_').replace(/&/g, 'and')}_${industry}_modern_${timestamp}.html`,
+            professional: `${baseUrl}/${companyName.toLowerCase().replace(/\s+/g, '_').replace(/&/g, 'and')}_${industry}_professional_${timestamp}.html`,
+            minimal: `${baseUrl}/${companyName.toLowerCase().replace(/\s+/g, '_').replace(/&/g, 'and')}_${industry}_minimal_${timestamp}.html`,
+            classic: `${baseUrl}/${companyName.toLowerCase().replace(/\s+/g, '_').replace(/&/g, 'and')}_${industry}_classic_${timestamp}.html`,
+            bold: `${baseUrl}/${companyName.toLowerCase().replace(/\s+/g, '_').replace(/&/g, 'and')}_${industry}_bold_${timestamp}.html`
+        };
+        
+        // Update page content
+        document.getElementById('companyName').textContent = companyName;
+        
+        // Load all 5 demos into their respective iframes
+        document.getElementById('modernFrame').src = demoUrls.modern;
+        document.getElementById('professionalFrame').src = demoUrls.professional;
+        document.getElementById('minimalFrame').src = demoUrls.minimal;
+        document.getElementById('classicFrame').src = demoUrls.classic;
+        document.getElementById('boldFrame').src = demoUrls.bold;
+        
+        // Add loading effects for all iframes
+        const allFrames = document.querySelectorAll('.demo-iframe');
+        allFrames.forEach(frame => {
+            frame.style.opacity = '0.3';
+            frame.onload = () => {
+                frame.style.opacity = '1';
+                frame.style.transition = 'opacity 0.3s ease';
+            };
+        });
+        
+        // Share functionality
+        document.getElementById('shareBtn').addEventListener('click', (e) => {
+            e.preventDefault();
+            if (navigator.share) {
+                navigator.share({
+                    title: `5 Website Concepts for ${companyName}`,
+                    text: `Check out these 5 custom website designs created for ${companyName}`,
+                    url: window.location.href
+                });
+            } else {
+                // Fallback - copy to clipboard
+                navigator.clipboard.writeText(window.location.href);
+                alert('Demo link copied to clipboard!');
+            }
+        });
+        
+        // Track demo views
+        fetch('/api/track/multi-style-view', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                company: companyName,
+                demo_urls: demoUrls,
+                timestamp: new Date().toISOString(),
+                user_agent: navigator.userAgent
+            })
+        }).catch(() => {}); // Silent fail for tracking
+    </script>
+</body>
+</html> 

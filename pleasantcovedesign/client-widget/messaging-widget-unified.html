@@ -650,6 +650,9 @@
                 console.debug('[WIDGET] detectBackendUrl - protocol:', window.location.protocol);
                 console.debug('[WIDGET] detectBackendUrl - full URL:', window.location.href);
                 
+                // Production-first logic - use Railway unless specifically localhost
+                // This ensures widget always connects to production by default
+                
                 // Local development detection (for testing)
                 if (window.location.hostname === 'localhost' || 
                     window.location.hostname === '127.0.0.1' ||

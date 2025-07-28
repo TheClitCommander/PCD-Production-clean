@@ -18,6 +18,7 @@ import express, { type Express } from "express";
 import cors from "cors";
 import { createR2Storage } from './storage/r2-storage.js';
 import { requestLogger, errorHandler, performanceMonitor } from './middleware/logging.js';
+import demoRoutes from './demo-routes.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -198,8 +199,15 @@ app.use(cors(corsOptions));
 app.use(requestLogger);
 app.use(performanceMonitor);
 
-// Parse JSON bodies with increased limit for webhook data
-app.use(express.json({ limit: '50mb' }));
+// Parse JSON bodies with increased limit - but exclude webhook endpoint
+app.use((req, res, next) => {
+  // Skip JSON parsing for Stripe webhook endpoint (needs raw body)
+  if (req.path === '/api/stripe/webhook') {
+    next();
+  } else {
+    express.json({ limit: '50mb' })(req, res, next);
+  }
+});
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 // Serve static files from React build (if they exist)
@@ -376,6 +384,9 @@ async function startServer() {
   try {
     // Register all routes
     await registerRoutes(app, io);
+    
+    // Register demo serving routes
+    app.use('/api', demoRoutes);
     
     // Error handling middleware (must be last)
     app.use(errorHandler);

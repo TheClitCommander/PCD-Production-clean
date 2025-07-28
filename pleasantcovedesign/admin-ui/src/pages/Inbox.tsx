@@ -29,6 +29,19 @@ interface Message {
   attachments?: string[]
 }
 
+interface ClientProfile {
+  id: number
+  name: string
+  email: string | null
+  phone: string | null
+  address: string | null
+  city: string | null
+  state: string | null
+  industry: string | null
+  website: string | null
+  priority: string | null
+}
+
 interface Conversation {
   id: number
   projectId: number
@@ -40,6 +53,7 @@ interface Conversation {
   lastMessageTime: string
   unreadCount: number
   messages: Message[]
+  clientProfile?: ClientProfile | null
 }
 
 const Inbox: React.FC = () => {
@@ -276,12 +290,69 @@ const Inbox: React.FC = () => {
               return msg;
             });
             
+            // Recalculate unread count
+            const newUnreadCount = updatedMessages.filter(msg => 
+              msg.senderType === 'client' && !msg.readAt
+            ).length;
+            
+            console.log(`📖 [READ_RECEIPT] Updated unread count for ${conv.customerName}: ${conv.unreadCount} → ${newUnreadCount}`);
+            
             // Also update selected conversation if it matches
             if (selectedConversationRef.current?.projectToken === data.projectToken) {
-              setSelectedConversation(prev => prev ? { ...prev, messages: updatedMessages } : null);
+              setSelectedConversation(prev => prev ? { 
+                ...prev, 
+                messages: updatedMessages,
+                unreadCount: newUnreadCount
+              } : null);
             }
             
-            return { ...conv, messages: updatedMessages };
+            return { 
+              ...conv, 
+              messages: updatedMessages, 
+              unreadCount: newUnreadCount 
+            };
+          }
+          return conv;
+        });
+      });
+    });
+
+    // Listen for single message read receipts
+    socket.on('messageRead', (data: { messageId: number, readAt: string }) => {
+      console.log('📖 [SINGLE_READ] Message marked as read:', data);
+      
+      setConversations(prevConversations => {
+        return prevConversations.map(conv => {
+          const messageExists = conv.messages.some(msg => msg.id === data.messageId);
+          if (messageExists) {
+            const updatedMessages = conv.messages.map(msg => {
+              if (msg.id === data.messageId) {
+                return { ...msg, readAt: data.readAt };
+              }
+              return msg;
+            });
+            
+            // Recalculate unread count
+            const newUnreadCount = updatedMessages.filter(msg => 
+              msg.senderType === 'client' && !msg.readAt
+            ).length;
+            
+            console.log(`📖 [SINGLE_READ] Updated unread count for ${conv.customerName}: ${conv.unreadCount} → ${newUnreadCount}`);
+            
+            // Update selected conversation if it matches
+            if (selectedConversationRef.current?.projectToken === conv.projectToken) {
+              setSelectedConversation(prev => prev ? { 
+                ...prev, 
+                messages: updatedMessages,
+                unreadCount: newUnreadCount
+              } : null);
+            }
+            
+            return { 
+              ...conv, 
+              messages: updatedMessages, 
+              unreadCount: newUnreadCount 
+            };
           }
           return conv;
         });
@@ -353,26 +424,22 @@ const Inbox: React.FC = () => {
           
           messages.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
           
-          // Calculate unread count - count client messages without readAt
-          const unreadCount = messages.filter(msg => 
-            msg.senderType === 'client' && !msg.readAt
-          ).length;
-          
           const conversation: Conversation = {
             id: project.projectId,
             projectId: project.projectId,
             projectToken: project.accessToken,
             projectTitle: project.projectTitle,
             customerName: customerName,
-            customerEmail: `${customerName.toLowerCase().replace(/\s+/g, '.')}@example.com`,
+            customerEmail: project.customerEmail || `${customerName.toLowerCase().replace(/\s+/g, '.')}@example.com`,
             lastMessage: messages[messages.length - 1] || undefined,
             lastMessageTime: messages[messages.length - 1]?.createdAt || new Date().toISOString(),
-            unreadCount: unreadCount,
-            messages: messages
+            unreadCount: project.unreadCount || 0, // Use backend-calculated unread count
+            messages: messages,
+            clientProfile: project.clientProfile || null
           };
           
           conversationList.push(conversation);
-          console.log(`✅ [FETCH] Created conversation for ${customerName} with ${messages.length} messages`);
+          console.log(`✅ [FETCH] Created conversation for ${customerName} with ${messages.length} messages, ${conversation.unreadCount} unread`);
         });
         
         conversationList.sort((a, b) => new Date(b.lastMessageTime).getTime() - new Date(a.lastMessageTime).getTime());
@@ -447,6 +514,54 @@ const Inbox: React.FC = () => {
       updated.splice(index, 1)
       return updated
     })
+  }
+
+  // Handler functions for conversation actions
+  const handlePhoneCall = (conversation: Conversation | null) => {
+    if (!conversation?.clientProfile?.phone) {
+      alert('❌ Phone number not available for this client')
+      return
+    }
+    
+    const phone = conversation.clientProfile.phone
+    const telLink = `tel:${phone}`
+    
+    // Try to open the phone dialer
+    window.location.href = telLink
+    
+    // Also show a confirmation
+    alert(`📞 Calling ${conversation.customerName} at ${phone}`)
+  }
+
+  const handleVideoCall = (conversation: Conversation | null) => {
+    if (!conversation?.clientProfile) {
+      alert('❌ Client profile not available')
+      return
+    }
+    
+    // For now, show a "coming soon" message
+    // In the future, this could integrate with Zoom, Teams, etc.
+    alert(`📹 Video call feature coming soon!\n\nClient: ${conversation.customerName}\nEmail: ${conversation.clientProfile.email || 'N/A'}`)
+  }
+
+  const handleConversationMenu = (conversation: Conversation | null) => {
+    if (!conversation) return
+    
+    // Show conversation options menu
+    const actions = [
+      'Mark as Unread',
+      'Archive Conversation', 
+      'Delete Conversation',
+      'Export Messages',
+      'View Client Profile'
+    ]
+    
+    const choice = prompt(`Conversation Options for ${conversation.customerName}:\n\n${actions.map((action, i) => `${i + 1}. ${action}`).join('\n')}\n\nEnter number (1-${actions.length}):`)
+    
+    if (choice && parseInt(choice) >= 1 && parseInt(choice) <= actions.length) {
+      const selectedAction = actions[parseInt(choice) - 1]
+      alert(`Selected: ${selectedAction}\n\n(Feature implementation coming soon!)`)
+    }
   }
 
   const handleSendMessage = async () => {
@@ -891,13 +1006,25 @@ const Inbox: React.FC = () => {
                   </div>
                   
                   <div className="flex items-center gap-2">
-                    <button className="p-2 hover:bg-gray-100 rounded-lg">
+                    <button 
+                      className="p-2 hover:bg-gray-100 rounded-lg"
+                      onClick={() => handlePhoneCall(selectedConversation)}
+                      title="Call client"
+                    >
                       <Phone className="h-4 w-4 text-muted" />
                     </button>
-                    <button className="p-2 hover:bg-gray-100 rounded-lg">
+                    <button 
+                      className="p-2 hover:bg-gray-100 rounded-lg"
+                      onClick={() => handleVideoCall(selectedConversation)}
+                      title="Start video call"
+                    >
                       <Video className="h-4 w-4 text-muted" />
                     </button>
-                    <button className="p-2 hover:bg-gray-100 rounded-lg">
+                    <button 
+                      className="p-2 hover:bg-gray-100 rounded-lg"
+                      onClick={() => handleConversationMenu(selectedConversation)}
+                      title="Conversation options"
+                    >
                       <MoreVertical className="h-4 w-4 text-muted" />
                     </button>
                   </div>

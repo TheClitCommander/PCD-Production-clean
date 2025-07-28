@@ -9,17 +9,18 @@ interface TimelineItem {
 }
 
 interface Project {
-  id: string
-  clientName: string
-  projectName: string
-  stage: string
+  id: string | number
+  clientName?: string
+  projectName?: string
+  name?: string // Alternative to projectName
+  stage?: string
+  status?: string // Alternative to stage
   progress: number
   totalValue: number
   paidAmount: number
   nextPayment: number
   dueDate: string
-  status: 'on-track' | 'at-risk' | 'delayed'
-  timeline: TimelineItem[]
+  timeline?: TimelineItem[]
 }
 
 interface ProgressTrackerProps {
@@ -59,16 +60,16 @@ const ProgressTracker: React.FC<ProgressTrackerProps> = ({ project }) => {
       {/* Header */}
       <div className="flex items-start justify-between mb-4">
         <div>
-          <h4 className="font-semibold text-foreground">{project.projectName}</h4>
-          <p className="text-sm text-muted">{project.clientName}</p>
+                  <h4 className="font-semibold text-foreground">{project.projectName || project.name || 'Untitled Project'}</h4>
+        <p className="text-sm text-muted">{project.clientName || 'Client'}</p>
         </div>
         <div className="flex items-center space-x-2">
           <span className={clsx(
             "flex items-center text-sm font-medium",
-            getStatusColor(project.status)
+            getStatusColor(project.status || project.stage || 'on-track')
           )}>
-            {getStatusIcon(project.status)}
-            <span className="ml-1 capitalize">{project.status.replace('-', ' ')}</span>
+            {getStatusIcon(project.status || project.stage || 'on-track')}
+            <span className="ml-1 capitalize">{(project.status || project.stage || 'on-track').replace('-', ' ')}</span>
           </span>
         </div>
       </div>
@@ -91,7 +92,7 @@ const ProgressTracker: React.FC<ProgressTrackerProps> = ({ project }) => {
       <div className="mb-4">
         <h5 className="text-sm font-medium text-foreground mb-3">Timeline</h5>
         <div className="flex items-center space-x-4">
-          {project.timeline.map((item, index) => (
+          {(project.timeline || []).map((item, index) => (
             <div key={index} className="flex flex-col items-center">
               <div className={clsx(
                 "w-3 h-3 rounded-full border-2",
@@ -103,7 +104,7 @@ const ProgressTracker: React.FC<ProgressTrackerProps> = ({ project }) => {
                 <div>{item.phase}</div>
                 <div>{formatDate(item.date)}</div>
               </div>
-              {index < project.timeline.length - 1 && (
+              {index < (project.timeline || []).length - 1 && (
                 <div className="w-8 h-0.5 bg-gray-300 absolute transform translate-x-6" />
               )}
             </div>

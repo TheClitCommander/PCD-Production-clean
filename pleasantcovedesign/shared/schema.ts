@@ -67,6 +67,18 @@ export interface Order {
   tax: number;
   total: number;
   notes?: string;
+  // Invoice tracking fields
+  invoiceId?: string;
+  invoiceStatus?: 'draft' | 'sent' | 'paid' | 'overdue' | 'cancelled';
+  invoiceUrl?: string;
+  paymentStatus?: 'pending' | 'partial' | 'paid' | 'refunded';
+  paymentMethod?: string;
+  paymentDate?: Date;
+  stripePaymentIntentId?: string;
+  // Stripe payment fields
+  stripePaymentLinkUrl?: string;
+  stripeProductId?: string;
+  stripePriceId?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -79,6 +91,97 @@ export interface OrderItem {
   quantity: number;
   unitPrice: number;
   total: number;
+}
+
+// NEW: Project Brief interface for meeting notes and client confirmation
+export interface ProjectBrief {
+  id: string;
+  orderId: string;
+  companyId: string;
+  projectId?: number;
+  
+  // Meeting Information
+  meetingDate?: Date;
+  attendees?: string[];
+  meetingNotes?: string;
+  
+  // Brand & Design Preferences
+  brandColors?: {
+    primary?: string;
+    secondary?: string;
+    accent?: string;
+    preferences?: string; // "blue tones", "earthy", etc.
+  };
+  
+  logoInfo?: {
+    hasExistingLogo?: boolean;
+    logoFiles?: string[]; // URLs to uploaded logos
+    logoStyle?: 'modern' | 'classic' | 'minimal' | 'playful' | 'professional';
+    logoNotes?: string;
+  };
+  
+  designStyle?: {
+    overall?: 'modern' | 'classic' | 'minimal' | 'bold' | 'elegant' | 'playful';
+    inspiration?: string[]; // URLs or descriptions
+    competitorSites?: string[];
+    avoidStyles?: string;
+    designNotes?: string;
+  };
+  
+  // Content & Functionality
+  contentPlan?: {
+    copyWriter?: 'client' | 'pcd' | 'hybrid';
+    photography?: 'client' | 'pcd' | 'stock' | 'hybrid';
+    videoNeeds?: boolean;
+    contentDeadline?: Date;
+    contentNotes?: string;
+  };
+  
+  siteStructure?: {
+    pages?: Array<{
+      name: string;
+      purpose: string;
+      priority: 'must-have' | 'nice-to-have';
+    }>;
+    navigation?: string;
+    specialFeatures?: string[];
+    integrations?: string[]; // "booking system", "payment", "social media"
+  };
+  
+  // Timeline & Communication
+  timeline?: {
+    launchGoal?: Date;
+    milestones?: Array<{
+      name: string;
+      target: Date;
+      description: string;
+    }>;
+    urgency?: 'standard' | 'priority' | 'rush';
+    timelineNotes?: string;
+  };
+  
+  stakeholders?: {
+    decisionMaker?: string;
+    primaryContact?: string;
+    reviewers?: string[];
+    approvalProcess?: string;
+  };
+  
+  // Client Confirmation
+  clientStatus?: 'pending' | 'confirmed' | 'requested_changes' | 'approved';
+  clientFeedback?: string;
+  clientChanges?: Array<{
+    section: string;
+    change: string;
+    timestamp: Date;
+  }>;
+  confirmationDate?: Date;
+  
+  // Admin tracking
+  completedBy?: string; // Admin who filled it out
+  status: 'draft' | 'sent_to_client' | 'client_reviewing' | 'approved' | 'needs_revision';
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 // NEW: Lead status with order tracking

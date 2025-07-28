@@ -1,6 +1,6 @@
 import React from 'react';
-import { User, Building2, Phone, Mail, Globe, CreditCard, ChevronRight, ChevronDown, FolderOpen, Calendar, DollarSign, Activity, Star, Eye, MousePointer, MessageCircle, Trash2, Smartphone } from 'lucide-react';
-import type { Company, Project } from '../../../shared/schema';
+import { User, Building2, Phone, Mail, Globe, CreditCard, ChevronRight, ChevronDown, FolderOpen, Calendar, DollarSign, Activity, Star, Eye, MousePointer, MessageCircle, Trash2, Smartphone, FileText, Send, CheckCircle } from 'lucide-react';
+import type { Company, Project, Order } from '../../../shared/schema';
 import { deviceDetection } from '../utils/deviceDetection';
 
 interface TrackingData {
@@ -34,6 +34,10 @@ interface EntitySummaryCardProps {
   onMinervaOutreach?: () => void;
   onMinervaInvoice?: () => void;
   onMinervaAnalytics?: () => void;
+  onCreateOrder?: () => void;
+  order?: Order; // NEW: order data
+  onSendInvoice?: (orderId: string) => void; // NEW: send invoice action
+  onViewInvoice?: (orderId: string) => void; // NEW: view invoice action
 }
 
 const EntitySummaryCard: React.FC<EntitySummaryCardProps> = ({
@@ -58,7 +62,11 @@ const EntitySummaryCard: React.FC<EntitySummaryCardProps> = ({
   onMinervaDemo,
   onMinervaOutreach,
   onMinervaInvoice,
-  onMinervaAnalytics
+  onMinervaAnalytics,
+  onCreateOrder,
+  order,
+  onSendInvoice,
+  onViewInvoice
 }) => {
   // Helper to get priority styling
   const getPriorityStyles = (priority?: string) => {
@@ -173,6 +181,88 @@ const EntitySummaryCard: React.FC<EntitySummaryCardProps> = ({
                 }`}>
                   {trackingData.status.replace('_', ' ')}
                 </span>
+              </div>
+            )}
+
+            {/* Enhanced Order & Payment Tracking */}
+            {order && (
+              <div className="bg-slate-50 rounded-lg p-3 mb-3 border border-slate-200">
+                {/* Order Header */}
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <span className="flex items-center gap-1 bg-purple-100 text-purple-800 px-2 py-1 rounded-full text-xs font-medium">
+                      <FileText className="h-3 w-3" />
+                      Order #{order.id.slice(-8)}
+                    </span>
+                    <span className="text-xs text-gray-500 capitalize">
+                      {order.package} Package
+                    </span>
+                  </div>
+                  <span className="text-sm font-medium text-gray-900">
+                    ${order.total.toLocaleString()}
+                  </span>
+                </div>
+
+                {/* Status Row */}
+                <div className="flex items-center gap-2 mb-2">
+                  {/* Payment Status */}
+                  <span className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${
+                    order.paymentStatus === 'paid' 
+                      ? 'bg-green-100 text-green-800'
+                      : order.paymentStatus === 'pending'
+                      ? 'bg-yellow-100 text-yellow-800'
+                      : 'bg-gray-100 text-gray-800'
+                  }`}>
+                    <DollarSign className="h-3 w-3" />
+                    Payment {order.paymentStatus}
+                  </span>
+                  
+                  {/* Invoice Status */}
+                  {order.invoiceId && (
+                    <span className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${
+                      order.invoiceStatus === 'paid' 
+                        ? 'bg-green-100 text-green-800'
+                        : order.invoiceStatus === 'sent'
+                        ? 'bg-blue-100 text-blue-800'
+                        : order.invoiceStatus === 'overdue'
+                        ? 'bg-red-100 text-red-800'
+                        : 'bg-gray-100 text-gray-800'
+                    }`}>
+                      {order.invoiceStatus === 'paid' && <CheckCircle className="h-3 w-3" />}
+                      {order.invoiceStatus === 'sent' && <Send className="h-3 w-3" />}
+                      {order.invoiceStatus === 'draft' && <FileText className="h-3 w-3" />}
+                      Invoice {order.invoiceStatus}
+                    </span>
+                  )}
+
+                  {/* Stripe Payment Link Status */}
+                  {order.stripePaymentLinkUrl && (
+                    <span className="flex items-center gap-1 bg-indigo-100 text-indigo-800 px-2 py-1 rounded-full text-xs font-medium">
+                      <CreditCard className="h-3 w-3" />
+                      Payment Link Ready
+                    </span>
+                  )}
+                </div>
+
+                {/* Additional Info */}
+                <div className="text-xs text-gray-500 space-y-1">
+                  <div className="flex justify-between">
+                    <span>Created:</span>
+                    <span>{new Date(order.createdAt).toLocaleDateString()}</span>
+                  </div>
+                  {order.paymentDate && (
+                    <div className="flex justify-between">
+                      <span>Paid:</span>
+                      <span>{new Date(order.paymentDate).toLocaleDateString()}</span>
+                    </div>
+                  )}
+                  {order.stripePaymentIntentId && (
+                    <div className="flex justify-between">
+                      <span>Stripe ID:</span>
+                      <span className="font-mono">{order.stripePaymentIntentId.slice(-8)}</span>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
             
@@ -551,6 +641,47 @@ const EntitySummaryCard: React.FC<EntitySummaryCardProps> = ({
           >
             Notes
           </button>
+          {type === 'company' && onCreateOrder && !order && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onCreateOrder();
+              }}
+              className="flex-1 bg-purple-50 text-purple-700 px-3 py-2 rounded text-sm font-medium hover:bg-purple-100 transition-colors"
+            >
+              <CreditCard className="w-4 h-4 inline mr-1" />
+              Order
+            </button>
+          )}
+          {/* Invoice Actions - show when order exists */}
+          {type === 'company' && order && order.invoiceId && (
+            <>
+              {order.invoiceStatus === 'draft' && onSendInvoice && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onSendInvoice(order.id);
+                  }}
+                  className="flex-1 bg-blue-50 text-blue-700 px-3 py-2 rounded text-sm font-medium hover:bg-blue-100 transition-colors"
+                >
+                  <Send className="w-4 h-4 inline mr-1" />
+                  Send Invoice
+                </button>
+              )}
+              {order.invoiceStatus !== 'draft' && onViewInvoice && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onViewInvoice(order.id);
+                  }}
+                  className="flex-1 bg-gray-50 text-gray-700 px-3 py-2 rounded text-sm font-medium hover:bg-gray-100 transition-colors"
+                >
+                  <FileText className="w-4 h-4 inline mr-1" />
+                  View Invoice
+                </button>
+              )}
+            </>
+          )}
           {onDelete && (
             <button
               onClick={(e) => {

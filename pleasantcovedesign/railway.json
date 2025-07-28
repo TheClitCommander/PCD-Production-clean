@@ -1,0 +1,32 @@
+{
+  "$schema": "https://railway.app/railway.schema.json",
+  "build": {
+    "builder": "NIXPACKS",
+    "buildCommand": "cd pleasantcovedesign/server && npm install && npm run build"
+  },
+  "deploy": {
+    "startCommand": "cd pleasantcovedesign/server && npm start",
+    "healthcheckPath": "/api/health",
+    "healthcheckTimeout": 30,
+    "restartPolicyType": "ON_FAILURE",
+    "restartPolicyMaxRetries": 3
+  },
+  "environments": {
+    "production": {
+      "variables": {
+        "NODE_ENV": "production",
+        "PORT": "3000",
+        "DEPLOY_URL": "https://pleasantcovedesign-production.up.railway.app",
+        "FRONTEND_URL": "https://pleasantcovedesign-production.up.railway.app",
+        "FROM_EMAIL": "support@pleasantcovedesign.com",
+        "ALLOWED_ORIGINS": "https://pleasantcovedesign-production.up.railway.app,https://www.pleasantcovedesign.com,https://nectarine-sparrow-dwsp.squarespace.com",
+        "ADMIN_EMAIL": "ben04537@gmail.com",
+        "LOG_LEVEL": "info",
+        "ENABLE_METRICS": "true",
+        "COMPANY_NAME": "Pleasant Cove Design",
+        "SUPPORT_EMAIL": "support@pleasantcovedesign.com",
+        "SUPPORT_PHONE": "+1-207-555-0123"
+      }
+    }
+  }
+} 

@@ -9,8 +9,8 @@ const getApiBaseUrl = () => {
     return `${env.VITE_API_URL}/api`;
   }
   
-  // Use your main backend server - FIXED: Force cache refresh
-  return 'http://localhost:3000/api';
+  // Use production server by default for consistent experience
+  return 'https://pleasantcovedesign-production.up.railway.app/api';
 };
 
 // Export base URL for WebSocket connections
@@ -20,8 +20,8 @@ export const getWebSocketUrl = () => {
     return env.VITE_WS_URL;
   }
   
-  // Use local development server
-  return 'http://localhost:3000';
+  // Use production server by default
+  return 'https://pleasantcovedesign-production.up.railway.app';
 };
 
 const api = axios.create({

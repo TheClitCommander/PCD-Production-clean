@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Maine Coastal Plumbing - Expert Plumbing Services</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            line-height: 1.6;
+            color: #1f2937;
+            background: #ffffff;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        /* Header */
+        header {
+            background: #2563eb;
+            color: white;
+            padding: 1rem 0;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+        }
+        
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        
+        .nav-links a:hover {
+            color: #06b6d4;
+        }
+        
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(rgba(37, 99, 235, 0.8)), url('https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800');
+            background-size: cover;
+            background-position: center;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            text-align: center;
+            color: white;
+        }
+        
+        .hero-content h1 {
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+            font-weight: 700;
+        }
+        
+        .hero-content p {
+            font-size: 1.3rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+        }
+        
+        .cta-button {
+            background: linear-gradient(135deg, #2563eb, #06b6d4); border-radius: 8px; padding: 12px 24px;
+            color: white;
+            padding: 15px 30px;
+            font-size: 1.1rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .cta-button:hover {
+            background: #06b6d4;
+            transform: translateY(-2px);
+        }
+        
+        /* Services Section */
+        .services {
+            padding: 80px 0;
+            background: #f8fafc;
+        }
+        
+        .section-title {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 3rem;
+            color: #2563eb;
+        }
+        
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+        
+        .service-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+        
+        .service-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .service-card h3 {
+            color: #2563eb;
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+        }
+        
+        /* Contact Section */
+        .contact {
+            padding: 80px 0;
+            background: #2563eb;
+            color: white;
+            text-align: center;
+        }
+        
+        .contact-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+        
+        .contact-item {
+            background: rgba(255,255,255,0.1);
+            padding: 2rem;
+            border-radius: 10px;
+        }
+        
+        .contact-item h3 {
+            margin-bottom: 1rem;
+            color: #06b6d4;
+        }
+        
+        /* Footer */
+        footer {
+            background: #1f2937;
+            color: white;
+            text-align: center;
+            padding: 2rem 0;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+            
+            .hero-content h1 {
+                font-size: 2.5rem;
+            }
+            
+            .hero-content p {
+                font-size: 1.1rem;
+            }
+        }
+        
+        /* Pleasant Cove Design Watermark */
+        .watermark {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 5px;
+            font-size: 0.8rem;
+            z-index: 1000;
+        }
+        
+        .watermark a {
+            color: #06b6d4;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- Watermark -->
+    <div class="watermark">
+        Demo by <a href="https://pleasantcovedesign.com">Pleasant Cove Design</a>
+    </div>
+    
+    <!-- Header -->
+    <header>
+        <nav class="container">
+            <div class="logo">Maine Coastal Plumbing</div>
+            <ul class="nav-links">
+                <li><a href="#home">Home</a></li>
+                <li><a href="#services">Services</a></li>
+                <li><a href="#about">About</a></li>
+                <li><a href="#contact">Contact</a></li>
+            </ul>
+        </nav>
+    </header>
+    
+    <!-- Hero Section -->
+    <section class="hero" id="home">
+        <div class="container">
+            <div class="hero-content">
+                <h1>Maine Coastal Plumbing</h1>
+                <p>24/7 Emergency Response • Licensed & Insured • Same-Day Service</p>
+                <a href="#contact" class="cta-button">Get Free Quote</a>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Services Section -->
+    <section class="services" id="services">
+        <div class="container">
+            <h2 class="section-title">Our Services</h2>
+            <div class="services-grid">
+
+                <div class="service-card">
+                    <h3>Emergency Plumbing Repairs</h3>
+                    <p>Professional emergency plumbing repairs services with quality you can trust. Contact us for a free consultation and quote.</p>
+                </div>
+                <div class="service-card">
+                    <h3>Drain Cleaning & Unclogging</h3>
+                    <p>Professional drain cleaning & unclogging services with quality you can trust. Contact us for a free consultation and quote.</p>
+                </div>
+                <div class="service-card">
+                    <h3>Water Heater Installation</h3>
+                    <p>Professional water heater installation services with quality you can trust. Contact us for a free consultation and quote.</p>
+                </div>
+                <div class="service-card">
+                    <h3>Pipe Repair & Replacement</h3>
+                    <p>Professional pipe repair & replacement services with quality you can trust. Contact us for a free consultation and quote.</p>
+                </div>
+                <div class="service-card">
+                    <h3>Bathroom & Kitchen Plumbing</h3>
+                    <p>Professional bathroom & kitchen plumbing services with quality you can trust. Contact us for a free consultation and quote.</p>
+                </div>
+                <div class="service-card">
+                    <h3>Sewer Line Services</h3>
+                    <p>Professional sewer line services services with quality you can trust. Contact us for a free consultation and quote.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Contact Section -->
+    <section class="contact" id="contact">
+        <div class="container">
+            <h2 class="section-title">Get In Touch</h2>
+            <p>Ready to get started? Contact us today for a free consultation!</p>
+            
+            <div class="contact-info">
+                <div class="contact-item">
+                    <h3>📞 Call Us</h3>
+                    <p>(207) 555-0123</p>
+                </div>
+                <div class="contact-item">
+                    <h3>✉️ Email</h3>
+                    <p>info@mainecoastalplumbing.com</p>
+                </div>
+                <div class="contact-item">
+                    <h3>⏰ Hours</h3>
+                    <p>Mon-Fri: 8AM-6PM<br>Sat: 9AM-4PM</p>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <p>&copy; 2025 Maine Coastal Plumbing. All rights reserved. | Website by Pleasant Cove Design</p>
+        </div>
+    </footer>
+    
+    <script>
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+        
+        // Track demo interaction
+        console.log('Demo loaded for Maine Coastal Plumbing - plumbing industry');
+        
+        // Demo analytics (placeholder)
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('cta-button')) {
+                console.log('CTA clicked - Maine Coastal Plumbing');
+                alert('This is a demo. In the real site, this would start the quote process!');
+            }
+        });
+    </script>
+</body>
+</html>

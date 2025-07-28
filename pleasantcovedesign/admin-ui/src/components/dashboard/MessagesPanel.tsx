@@ -92,21 +92,24 @@ const MessagesPanel: React.FC = () => {
         <div className="text-center py-4 text-gray-500">No messages yet</div>
       ) : (
         <div className="space-y-3">
-          {conversations.map((conversation) => {
+          {conversations.map((conversation, index) => {
             const lastMsg = conversation.lastMessage
             const hasUnread = conversation.messages.some(msg => 
               msg.senderType === 'client' && !msg.readAt
             )
             
             return (
-              <div key={conversation.projectToken} className="flex items-center group hover:bg-gray-50 -mx-2 px-2 py-2 rounded transition-colors">
+              <div 
+                key={`conversation-${conversation.projectToken}-${index}`} 
+                className="flex items-center group hover:bg-gray-50 -mx-2 px-2 py-2 rounded transition-colors"
+              >
                 <Link
                   to={`/inbox/${conversation.projectToken}`}
                   className="flex-1 cursor-pointer"
                 >
                   <div className="flex items-start gap-2">
                     {hasUnread && (
-                      <div className="w-2 h-2 bg-blue-600 rounded-full mt-1.5 flex-shrink-0"></div>
+                      <div key={`unread-${conversation.projectToken}`} className="w-2 h-2 bg-blue-600 rounded-full mt-1.5 flex-shrink-0"></div>
                     )}
                     <div className="flex-1 min-w-0">
                       <p className="font-medium truncate">

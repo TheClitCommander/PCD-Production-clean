@@ -27,6 +27,8 @@ import {
 import { authenticate, requireAdmin } from './middleware/auth.js';
 import { requestLogger, errorHandler, performanceMonitor, getHealthStats } from './middleware/logging.js';
 import { processAIChat, storeUserMessage } from './ai-service.js';
+import { createPaymentLink, verifyWebhookSignature } from './stripe-config.js';
+import { sendReceiptEmail, sendWelcomeEmail, sendInvoiceEmail } from './email-service.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -669,6 +671,12 @@ export async function registerRoutes(app: Express, io: any) {
       try {
         console.log(`🔍 Looking for existing client: ${email}, ${name}, No phone provided`);
         
+        // Use smart attribution system to find potential matches
+        const { findAttributionCandidates, formatAttributionResults } = await import('./utils/client-attribution.js');
+        const attributionResults = await findAttributionCandidates(email, name, phone, storage);
+        
+        console.log(`🧠 Attribution results: ${formatAttributionResults(attributionResults, email, name)}`);
+        
         // Check if client already exists using the corrected storage method
         const existingClientData = await storage.findClientByEmail(email);
         
@@ -881,6 +889,20 @@ export async function registerRoutes(app: Express, io: any) {
         try {
           console.log(`🔍 Looking for existing client: ${email}, ${name || 'No name provided'}, No phone provided`);
           
+          // Use smart attribution system for Squarespace members
+          const { findAttributionCandidates, formatAttributionResults } = await import('./utils/client-attribution.js');
+          const attributionResults = await findAttributionCandidates(email, name || '', undefined, storage);
+          
+          console.log(`🧠 [SQUARESPACE] Attribution results: ${formatAttributionResults(attributionResults, email, name || 'Unknown')}`);
+          
+          // If high confidence match found, use it
+          if (attributionResults.exactMatch) {
+            console.log(`✅ [SQUARESPACE] Using exact match: ${attributionResults.exactMatch.name}`);
+          } else if (attributionResults.potentialMatches.length > 0 && attributionResults.potentialMatches[0].confidence > 85) {
+            console.log(`🤝 [SQUARESPACE] High confidence match found: ${attributionResults.potentialMatches[0].name} (${attributionResults.potentialMatches[0].confidence}%)`);
+            // TODO: In the future, we could auto-merge or prompt admin for confirmation
+          }
+          
           // Check if client already exists
           const existingClientData = await storage.findClientByEmail(email);
           
@@ -900,21 +922,54 @@ export async function registerRoutes(app: Express, io: any) {
           if (existingClient) {
             console.log(`✅ Found existing client: ${existingClient.name} (ID: ${existingClient.id})`);
             
-            // ALWAYS create new conversation for privacy - use admin business ID 1
-            const secureToken = generateSecureProjectToken('squarespace_member', email);
-            const newProject = await storage.createProject({
-              companyId: 1, // Always use admin business for unified inbox
-              title: `${name || email.split('@')[0]} - Conversation ${Date.now()}`,
-              type: 'consultation',
-              stage: 'discovery',
+            // Create new project for existing client
+            const projectData = {
+              companyId: existingClient.id,
+              title: `New inquiry from ${existingClient.name}`,
+              type: businessType || 'website',
+              stage: 'lead',
               status: 'active',
-              totalAmount: 0,
-              paidAmount: 0,
-              accessToken: secureToken.token
-            });
+              score: leadScore,
+              notes: message || "New inquiry via Squarespace form",
+              accessToken: generateSecureProjectToken('squarespace-member', email)
+            };
             
-            projectToken = newProject.accessToken;
-            console.log(`✅ Created new project under admin business: ID ${newProject.id}, Token: ${projectToken}, Business: 1`);
+            const project = await storage.createProject(projectData);
+            projectToken = project.accessToken;
+            
+            console.log(`✅ Created new project for existing client: ${project.title} (Token: ${projectToken})`);
+            
+            // Trigger demo generation for high-priority leads
+            if (leadScore >= 80 && businessType !== 'unknown') {
+              console.log(`🎨 High-priority lead detected! Triggering demo generation...`);
+              
+              // Queue demo generation (non-blocking)
+              setImmediate(async () => {
+                try {
+                  const demoRequest = {
+                    leadId: existingClient.id,
+                    businessName: existingClient.name,
+                    businessType: businessType,
+                    email: email,
+                    message: message,
+                    status: 'pending_review', // Lock & Load mode
+                    requestedAt: new Date().toISOString()
+                  };
+                  
+                  // Store demo request for review
+                  await storage.createActivity({
+                    type: 'demo_requested',
+                    businessId: existingClient.id,
+                    description: `Demo generation queued for ${existingClient.name}`,
+                    metadata: JSON.stringify(demoRequest)
+                  });
+                  
+                  console.log(`✅ Demo request queued for review`);
+                } catch (error) {
+                  console.error('Failed to queue demo generation:', error);
+                }
+              });
+            }
           } else {
             // Create new client under admin business
             const newCompany = await storage.createCompany({
@@ -1449,6 +1504,1027 @@ export async function registerRoutes(app: Express, io: any) {
   // Simplified file upload configuration (no multer crashes)
   
   // File upload endpoint (PUBLIC) - Simplified to avoid crashes
+  // Order Management Endpoints
+  app.post('/api/orders', async (req: Request, res: Response) => {
+    try {
+      const { company_id, package: packageType, addons, custom_items } = req.body;
+      
+      // Validate required fields
+      if (!company_id) {
+        return res.status(400).json({ error: 'Company ID is required' });
+      }
+      
+      // Get business details (companies and businesses are the same for orders)
+      const company = await storage.getBusinessById(company_id);
+      if (!company) {
+        return res.status(404).json({ error: 'Business not found' });
+      }
+      
+      // Calculate order total - Aligned with Minerva expectations
+      const packagePrices = {
+        starter: 997,
+        growth: 2497,
+        professional: 4997
+      };
+
+      // Map legacy/alternative package names to Minerva-expected names
+      const packageMapping = {
+        'basic': 'starter',
+        'standard': 'growth', 
+        'premium': 'professional',
+        'enterprise': 'professional',
+        // Direct mappings (already correct)
+        'starter': 'starter',
+        'growth': 'growth',
+        'professional': 'professional'
+      };
+
+      // Validate and map package type
+      const validPackageType = packageMapping[packageType] || packageType;
+      if (!packagePrices[validPackageType]) {
+        return res.status(400).json({ 
+          error: 'Invalid package type', 
+          validOptions: Object.keys(packagePrices),
+          received: packageType 
+        });
+      }
+      
+      const addonPrices = {
+        additional_page: 297,
+        contact_forms: 197,
+        photo_gallery: 297,
+        video_integration: 397,
+        appointment_booking: 797,
+        messaging_portal: 997,
+        seo_package: 797,
+        logo_design: 797,
+        copywriting: 397
+      };
+      
+      let subtotal = 0;
+      
+      // Add package price (using validated package type)
+      if (validPackageType && packagePrices[validPackageType]) {
+        subtotal += packagePrices[validPackageType];
+      }
+      
+      // Add addon prices
+      if (addons && Array.isArray(addons)) {
+        addons.forEach(addon => {
+          if (addonPrices[addon]) {
+            subtotal += addonPrices[addon];
+          }
+        });
+      }
+      
+      // Add custom items
+      if (custom_items && Array.isArray(custom_items)) {
+        custom_items.forEach(item => {
+          if (item.price) {
+            subtotal += parseFloat(item.price);
+          }
+        });
+      }
+      
+      const tax = 0; // No tax on services
+      const total = subtotal + tax;
+      
+      // Generate order ID
+      const timestamp = new Date().toISOString().replace(/[-:]/g, '').replace('T', '').split('.')[0];
+      const orderId = `ORD-${timestamp}-${Math.random().toString(36).substr(2, 8).toUpperCase()}`;
+      
+      // Create order object
+      const orderData = {
+        id: orderId,
+        companyId: company_id,
+        status: 'draft' as const,
+        package: validPackageType, // Use validated package name
+        customItems: custom_items || [],
+        subtotal,
+        tax,
+        total,
+        notes: req.body.notes || '',
+        invoiceStatus: 'draft' as const,
+        paymentStatus: 'pending' as const
+      };
+      
+      // Save to database
+      const order = await storage.createOrder(orderData);
+      
+      // Call Minerva to create invoice
+      try {
+        const minervaPort = process.env.MINERVA_PORT || 8001;
+        const minervaUrl = `http://localhost:${minervaPort}/api/minerva/create-invoice`;
+        
+        const invoiceResponse = await fetch(minervaUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            // Pass through auth headers if needed
+            'Authorization': req.headers.authorization || ''
+          },
+          body: JSON.stringify({
+            company_id: company_id,
+            company_name: company.name,
+            package_type: validPackageType, // Use validated package name for Minerva
+            notes: `Order ${orderId} - ${addons?.length || 0} add-ons, ${custom_items?.length || 0} custom items`
+          })
+        });
+        
+        if (invoiceResponse.ok) {
+          const invoiceData = await invoiceResponse.json();
+          console.log('✅ Invoice created via Minerva:', invoiceData);
+          
+          // Update order with invoice info
+          if (invoiceData.invoice) {
+            order.invoiceId = invoiceData.invoice.invoice_id;
+            order.invoiceStatus = invoiceData.invoice.status || 'draft';
+          }
+        } else {
+          console.warn('⚠️ Failed to create invoice via Minerva:', await invoiceResponse.text());
+        }
+      } catch (minervaError) {
+        console.error('⚠️ Minerva billing unavailable:', minervaError);
+        // Continue without invoice - we can create it later
+      }
+
+      // Create Stripe payment link
+      try {
+        const paymentLinkUrl = await createPaymentLink({
+          id: order.id,
+          total: order.total,
+          package: validPackageType, // Use validated package name for Stripe
+          invoiceId: order.invoiceId,
+          companyId: order.companyId
+        });
+
+        if (paymentLinkUrl) {
+          // Update order with payment link
+          const updatedOrder = await storage.updateOrder(order.id, {
+            stripePaymentLinkUrl: paymentLinkUrl
+          });
+          
+          if (updatedOrder) {
+            order.stripePaymentLinkUrl = paymentLinkUrl;
+          }
+          
+          console.log('✅ Payment link created:', paymentLinkUrl);
+        }
+      } catch (stripeError) {
+        console.error('⚠️ Failed to create payment link:', stripeError);
+        // Continue without payment link - can be created later
+      }
+      
+      console.log('✅ Order created:', orderId);
+      res.json({ 
+        id: orderId, 
+        ...order,
+        message: 'Order created successfully' 
+      });
+      
+    } catch (error) {
+      console.error('Error creating order:', error);
+      res.status(500).json({ error: 'Failed to create order' });
+    }
+  });
+
+  app.get('/api/orders/:orderId', async (req: Request, res: Response) => {
+    try {
+      const { orderId } = req.params;
+      
+      // Get from database
+      const order = await storage.getOrderById(orderId);
+      
+      if (!order) {
+        return res.status(404).json({ error: 'Order not found' });
+      }
+      
+      // Get company details for response
+      const company = await storage.getBusinessById(order.companyId);
+      
+      res.json({
+        ...order,
+        company_name: company?.name || 'Unknown Company'
+      });
+      
+    } catch (error) {
+      console.error('Error fetching order:', error);
+      res.status(500).json({ error: 'Failed to fetch order' });
+    }
+  });
+
+  app.get('/api/companies/:companyId/orders', async (req: Request, res: Response) => {
+    try {
+      const { companyId } = req.params;
+      
+      // Get orders from database
+      const orders = await storage.getOrdersByCompanyId(companyId);
+      
+      res.json(orders);
+      
+    } catch (error) {
+      console.error('Error fetching company orders:', error);
+      res.status(500).json({ error: 'Failed to fetch orders' });
+    }
+  });
+
+  app.put('/api/orders/:orderId/status', async (req: Request, res: Response) => {
+    try {
+      const { orderId } = req.params;
+      const { status } = req.body;
+      
+      // Update order status in database
+      const updatedOrder = await storage.updateOrder(orderId, { status });
+      
+      if (!updatedOrder) {
+        return res.status(404).json({ error: 'Order not found' });
+      }
+      
+      console.log(`✅ Order ${orderId} status updated to: ${status}`);
+      
+      res.json({ 
+        message: `Order status updated to ${status}`,
+        order_id: orderId,
+        status,
+        order: updatedOrder
+      });
+      
+    } catch (error) {
+      console.error('Error updating order status:', error);
+      res.status(500).json({ error: 'Failed to update order status' });
+    }
+  });
+
+  // Send invoice for an order
+  app.post('/api/orders/:orderId/send-invoice', async (req: Request, res: Response) => {
+    try {
+      const { orderId } = req.params;
+      
+      // Get order details from database
+      const order = await storage.getOrderById(orderId);
+      
+      if (!order) {
+        return res.status(404).json({ error: 'Order not found' });
+      }
+      
+      if (!order.invoiceId) {
+        return res.status(400).json({ error: 'No invoice associated with this order' });
+      }
+
+      // Get company details for email
+      const company = await storage.getBusinessById(order.companyId);
+      if (!company) {
+        return res.status(404).json({ error: 'Business not found' });
+      }
+      
+      // Call Minerva billing API to send invoice
+      const billingPort = process.env.BILLING_PORT || 8007;
+      const sendResponse = await fetch(`http://localhost:${billingPort}/api/invoices/${order.invoiceId}/send`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (sendResponse.ok) {
+        // Update order invoice status in database
+        await storage.updateOrder(orderId, {
+          invoiceStatus: 'sent'
+        });
+
+        // Send enhanced payment email if we have a payment link
+        if (order.stripePaymentLinkUrl) {
+          try {
+            await sendPaymentLinkEmail(order, company);
+            console.log(`💳 Payment link email sent to ${company.email}`);
+          } catch (emailError) {
+            console.error('⚠️ Failed to send payment link email:', emailError);
+            // Don't fail the whole request if payment email fails
+          }
+        }
+        
+        console.log(`📧 Invoice ${order.invoiceId} sent for order ${orderId}`);
+        
+        res.json({
+          success: true,
+          message: 'Invoice sent successfully',
+          invoiceId: order.invoiceId,
+          paymentLinkSent: !!order.stripePaymentLinkUrl
+        });
+      } else {
+        throw new Error('Failed to send invoice');
+      }
+      
+    } catch (error) {
+      console.error('Error sending invoice:', error);
+      res.status(500).json({ error: 'Failed to send invoice' });
+    }
+  });
+
+  // Generate and email receipt to client
+  async function generateAndEmailReceipt(order: any) {
+    try {
+      console.log(`🧾 Generating and emailing receipt for order ${order.id}`);
+      
+      // Get company details
+      const company = await storage.getBusinessById(order.companyId);
+      if (!company) {
+        console.error(`❌ Business ${order.companyId} not found for receipt`);
+        return;
+      }
+
+      // Generate receipt via Minerva billing if invoice exists
+      if (order.invoiceId) {
+        try {
+          const billingPort = process.env.BILLING_PORT || 8007;
+          
+          // Trigger receipt generation in Minerva
+          const receiptResponse = await fetch(`http://localhost:${billingPort}/api/receipts`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              invoice_id: order.invoiceId,
+              amount: order.total,
+              method: order.paymentMethod || 'stripe',
+              transaction_id: order.stripePaymentIntentId,
+              notes: `Payment for order ${order.id}`
+            })
+          });
+
+          if (receiptResponse.ok) {
+            const receipt = await receiptResponse.json();
+            console.log(`✅ Receipt generated via Minerva: ${receipt.receipt_id}`);
+          }
+        } catch (minervaError) {
+          console.warn('⚠️ Minerva receipt generation failed, creating manual receipt:', minervaError);
+        }
+      }
+
+      // Send receipt email to client using professional email service
+      const emailSent = await sendReceiptEmail(order, company);
+      if (emailSent) {
+        console.log(`✅ Receipt email sent to ${company.email}`);
+      } else {
+        console.error('❌ Failed to send receipt email');
+      }
+      
+    } catch (error) {
+      console.error('❌ Error generating and emailing receipt:', error);
+    }
+  }
+
+  // Send payment link email using professional email service
+  async function sendPaymentLinkEmail(order: any, company: any) {
+    if (!order.stripePaymentLinkUrl) {
+      throw new Error('No payment link available');
+    }
+
+    const emailSent = await sendInvoiceEmail(order, company);
+    if (emailSent) {
+      console.log(`✅ Payment link email sent to ${company.email}`);
+    } else {
+      console.error('❌ Failed to send payment link email');
+      throw new Error('Failed to send payment link email');
+    }
+  }
+
+  // Get invoice details for an order
+  app.get('/api/orders/:orderId/invoice', async (req: Request, res: Response) => {
+    try {
+      const { orderId } = req.params;
+      
+      // Get order details from database
+      const order = await storage.getOrderById(orderId);
+      
+      if (!order) {
+        return res.status(404).json({ error: 'Order not found' });
+      }
+      
+      const invoiceId = order.invoiceId || req.query.invoiceId;
+      
+      if (!invoiceId) {
+        return res.status(404).json({ error: 'No invoice found for this order' });
+      }
+      
+      // Get invoice from Minerva billing
+      const billingPort = process.env.BILLING_PORT || 8007;
+      const invoiceResponse = await fetch(`http://localhost:${billingPort}/api/invoices/${invoiceId}`);
+      
+      if (invoiceResponse.ok) {
+        const invoice = await invoiceResponse.json();
+        res.json(invoice);
+      } else {
+        throw new Error('Failed to fetch invoice');
+      }
+      
+    } catch (error) {
+      console.error('Error fetching invoice:', error);
+      res.status(500).json({ error: 'Failed to fetch invoice details' });
+    }
+  });
+
+  // Record payment for an order
+  app.post('/api/orders/:orderId/record-payment', async (req: Request, res: Response) => {
+    try {
+      const { orderId } = req.params;
+      const { amount, method, transactionId, notes } = req.body;
+      
+      // Get order details from database
+      const order = await storage.getOrderById(orderId);
+      
+      if (!order) {
+        return res.status(404).json({ error: 'Order not found' });
+      }
+      
+      if (!order.invoiceId) {
+        return res.status(400).json({ error: 'No invoice associated with this order' });
+      }
+      
+      // Record payment via Minerva billing
+      const billingPort = process.env.BILLING_PORT || 8007;
+      const paymentResponse = await fetch(`http://localhost:${billingPort}/api/payments`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          invoice_id: order.invoiceId,
+          amount: amount,
+          method: method || 'stripe',
+          transaction_id: transactionId,
+          notes: notes
+        })
+      });
+      
+      if (paymentResponse.ok) {
+        const payment = await paymentResponse.json();
+        
+        // Update order payment status in database
+        const updatedOrder = await storage.updateOrder(orderId, {
+          paymentStatus: 'paid',
+          invoiceStatus: 'paid',
+          paymentDate: new Date(),
+          paymentMethod: method,
+          stripePaymentIntentId: transactionId
+        });
+        
+        console.log(`💰 Payment recorded for order ${orderId}: $${amount}`);
+        
+        // Generate and email receipt to client
+        if (updatedOrder) {
+          await generateAndEmailReceipt(updatedOrder);
+        }
+        
+        // Trigger fulfillment process only if payment is confirmed
+        if (updatedOrder?.paymentStatus === 'paid') {
+          await triggerFulfillmentProcess(orderId);
+        }
+        
+        res.json({
+          success: true,
+          message: 'Payment recorded successfully',
+          payment: payment
+        });
+      } else {
+        throw new Error('Failed to record payment');
+      }
+      
+    } catch (error) {
+      console.error('Error recording payment:', error);
+      res.status(500).json({ error: 'Failed to record payment' });
+    }
+  });
+
+  // Stripe webhook handler for payment updates
+  app.post('/api/stripe/webhook', express.raw({ type: 'application/json' }), async (req: Request, res: Response) => {
+    try {
+      const signature = req.headers['stripe-signature'] as string;
+      
+      if (!signature) {
+        console.error('❌ Missing Stripe signature header');
+        return res.status(400).send('Missing signature');
+      }
+
+      // Verify webhook signature
+      const event = verifyWebhookSignature(req.body, signature);
+      
+      if (!event) {
+        console.error('❌ Invalid Stripe webhook signature');
+        return res.status(400).send('Invalid signature');
+      }
+
+      console.log(`📨 Received verified Stripe webhook: ${event.type}`);
+
+      // Handle different event types
+      switch (event.type) {
+        case 'checkout.session.completed':
+          await handleCheckoutSessionCompleted(event.data.object);
+          break;
+          
+        case 'payment_intent.succeeded':
+          await handlePaymentIntentSucceeded(event.data.object);
+          break;
+          
+        case 'payment_intent.payment_failed':
+          await handlePaymentIntentFailed(event.data.object);
+          break;
+          
+        default:
+          console.log(`🔄 Unhandled event type: ${event.type}`);
+      }
+
+      // Also forward to Minerva billing if it's running
+      try {
+        const billingPort = process.env.BILLING_PORT || 8007;
+        await fetch(`http://localhost:${billingPort}/api/stripe/webhook`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Stripe-Signature': signature
+          },
+          body: req.body
+        });
+      } catch (minervaError) {
+        console.warn('⚠️ Failed to forward webhook to Minerva billing:', minervaError);
+      }
+      
+      res.status(200).json({ received: true });
+      
+    } catch (error) {
+      console.error('❌ Stripe webhook error:', error);
+      res.status(400).send('Webhook error');
+    }
+  });
+
+  // Helper functions for webhook handlers
+  async function handleCheckoutSessionCompleted(session: any) {
+    try {
+      const orderId = session.metadata?.order_id;
+      const invoiceId = session.metadata?.invoice_id;
+      
+      if (orderId) {
+        // Update order status
+        const updatedOrder = await storage.updateOrder(orderId, {
+          paymentStatus: 'paid',
+          invoiceStatus: 'paid',
+          paymentDate: new Date(),
+          paymentMethod: 'stripe',
+          stripePaymentIntentId: session.payment_intent
+        });
+        
+        console.log(`✅ Order ${orderId} marked as paid (checkout completed)`);
+        
+        // Generate and email receipt to client
+        if (updatedOrder) {
+          await generateAndEmailReceipt(updatedOrder);
+        }
+        
+        // Trigger fulfillment process only if payment is confirmed
+        if (updatedOrder?.paymentStatus === 'paid') {
+          await triggerFulfillmentProcess(orderId);
+        }
+      }
+    } catch (error) {
+      console.error('❌ Error handling checkout session completed:', error);
+    }
+  }
+
+  async function handlePaymentIntentSucceeded(paymentIntent: any) {
+    try {
+      const orderId = paymentIntent.metadata?.order_id;
+      const invoiceId = paymentIntent.metadata?.invoice_id;
+      
+      if (orderId) {
+        // Update order payment status
+        const updatedOrder = await storage.updateOrder(orderId, {
+          paymentStatus: 'paid',
+          invoiceStatus: 'paid',
+          paymentDate: new Date(),
+          paymentMethod: 'stripe',
+          stripePaymentIntentId: paymentIntent.id
+        });
+        
+        console.log(`✅ Order ${orderId} payment confirmed (payment intent succeeded)`);
+        
+        // Generate and email receipt to client
+        if (updatedOrder) {
+          await generateAndEmailReceipt(updatedOrder);
+        }
+        
+        // Trigger fulfillment process only if payment is confirmed
+        if (updatedOrder?.paymentStatus === 'paid') {
+          await triggerFulfillmentProcess(orderId);
+        }
+      } else if (invoiceId) {
+        // Fallback: find order by invoice ID
+        const orders = await storage.getOrders();
+        const order = orders.find(o => o.invoiceId === invoiceId);
+        
+        if (order) {
+          const updatedOrder = await storage.updateOrder(order.id, {
+            paymentStatus: 'paid',
+            invoiceStatus: 'paid',
+            paymentDate: new Date(),
+            paymentMethod: 'stripe',
+            stripePaymentIntentId: paymentIntent.id
+          });
+          
+          console.log(`✅ Order ${order.id} marked as paid via invoice ID`);
+          
+          // Generate and email receipt
+          if (updatedOrder) {
+            await generateAndEmailReceipt(updatedOrder);
+          }
+          
+          // Trigger fulfillment only if paid
+          if (updatedOrder?.paymentStatus === 'paid') {
+            await triggerFulfillmentProcess(order.id);
+          }
+        }
+      }
+    } catch (error) {
+      console.error('❌ Error handling payment intent succeeded:', error);
+    }
+  }
+
+  async function handlePaymentIntentFailed(paymentIntent: any) {
+    try {
+      const orderId = paymentIntent.metadata?.order_id;
+      
+      if (orderId) {
+        // Update order to reflect failed payment
+        await storage.updateOrder(orderId, {
+          paymentStatus: 'pending', // Keep as pending, they can retry
+          stripePaymentIntentId: paymentIntent.id
+        });
+        
+        console.log(`⚠️ Payment failed for order ${orderId}`);
+        
+        // TODO: Send payment failure notification
+      }
+    } catch (error) {
+      console.error('❌ Error handling payment intent failed:', error);
+    }
+  }
+
+  async function triggerFulfillmentProcess(orderId: string) {
+    try {
+      console.log(`🚀 Triggering fulfillment process for order ${orderId}`);
+      
+      // Get order details
+      const order = await storage.getOrderById(orderId);
+      if (!order) {
+        console.error(`❌ Order ${orderId} not found for fulfillment`);
+        return;
+      }
+
+      // Get company details
+      const company = await storage.getBusinessById(order.companyId);
+      if (!company) {
+        console.error(`❌ Business ${order.companyId} not found for fulfillment`);
+        return;
+      }
+
+      console.log(`📋 Starting fulfillment for ${company.name} - ${order.package} package ($${order.total})`);
+
+      // 1. Send welcome email to client
+      try {
+        await sendWelcomeEmailToClient(order, company);
+      } catch (emailError) {
+        console.error('⚠️ Failed to send welcome email:', emailError);
+      }
+
+      // 2. Create project brief template (admin will fill this out based on meeting)
+      try {
+        const briefId = `BRIEF-${Date.now()}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+        const projectBrief = {
+          id: briefId,
+          orderId: order.id,
+          companyId: order.companyId,
+          companyName: company.name,
+          status: 'awaiting_admin',
+          clientStatus: 'pending',
+          createdAt: new Date(),
+          updatedAt: new Date()
+        };
+        
+        projectBriefs.set(briefId, projectBrief);
+        console.log(`✅ Project brief template created: ${briefId} for ${company.name} - Admin should fill this out based on meeting notes`);
+        
+      } catch (briefError) {
+        console.error('⚠️ Failed to create project brief template:', briefError);
+      }
+
+      // 3. Create project in system
+      try {
+        const projectId = await createFulfillmentProject(order, company);
+        console.log(`✅ Fulfillment project created: ${projectId}`);
+        
+        // Update order with project reference
+        await storage.updateOrder(orderId, {
+          status: 'in_progress'
+        });
+      } catch (projectError) {
+        console.error('⚠️ Failed to create fulfillment project:', projectError);
+      }
+
+      // 4. Notify team of new paid project
+      try {
+        await notifyTeamOfNewProject(order, company);
+        console.log(`✅ Team notified of new project`);
+      } catch (notifyError) {
+        console.error('⚠️ Failed to notify team:', notifyError);
+      }
+
+      // 5. Schedule kickoff call (placeholder)
+      try {
+        await scheduleKickoffCall(order, company);
+        console.log(`✅ Kickoff call scheduled`);
+      } catch (scheduleError) {
+        console.error('⚠️ Failed to schedule kickoff call:', scheduleError);
+      }
+      
+      console.log(`🎉 Fulfillment process completed for order ${orderId}`);
+      
+    } catch (error) {
+      console.error('❌ Error triggering fulfillment process:', error);
+    }
+  }
+
+  // Send welcome email to client after payment using professional email service
+  async function sendWelcomeEmailToClient(order: any, company: any) {
+    const packageFeatures = getPackageFeatures(order.package);
+    const emailSent = await sendWelcomeEmail(order, company, packageFeatures);
+    if (emailSent) {
+      console.log(`✅ Welcome email sent to ${company.email}`);
+    } else {
+      console.error('❌ Failed to send welcome email');
+      throw new Error('Failed to send welcome email');
+    }
+  }
+
+  // Create a project in the fulfillment system
+  async function createFulfillmentProject(order: any, company: any) {
+    try {
+      // Create a new project in the system
+      const projectId = await storage.createProject({
+        companyId: company.id,
+        title: `${company.name} - ${order.package ? order.package.charAt(0).toUpperCase() + order.package.slice(1) : 'Website'} Package`,
+        description: `Paid project: Order ${order.id} - ${order.package} package ($${order.total})`,
+        status: 'active',
+        stage: 'planning',
+        totalAmount: order.total,
+        paidAmount: order.total,
+        paymentStatus: 'paid'
+      });
+      
+      return projectId;
+    } catch (error) {
+      console.error('❌ Error creating fulfillment project:', error);
+      throw error;
+    }
+  }
+
+  // Notify team of new paid project
+  async function notifyTeamOfNewProject(order: any, company: any) {
+    const notification = {
+      type: 'new_paid_project',
+      orderId: order.id,
+      companyName: company.name,
+      package: order.package,
+      amount: order.total,
+      email: company.email,
+      phone: company.phone,
+      timestamp: new Date().toISOString()
+    };
+    
+    console.log('🔔 Team notification:', JSON.stringify(notification, null, 2));
+    
+    // TODO: Implement team notification system
+    // - Send Slack notification
+    // - Email project managers
+    // - Update team dashboard
+    // - Create tasks in project management system
+  }
+
+  // Schedule kickoff call
+  async function scheduleKickoffCall(order: any, company: any) {
+    const kickoffDetails = {
+      orderId: order.id,
+      companyName: company.name,
+      email: company.email,
+      phone: company.phone,
+      package: order.package,
+      suggestedTime: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(), // 2 days from now
+    };
+    
+    console.log('📅 Kickoff call details:', JSON.stringify(kickoffDetails, null, 2));
+    
+    // TODO: Implement scheduling system
+    // - Create calendar appointment
+    // - Send calendar invite to client
+    // - Add to team calendar
+    // - Set reminders
+  }
+
+  // Get package features for welcome email
+  function getPackageFeatures(packageType: string) {
+    const features = {
+      starter: [
+        '• Professional 5-page website',
+        '• Mobile-responsive design',
+        '• Contact form integration',
+        '• Basic SEO setup',
+        '• 30 days support'
+      ],
+      growth: [
+        '• Professional 10-page website',
+        '• Mobile-responsive design',
+        '• Contact form integration',
+        '• Advanced SEO setup',
+        '• Photo gallery',
+        '• Social media integration',
+        '• 60 days support'
+      ],
+      professional: [
+        '• Professional 15-page website',
+        '• Mobile-responsive design',
+        '• Contact form integration',
+        '• Premium SEO setup',
+        '• Photo gallery',
+        '• Video integration',
+        '• Appointment booking system',
+        '• Client messaging portal',
+        '• Logo design',
+        '• Professional copywriting',
+        '• 90 days support'
+      ]
+    };
+    
+    return features[packageType as keyof typeof features]?.join('\n      ') || '• Custom website package';
+  }
+
+  // Generate Upwork Brief endpoint
+  app.post('/api/generate-upwork-brief', async (req: Request, res: Response) => {
+    try {
+      const { orderId, meetingNotes } = req.body;
+      
+      // Fetch order data
+      const order = await storage.getProjectById(orderId);
+      if (!order) {
+        return res.status(404).json({ error: 'Order not found' });
+      }
+      
+      // Generate brief using template
+      const brief = `# 🚀 UPWORK PROJECT BRIEF
+**Pleasant Cove Design - Website Development Handoff**
+
+---
+
+## 📋 PROJECT OVERVIEW
+
+### Client Information
+- **Business Name:** ${order.business_name || 'NOT PROVIDED'}
+- **Contact Name:** ${order.client_name || 'NOT PROVIDED'}  
+- **Email:** ${order.client_email || 'NOT PROVIDED'}
+- **Industry:** ${order.business_type || 'NOT PROVIDED'}
+- **Project ID:** ${orderId}
+- **Order Date:** ${order.created_at || 'NOT PROVIDED'}
+
+### Selected Package
+- **Site Type:** ${order.site_type || 'NOT SPECIFIED'}
+- **Selected Features:** ${order.features?.join(', ') || 'NOT SPECIFIED'}
+- **Demo URL Reference:** ${order.demo_url || 'NOT PROVIDED'}
+
+---
+
+## 📁 FILE DIRECTORY & ACCESS LINKS
+
+### Project Assets Organization
+- **Main Project Folder:** ${meetingNotes.project_folder_link || 'TBD - Will be provided'}
+  - /Branding/ - Logo files, brand guidelines, color palettes
+  - /Assets/ - Photos, testimonials, business documents
+  - /Copy/ - Website copy, headlines, service descriptions
+  - /Reference/ - Demo links, competitor sites, inspiration
+  - /Technical/ - Domain info, hosting details, integrations
+
+### Access & Permissions
+- **File Access:** View/Edit permissions granted to contractor
+- **CMS Access:** Platform details provided separately
+- **Hosting Access:** Domain registrar access if needed
+
+---
+
+## 🎯 PROJECT SCOPE DEFINITION
+
+### ✅ IN-SCOPE (Included in Budget)
+- **Pages Included:** ${meetingNotes.in_scope_pages || 'Homepage, About, Services, Contact'}
+- **Content Creation:** Copy editing, image optimization, basic SEO
+- **Features Included:** ${order.features?.join(', ') || 'Contact forms, basic functionality'}
+- **Revisions Included:** 2 rounds of revisions included
+- **Testing Included:** Cross-browser, mobile responsiveness, form testing
+- **Launch Support:** Basic launch coordination and immediate bug fixes
+
+### ❌ OUT-OF-SCOPE (Additional Cost)
+- **Logo Design:** Not included - logo must be provided
+- **Copywriting:** Major copy creation beyond editing
+- **Advanced Features:** E-commerce, membership areas, custom applications
+- **Content Migration:** Moving content from old site
+- **Ongoing Maintenance:** Updates, backups, security monitoring
+${meetingNotes.out_of_scope_notes ? '- **Additional Notes:** ' + meetingNotes.out_of_scope_notes : ''}
+
+### 💰 Change Request Process
+- **Minor Changes:** Under $50 - included in scope
+- **Major Changes:** Require approval and additional billing
+- **Timeline Impact:** Changes may affect launch date
+
+---
+
+## 📝 CONTENT REQUIREMENTS
+
+### Business Information (From Client Meeting)
+- **Business Description:** ${meetingNotes.business_description}
+- **Headline/Tagline:** ${meetingNotes.tagline}
+
+### Key Value Propositions:
+1. ${meetingNotes.value_prop_1}
+2. ${meetingNotes.value_prop_2}  
+3. ${meetingNotes.value_prop_3}
+
+---
+
+## 💬 CLIENT MEETING NOTES
+
+**Date of Meeting:** ${meetingNotes.date}
+**Meeting Type:** ${meetingNotes.type}
+
+**Pain Points Client Mentioned:**
+- ${meetingNotes.pain_points}
+
+**Success Metrics Client Cares About:**
+- ${meetingNotes.success_metrics}
+
+**Timeline Constraints:**
+- ${meetingNotes.timeline_constraints}
+
+---
+
+## 📞 COMMUNICATION PROTOCOL
+
+### Escalation Path & Support
+- **For Contractor Blockers:**
+  - **Primary:** Ben Dickinson (Upwork Coordinator)
+  - **Email:** ben@pleasantcovedesign.com
+  - **Response Time:** Within 4 hours during business hours
+- **For Technical Issues:**
+  - **AI Assistant:** Minerva (available 24/7 via admin dashboard)
+  - **Emergency Contact:** (207) 200-4281
+
+---
+
+## 🚀 DEVELOPER SANDBOX & DEPLOYMENT
+
+### Development Environment
+- **Staging URL:** ${meetingNotes.staging_url || 'TBD - Will be provided'}
+- **Repository Access:** GitHub repo link if applicable
+- **API Keys & Credentials:** Provided separately via secure channel
+
+### Deployment Process
+- **Platform:** ${meetingNotes.deployment_platform || 'Railway'}
+- **Domain Setup:** Ben handles domain pointing
+- **Go-Live Approval:** Required from Ben before production deployment
+
+### Post-Launch Support
+- **Immediate Issues:** Contractor handles first 48 hours
+- **Bug Fixes:** Included for 7 days post-launch
+- **Performance Monitoring:** Ben handles ongoing monitoring
+
+---
+
+## 🚨 IMPORTANT NOTES & SPECIAL INSTRUCTIONS
+
+${meetingNotes.special_instructions}
+
+---
+
+**Project Brief Generated:** ${new Date().toISOString().split('T')[0]}
+**Pleasant Cove Project Manager:** Ben Dickinson  
+**Upwork Developer:** [TO BE ASSIGNED]
+
+---
+
+*This brief contains all requirements gathered through client meetings, messaging system interactions, and order specifications. Please confirm receipt and ask questions before beginning development.*`;
+
+      res.json({ brief });
+      
+    } catch (error) {
+      console.error('Error generating Upwork brief:', error);
+      res.status(500).json({ error: 'Failed to generate brief' });
+    }
+  });
+
   // Simple file upload endpoint without multer - using basic file handling
   app.post("/api/upload", async (req: Request, res: Response) => {
     try {
@@ -3259,7 +4335,7 @@ export async function registerRoutes(app: Express, io: any) {
       
       // Add notification for admin
       addNotification({
-        type: 'appointment_booked', // Could add cancellation type
+        type: 'appointment_booked', // Could add a cancellation type
         title: 'Appointment Cancelled by Client',
         message: `Appointment cancelled for ${new Date(appointment.datetime).toLocaleDateString()}. Reason: ${reason || 'No reason provided'}`,
         businessId: appointment.companyId
@@ -3586,6 +4662,8 @@ export async function registerRoutes(app: Express, io: any) {
       for (const messageId of messageIds) {
         await storage.markMessageAsRead(messageId, readAt);
       }
+      
+      console.log(`📡 [WEBSOCKET] Broadcasting read status for ${messageIds.length} messages in project ${token}`);
       
       // Broadcast read status to admin
       io.to('admin-room').emit('messagesRead', {
@@ -4553,6 +5631,16 @@ Booked via: ${source}
   // UNIFIED TOKEN ENDPOINT - Single source of truth for all tokens
   // ===================
   
+  // Health check endpoint for Railway
+  app.get('/api/health', (req: Request, res: Response) => {
+    res.status(200).json({ 
+      status: 'healthy', 
+      timestamp: new Date().toISOString(),
+      service: 'Pleasant Cove Design API',
+      version: '1.1'
+    });
+  });
+
   app.post('/api/token', async (req: Request, res: Response) => {
     try {
       const { email, name, projectId, type = 'member' } = req.body;
@@ -4885,12 +5973,14 @@ Booked via: ${source}
 
       const companyMap = new Map(allCompanies.map(c => [c.id, c]));
 
-      const conversations = allProjects
+      // First, get conversations for existing projects
+      const projectConversations = allProjects
         .map(project => {
           const company = companyMap.get(project.companyId);
           const projectMessages = allMessages.filter(m => m.projectId === project.id);
 
-          if (!company || projectMessages.length === 0) {
+          // Skip projects with no messages
+          if (projectMessages.length === 0) {
             return null;
           }
           
@@ -4898,17 +5988,92 @@ Booked via: ${source}
 
           const lastMessage = projectMessages[projectMessages.length - 1];
 
+          // Create a fallback customer name if company is missing
+          const customerName = company?.name || 
+                              project.title.split(' - ')[0] || 
+                              `Customer ${project.companyId}` ||
+                              'Unknown Customer';
+
+          // Calculate unread count - count client messages without readAt
+          const unreadCount = projectMessages.filter(msg => 
+            msg.senderType === 'client' && !msg.readAt
+          ).length;
+          
+          if (unreadCount > 0) {
+            console.log(`📩 [UNREAD] Project ${project.id} (${customerName}) has ${unreadCount} unread messages`);
+          }
+
           return {
             projectId: project.id,
             projectTitle: project.title,
-            customerName: company.name,
+            customerName: customerName,
+            customerEmail: company?.email || `${customerName.toLowerCase().replace(/\s+/g, '.')}@example.com`,
             accessToken: project.accessToken,
             lastMessage: lastMessage,
             lastMessageTime: lastMessage.createdAt,
+            unreadCount: unreadCount,
             messages: projectMessages,
+            // Include full client profile data
+            clientProfile: company ? {
+              id: company.id,
+              name: company.name,
+              email: company.email,
+              phone: company.phone,
+              address: company.address,
+              city: company.city,
+              state: company.state,
+              industry: company.industry,
+              website: company.website,
+              priority: company.priority
+            } : null
           };
         })
         .filter((c): c is NonNullable<typeof c> => c !== null);
+
+      // Find orphaned messages (messages without corresponding projects)
+      const existingProjectIds = new Set(allProjects.map(p => p.id));
+      const orphanedMessagesByProject = new Map<number, any[]>();
+      
+      allMessages.forEach(message => {
+        if (!existingProjectIds.has(message.projectId)) {
+          if (!orphanedMessagesByProject.has(message.projectId)) {
+            orphanedMessagesByProject.set(message.projectId, []);
+          }
+          orphanedMessagesByProject.get(message.projectId)!.push(message);
+        }
+      });
+
+      // Create virtual conversations for orphaned messages
+      const orphanedConversations = Array.from(orphanedMessagesByProject.entries()).map(([projectId, messages]) => {
+        messages.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+        const lastMessage = messages[messages.length - 1];
+        const firstMessage = messages[0];
+        
+        // Try to extract customer name from the first client message
+        const clientMessage = messages.find(m => m.senderType === 'client');
+        const customerName = clientMessage?.senderName || `Project ${projectId}`;
+        
+        // Calculate unread count for orphaned messages
+        const unreadCount = messages.filter(msg => 
+          msg.senderType === 'client' && !msg.readAt
+        ).length;
+
+        return {
+          projectId: projectId,
+          projectTitle: `Previous Conversation - ${customerName}`,
+          customerName: customerName,
+          customerEmail: clientMessage?.senderEmail || `${customerName.toLowerCase().replace(/\s+/g, '.')}@example.com`,
+          accessToken: `archived_${projectId}`, // Create a unique token for archived conversations
+          lastMessage: lastMessage,
+          lastMessageTime: lastMessage.createdAt,
+          unreadCount: unreadCount,
+          messages: messages,
+          clientProfile: null // Orphaned conversations don't have complete client profiles
+        };
+      });
+
+      // Combine both types of conversations
+      const conversations = [...projectConversations, ...orphanedConversations];
 
       conversations.sort((a, b) => 
         new Date(b.lastMessageTime).getTime() - new Date(a.lastMessageTime).getTime()
@@ -5157,4 +6322,644 @@ Booked via: ${source}
       });
     }
   });
+
+  // ===================
+  // PAYMENT SUCCESS PAGE
+  // ===================
+  
+  // Payment success page (serves HTML page with order information)
+  app.get('/payment/success', async (req: Request, res: Response) => {
+    try {
+      const orderId = req.query.order_id as string;
+      
+      if (!orderId) {
+        return res.status(400).send(`
+          <!DOCTYPE html>
+          <html lang="en">
+          <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Payment Success - Pleasant Cove Design</title>
+            <style>
+              body { font-family: system-ui, -apple-system, sans-serif; max-width: 600px; margin: 2rem auto; padding: 2rem; background: #f8fafc; }
+              .container { background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+              .success { color: #059669; }
+              .error { color: #dc2626; }
+              .order-id { background: #f1f5f9; padding: 0.5rem; border-radius: 6px; font-family: monospace; }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <h1 class="error">⚠️ Missing Order Information</h1>
+              <p>We couldn't find your order details. Please contact support if you completed a payment.</p>
+              <p><strong>Support:</strong> hello@pleasantcovedesign.com</p>
+            </div>
+          </body>
+          </html>
+        `);
+      }
+      
+      // Get order details
+      const order = await storage.getOrderById(orderId);
+      
+      if (!order) {
+        return res.status(404).send(`
+          <!DOCTYPE html>
+          <html lang="en">
+          <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Order Not Found - Pleasant Cove Design</title>
+            <style>
+              body { font-family: system-ui, -apple-system, sans-serif; max-width: 600px; margin: 2rem auto; padding: 2rem; background: #f8fafc; }
+              .container { background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+              .error { color: #dc2626; }
+              .order-id { background: #f1f5f9; padding: 0.5rem; border-radius: 6px; font-family: monospace; }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <h1 class="error">❌ Order Not Found</h1>
+              <p>We couldn't find order: <span class="order-id">${orderId}</span></p>
+              <p>Please contact support if you completed a payment.</p>
+              <p><strong>Support:</strong> hello@pleasantcovedesign.com</p>
+            </div>
+          </body>
+          </html>
+        `);
+      }
+      
+      // Get company details
+      const company = await storage.getBusinessById(order.companyId);
+      const companyName = company?.name || 'Customer';
+      
+      // Determine payment status display
+      const isPaid = order.paymentStatus === 'paid';
+      const statusColor = isPaid ? '#059669' : '#f59e0b';
+      const statusIcon = isPaid ? '✅' : '⏳';
+      const statusText = isPaid ? 'Payment Confirmed' : 'Payment Processing';
+      
+      res.send(`
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Payment Success - Pleasant Cove Design</title>
+          <style>
+            body { 
+              font-family: system-ui, -apple-system, sans-serif; 
+              max-width: 600px; 
+              margin: 2rem auto; 
+              padding: 2rem; 
+              background: #f8fafc;
+              line-height: 1.6;
+            }
+            .container { 
+              background: white; 
+              padding: 2rem; 
+              border-radius: 12px; 
+              box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+              text-align: center;
+            }
+            .success { color: #059669; margin-bottom: 1rem; }
+            .status { 
+              color: ${statusColor}; 
+              background: ${isPaid ? '#dcfce7' : '#fef3c7'}; 
+              padding: 1rem; 
+              border-radius: 8px; 
+              margin: 1rem 0;
+              border: 2px solid ${statusColor};
+            }
+            .order-details { 
+              background: #f8fafc; 
+              padding: 1.5rem; 
+              border-radius: 8px; 
+              margin: 1rem 0;
+              text-align: left;
+            }
+            .order-id { 
+              background: #e2e8f0; 
+              padding: 0.5rem; 
+              border-radius: 6px; 
+              font-family: monospace;
+              font-size: 0.9rem;
+            }
+            .package { 
+              color: #7c3aed; 
+              font-weight: 600;
+              text-transform: capitalize;
+            }
+            .total { 
+              font-size: 1.25rem; 
+              font-weight: 700; 
+              color: #1e293b;
+            }
+            .next-steps {
+              background: #eff6ff;
+              border: 2px solid #3b82f6;
+              padding: 1rem;
+              border-radius: 8px;
+              margin-top: 1.5rem;
+            }
+            .contact {
+              margin-top: 2rem;
+              padding-top: 1rem;
+              border-top: 1px solid #e2e8f0;
+              color: #64748b;
+            }
+            .contact a { color: #3b82f6; text-decoration: none; }
+            .contact a:hover { text-decoration: underline; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <h1 class="success">🎉 Thank You for Your Order!</h1>
+            
+            <div class="status">
+              <h2>${statusIcon} ${statusText}</h2>
+              ${isPaid 
+                ? '<p>Your payment has been processed successfully and your project is ready to begin!</p>'
+                : '<p>Your payment is being processed. You\'ll receive a confirmation email shortly.</p>'
+              }
+            </div>
+            
+            <div class="order-details">
+              <h3>Order Details</h3>
+              <p><strong>Customer:</strong> ${companyName}</p>
+              <p><strong>Order ID:</strong> <br><span class="order-id">${order.id}</span></p>
+              <p><strong>Package:</strong> <span class="package">${order.package}</span></p>
+              <p><strong>Total:</strong> <span class="total">$${order.total.toLocaleString()}</span></p>
+              <p><strong>Order Date:</strong> ${new Date(order.createdAt).toLocaleDateString()}</p>
+              ${order.paymentDate ? `<p><strong>Payment Date:</strong> ${new Date(order.paymentDate).toLocaleDateString()}</p>` : ''}
+            </div>
+            
+            ${isPaid ? `
+              <div class="next-steps">
+                <h3>🚀 What Happens Next?</h3>
+                <p>Our team will reach out within 24 hours to:</p>
+                <ul style="text-align: left; margin: 0.5rem 0;">
+                  <li>Schedule your project kickoff call</li>
+                  <li>Gather your brand requirements</li>
+                  <li>Begin designing your website</li>
+                </ul>
+                <p><strong>Check your email</strong> for detailed next steps and project timeline.</p>
+              </div>
+            ` : ''}
+            
+            <div class="contact">
+              <p><strong>Questions?</strong> Contact us at <a href="mailto:hello@pleasantcovedesign.com">hello@pleasantcovedesign.com</a></p>
+              <p>Pleasant Cove Design • Boothbay, Maine</p>
+            </div>
+          </div>
+        </body>
+        </html>
+      `);
+      
+    } catch (error) {
+      console.error('❌ Error serving payment success page:', error);
+      res.status(500).send(`
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Error - Pleasant Cove Design</title>
+          <style>
+            body { font-family: system-ui, -apple-system, sans-serif; max-width: 600px; margin: 2rem auto; padding: 2rem; background: #f8fafc; }
+            .container { background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+            .error { color: #dc2626; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <h1 class="error">⚠️ System Error</h1>
+            <p>We're experiencing technical difficulties. Your payment may have been processed successfully.</p>
+            <p>Please contact support: <strong>hello@pleasantcovedesign.com</strong></p>
+          </div>
+        </body>
+        </html>
+      `);
+    }
+  });
+
+  // Helper functions for webhook handlers
+
+  // ===================
+  // PROJECT BRIEF ENDPOINTS
+  // ===================
+  
+  // In-memory storage for project briefs (in production, use database)
+  const projectBriefs = new Map<string, any>();
+  
+  // Generate a secure token for client access
+  function generateClientToken(briefId: string): string {
+    return Buffer.from(`${briefId}:${Date.now()}:${Math.random().toString(36)}`).toString('base64');
+  }
+  
+  // Validate client token
+  function validateClientToken(briefId: string, token: string): boolean {
+    try {
+      const decoded = Buffer.from(token, 'base64').toString('utf-8');
+      const [tokenBriefId] = decoded.split(':');
+      return tokenBriefId === briefId;
+    } catch {
+      return false;
+    }
+  }
+  
+  // Create a new project brief
+  app.post('/api/project-briefs', async (req: Request, res: Response) => {
+    try {
+      const briefData = req.body;
+      const briefId = `BRIEF-${Date.now()}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+      
+      // Get company information
+      const company = await storage.getBusinessById(briefData.companyId);
+      if (!company) {
+        return res.status(404).json({ error: 'Company not found' });
+      }
+      
+      // Create project brief
+      const projectBrief = {
+        id: briefId,
+        ...briefData,
+        companyName: company.name,
+        status: 'draft',
+        clientStatus: 'pending',
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+      
+      // Store the brief
+      projectBriefs.set(briefId, projectBrief);
+      
+      // Generate client access token
+      const clientToken = generateClientToken(briefId);
+      
+      console.log(`✅ Project brief created: ${briefId} for company ${company.name}`);
+      
+      res.json({
+        id: briefId,
+        clientConfirmationUrl: `http://localhost:3000/project-confirmation.html?brief_id=${briefId}&token=${clientToken}`,
+        status: 'created'
+      });
+      
+    } catch (error) {
+      console.error('❌ Error creating project brief:', error);
+      res.status(500).json({ error: 'Failed to create project brief' });
+    }
+  });
+  
+  // Get project brief for client confirmation
+  app.get('/api/project-briefs/:briefId', async (req: Request, res: Response) => {
+    try {
+      const { briefId } = req.params;
+      const { token } = req.query;
+      
+      // Validate token for client access
+      if (token && !validateClientToken(briefId, token as string)) {
+        return res.status(403).json({ error: 'Invalid access token' });
+      }
+      
+      const brief = projectBriefs.get(briefId);
+      if (!brief) {
+        return res.status(404).json({ error: 'Project brief not found' });
+      }
+      
+      // Return brief data for client
+      res.json(brief);
+      
+    } catch (error) {
+      console.error('❌ Error retrieving project brief:', error);
+      res.status(500).json({ error: 'Failed to retrieve project brief' });
+    }
+  });
+  
+  // Client response to project brief
+  app.post('/api/project-briefs/:briefId/respond', async (req: Request, res: Response) => {
+    try {
+      const { briefId } = req.params;
+      const { token, clientStatus, clientFeedback } = req.body;
+      
+      // Validate token
+      if (!validateClientToken(briefId, token)) {
+        return res.status(403).json({ error: 'Invalid access token' });
+      }
+      
+      const brief = projectBriefs.get(briefId);
+      if (!brief) {
+        return res.status(404).json({ error: 'Project brief not found' });
+      }
+      
+      // Update brief with client response
+      const updatedBrief = {
+        ...brief,
+        clientStatus,
+        clientFeedback,
+        confirmationDate: new Date(),
+        updatedAt: new Date(),
+        status: clientStatus === 'approved' ? 'approved' : 'needs_revision'
+      };
+      
+      // Add to change history if requesting changes
+      if (clientStatus === 'requested_changes' && clientFeedback) {
+        if (!updatedBrief.clientChanges) {
+          updatedBrief.clientChanges = [];
+        }
+        updatedBrief.clientChanges.push({
+          section: 'general',
+          change: clientFeedback,
+          timestamp: new Date()
+        });
+      }
+      
+      projectBriefs.set(briefId, updatedBrief);
+      
+      console.log(`✅ Client response received for brief ${briefId}: ${clientStatus}`);
+      
+      // TODO: Send notification to admin about client response
+      // TODO: If approved, trigger project start workflow
+      
+      res.json({ 
+        success: true, 
+        status: clientStatus,
+        message: clientStatus === 'approved' 
+          ? 'Project approved! We\'ll begin work on your website.'
+          : 'Thank you for your feedback. We\'ll review your requests and follow up soon.'
+      });
+      
+    } catch (error) {
+      console.error('❌ Error processing client response:', error);
+      res.status(500).json({ error: 'Failed to process response' });
+    }
+  });
+  
+  // List project briefs for admin
+  app.get('/api/project-briefs', async (req: Request, res: Response) => {
+    try {
+      const { status, companyId } = req.query;
+      
+      let briefs = Array.from(projectBriefs.values());
+      
+      // Filter by status if provided
+      if (status) {
+        briefs = briefs.filter(brief => brief.status === status);
+      }
+      
+      // Filter by company if provided
+      if (companyId) {
+        briefs = briefs.filter(brief => brief.companyId === companyId);
+      }
+      
+      // Sort by creation date (newest first)
+      briefs.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      
+      res.json(briefs);
+      
+    } catch (error) {
+      console.error('❌ Error listing project briefs:', error);
+      res.status(500).json({ error: 'Failed to list project briefs' });
+    }
+  });
+  
+  // Update project brief status (admin only)
+  app.patch('/api/project-briefs/:briefId', async (req: Request, res: Response) => {
+    try {
+      const { briefId } = req.params;
+      const updates = req.body;
+      
+      const brief = projectBriefs.get(briefId);
+      if (!brief) {
+        return res.status(404).json({ error: 'Project brief not found' });
+      }
+      
+      const updatedBrief = {
+        ...brief,
+        ...updates,
+        updatedAt: new Date()
+      };
+      
+      projectBriefs.set(briefId, updatedBrief);
+      
+      console.log(`✅ Project brief ${briefId} updated by admin`);
+      
+      res.json(updatedBrief);
+      
+    } catch (error) {
+      console.error('❌ Error updating project brief:', error);
+      res.status(500).json({ error: 'Failed to update project brief' });
+    }
+  });
+  
+  // Delete project brief (admin only)
+  app.delete('/api/project-briefs/:briefId', async (req: Request, res: Response) => {
+    try {
+      const { briefId } = req.params;
+      
+      if (!projectBriefs.has(briefId)) {
+        return res.status(404).json({ error: 'Project brief not found' });
+      }
+      
+      projectBriefs.delete(briefId);
+      
+      console.log(`✅ Project brief ${briefId} deleted`);
+      
+      res.json({ success: true, message: 'Project brief deleted' });
+      
+    } catch (error) {
+      console.error('❌ Error deleting project brief:', error);
+      res.status(500).json({ error: 'Failed to delete project brief' });
+    }
+  });
+
+  // Debug endpoint to check webhook secret loading
+  app.get('/api/debug/webhook-secret', async (req: Request, res: Response) => {
+    const secret = process.env.STRIPE_WEBHOOK_SECRET;
+    res.json({ 
+      secretPresent: !!secret,
+      secretLength: secret?.length || 0,
+      firstTenChars: secret ? secret.substring(0, 10) + '...' : 'not found',
+      envKeys: Object.keys(process.env).filter(k => k.includes('STRIPE')).sort(),
+      nodeEnv: process.env.NODE_ENV,
+      cwd: process.cwd()
+    });
+  });
+
+  // UNIFIED CLIENT MANAGEMENT - Combines scraped leads and companies
+  app.get("/api/clients", requireAdmin, async (req: Request, res: Response) => {
+    try {
+      console.log('🔍 [CLIENTS] Fetching unified client data...');
+      
+      // Get both data sources
+      const [companies, businesses] = await Promise.all([
+        storage.getCompanies(),
+        storage.getBusinesses()
+      ]);
+      
+      console.log(`📊 [CLIENTS] Found ${companies.length} companies, ${businesses.length} businesses`);
+      
+      // Convert companies to unified format
+      const companyClients = companies.map((company: any) => ({
+        id: `company-${company.id}`,
+        originalId: company.id,
+        source: 'company',
+        name: company.name,
+        email: company.email || '',
+        phone: company.phone || '',
+        industry: company.industry || 'General',
+        status: 'active', // Companies are typically active clients
+        stage: 'client',
+        priority: company.priority || 'medium',
+        website: company.website || '',
+        address: `${company.address || ''} ${company.city || ''} ${company.state || ''}`.trim(),
+        notes: company.notes || '',
+        tags: company.tags || [],
+        createdAt: company.createdAt || new Date().toISOString(),
+        hasProjects: true, // Companies typically have projects
+        hasConversations: true // Companies have messaging
+      }));
+      
+      // Convert scraped businesses to unified format
+      const businessClients = businesses.map((business: any) => ({
+        id: `business-${business.id}`,
+        originalId: business.id,
+        source: 'scraped',
+        name: business.name,
+        email: business.email || '',
+        phone: business.phone || '',
+        industry: business.businessType || business.industry || 'General',
+        status: business.stage === 'contacted' ? 'contacted' : 'prospect',
+        stage: business.stage || 'scraped',
+        priority: business.priority || 'low',
+        website: business.website || '',
+        address: business.address || '',
+        notes: business.notes || `Scraped lead: ${business.businessType || 'Unknown type'}`,
+        tags: business.tags || ['scraped-lead'],
+        createdAt: business.createdAt || business.scrapedDate || new Date().toISOString(),
+        hasProjects: false, // Scraped leads typically don't have projects yet
+        hasConversations: false, // No conversations yet
+        // Additional scraped data
+        rating: business.rating,
+        reviews: business.reviews,
+        mapsUrl: business.maps_url
+      }));
+      
+      // Combine and sort by creation date (newest first)
+      const allClients = [...companyClients, ...businessClients].sort((a, b) => 
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
+      
+      console.log(`✅ [CLIENTS] Returning ${allClients.length} unified clients`);
+      console.log(`   - ${companyClients.length} active clients (companies)`);
+      console.log(`   - ${businessClients.length} prospects (scraped leads)`);
+      
+      res.json(allClients);
+      
+    } catch (error) {
+      console.error("❌ [CLIENTS] Failed to fetch unified clients:", error);
+      res.status(500).json({ error: "Failed to fetch clients" });
+    }
+  });
+
+  // PROMOTE SCRAPED LEAD TO FULL CLIENT
+  app.post("/api/clients/promote/:businessId", requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const businessId = parseInt(req.params.businessId);
+      const { email, phone, priority, notes } = req.body;
+      
+      console.log(`🔄 [PROMOTE] Converting scraped lead ${businessId} to full client...`);
+      
+      // Get the business record
+      const business = await storage.getBusinessById(businessId);
+      if (!business) {
+        return res.status(404).json({ error: "Business not found" });
+      }
+      
+      // Create new company record from business data
+      const companyData = {
+        name: business.name,
+        email: email || business.email || '',
+        phone: phone || business.phone || '',
+        industry: business.businessType || 'General',
+        priority: priority || 'medium',
+        website: business.website || '',
+        address: business.address || '',
+        notes: notes || `Promoted from scraped lead. Original: ${business.notes || ''}`,
+        tags: ['promoted-lead', ...(business.tags || [])]
+      };
+      
+      const newCompany = await storage.createCompany(companyData);
+      
+      // Optionally mark business as promoted
+      await storage.updateBusiness(businessId, { 
+        stage: 'promoted',
+        notes: (business.notes || '') + `\n[PROMOTED] Converted to company ID: ${newCompany.id}`
+      });
+      
+      console.log(`✅ [PROMOTE] Created company ${newCompany.id} from business ${businessId}`);
+      
+      res.json({
+        success: true,
+        company: newCompany,
+        message: `Successfully promoted ${business.name} to full client`
+      });
+      
+    } catch (error) {
+      console.error("❌ [PROMOTE] Failed to promote lead:", error);
+      res.status(500).json({ error: "Failed to promote lead to client" });
+    }
+  });
+
+  // MANUAL CLIENT CREATION
+  app.post("/api/clients", requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const clientData = req.body;
+      console.log(`📝 [CREATE] Creating new manual client: ${clientData.name}`);
+      
+      // Validate required fields
+      if (!clientData.name) {
+        return res.status(400).json({ error: "Client name is required" });
+      }
+      
+      // Create company record
+      const companyData = {
+        name: clientData.name,
+        email: clientData.email || '',
+        phone: clientData.phone || '',
+        industry: clientData.industry || 'General',
+        priority: clientData.priority || 'medium',
+        website: clientData.website || '',
+        address: clientData.address || '',
+        notes: clientData.notes || 'Manually created client',
+        tags: ['manual-entry', ...(clientData.tags || [])]
+      };
+      
+      const newCompany = await storage.createCompany(companyData);
+      
+      console.log(`✅ [CREATE] Created manual client: ${newCompany.name} (ID: ${newCompany.id})`);
+      
+      res.json({
+        success: true,
+        client: newCompany,
+        message: `Successfully created client ${newCompany.name}`
+      });
+      
+    } catch (error) {
+      console.error("❌ [CREATE] Failed to create client:", error);
+      res.status(500).json({ error: "Failed to create client" });
+    }
+  });
+
+  // Companies (new system) - Keep existing endpoint for backward compatibility
+  app.get("/api/companies", requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const companies = await storage.getCompanies();
+      res.json(companies);
+    } catch (error) {
+      console.error("Failed to fetch companies:", error);
+      res.status(500).json({ error: "Failed to fetch companies" });
+    }
+  });
+
 }

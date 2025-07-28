@@ -3,7 +3,7 @@
 
 import fs from 'fs';
 import path from 'path';
-import { Company, Project, Message, ProjectFile, Activity, AIChatMessage } from '../shared/schema.js';
+import { Company, Project, Message, ProjectFile, Activity, AIChatMessage, Order } from '../shared/schema.js';
 
 // Persistent storage file paths
 const DATA_DIR = path.join(process.cwd(), 'data');
@@ -119,6 +119,7 @@ class InMemoryDatabase {
   private projectMessages: ProjectMessage[] = []; // NEW: Storage for project messages
   private aiChatMessages: AIChatMessage[] = []; // NEW: Storage for AI chat messages
   private projectFiles: ProjectFile[] = []; // NEW: Storage for project files
+  private orders: Order[] = []; // NEW: Storage for orders
   private businesses: Business[] = [];
   private activities: Activity[] = [];
   private campaigns: Campaign[] = [];
@@ -130,6 +131,7 @@ class InMemoryDatabase {
     projects: 0,
     projectMessages: 0, // NEW: Counter for messages
     projectFiles: 0, // NEW: Counter for files
+    orders: 0, // NEW: Counter for orders
     businesses: 0,
     activities: 0,
     campaigns: 0,
@@ -154,6 +156,7 @@ class InMemoryDatabase {
         projectMessages: this.projectMessages,
         aiChatMessages: this.aiChatMessages,
         projectFiles: this.projectFiles,
+        orders: this.orders,
         businesses: this.businesses,
         activities: this.activities,
         campaigns: this.campaigns,
@@ -182,6 +185,7 @@ class InMemoryDatabase {
       this.projectMessages = data.projectMessages || [];
       this.aiChatMessages = data.aiChatMessages || [];
         this.projectFiles = data.projectFiles || [];
+        this.orders = data.orders || [];
         this.businesses = data.businesses || [];
         this.activities = data.activities || [];
         this.campaigns = data.campaigns || [];
@@ -193,6 +197,7 @@ class InMemoryDatabase {
           projects: 0,
           projectMessages: 0,
           projectFiles: 0,
+          orders: 0,
           businesses: 0,
           activities: 0,
           campaigns: 0,
@@ -793,6 +798,63 @@ class InMemoryDatabase {
 
   async getAIChatContext(leadId?: string, projectId?: number, limit: number = 10): Promise<AIChatMessage[]> {
     return this.getAIChatMessages({ leadId, projectId, limit });
+  }
+
+  // Order Management Methods
+  async createOrder(order: Omit<Order, 'createdAt' | 'updatedAt'>): Promise<Order> {
+    const newOrder: Order = {
+      ...order,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    
+    this.orders.push(newOrder);
+    this.counters.orders++;
+    this.saveToDisk();
+    
+    console.log(`✅ Order created: ${newOrder.id}`);
+    return newOrder;
+  }
+
+  async getOrderById(orderId: string): Promise<Order | null> {
+    return this.orders.find(order => order.id === orderId) || null;
+  }
+
+  async getOrdersByCompanyId(companyId: string): Promise<Order[]> {
+    return this.orders.filter(order => order.companyId === companyId);
+  }
+
+  async updateOrder(orderId: string, updates: Partial<Order>): Promise<Order | null> {
+    const orderIndex = this.orders.findIndex(order => order.id === orderId);
+    
+    if (orderIndex === -1) {
+      return null;
+    }
+    
+    this.orders[orderIndex] = {
+      ...this.orders[orderIndex],
+      ...updates,
+      updatedAt: new Date()
+    };
+    
+    this.saveToDisk();
+    return this.orders[orderIndex];
+  }
+
+  async getOrders(): Promise<Order[]> {
+    return this.orders;
+  }
+
+  async deleteOrder(orderId: string): Promise<boolean> {
+    const initialLength = this.orders.length;
+    this.orders = this.orders.filter(order => order.id !== orderId);
+    
+    if (this.orders.length < initialLength) {
+      this.saveToDisk();
+      return true;
+    }
+    
+    return false;
   }
 }
 

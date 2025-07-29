@@ -20,7 +20,7 @@ import { createR2Storage } from './storage/r2-storage';
 import { requestLogger, errorHandler, performanceMonitor } from './middleware/logging';
 import demoRoutes from './demo-routes';
 
-const __filename = fileURLToPath(import.meta.url);
+// For CommonJS compatibility
 const __dirname = path.dirname(__filename);
 
 const app = express();

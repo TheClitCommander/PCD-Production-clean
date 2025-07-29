@@ -1,10 +1,9 @@
 import Stripe from 'stripe';
 import * as dotenv from 'dotenv';
 import { resolve, dirname } from 'path';
-import { fileURLToPath } from 'url';
 
 // Ensure environment variables are loaded - find .env in project root
-const __filename = fileURLToPath(import.meta.url);
+// CommonJS __dirname is available by default
 const __dirname = dirname(__filename);
 const projectRoot = resolve(__dirname, '..');
 dotenv.config({ path: resolve(projectRoot, '.env') });

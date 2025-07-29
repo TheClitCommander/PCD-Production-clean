@@ -2,7 +2,6 @@ import express from 'express';
 import { spawn } from 'child_process';
 import path from 'path';
 import cors from 'cors';
-import { fileURLToPath } from 'url';
 import { authenticate, requireAdmin, createDevAuthRoutes, AuthenticatedRequest } from './middleware/auth';
 import { validate } from './middleware/validation';
 
@@ -14,7 +13,7 @@ app.use(cors());
 createDevAuthRoutes(app);
 
 const PYTHON_PATH = process.env.PYTHON_PATH || 'python3';
-const __filename = fileURLToPath(import.meta.url);
+// CommonJS __dirname is available by default
 const __dirname = path.dirname(__filename);
 const PROJECT_ROOT = path.join(__dirname, '../../');
 

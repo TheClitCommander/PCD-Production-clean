@@ -1,9 +1,8 @@
 import express, { type Request, Response } from "express";
 import path from 'path';
 import fs from 'fs';
-import { fileURLToPath } from 'url';
 
-const __filename = fileURLToPath(import.meta.url);
+// CommonJS __dirname is available by default
 const __dirname = path.dirname(__filename);
 
 const router = express.Router();

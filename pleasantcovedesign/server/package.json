@@ -1,13 +1,12 @@
 {
   "name": "server",
   "version": "1.0.0",
-  "type": "module",
   "description": "Backend server for Pleasant Cove Design - Railway fix - 20250129",
   "main": "dist/index.js",
   "scripts": {
     "dev": "tsx watch index.ts",
-    "build": "echo 'Build step skipped'",
-    "start": "node --import tsx/esm index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
     "railway-fix": "echo 'Railway deployment fix'",
     "test": "NODE_OPTIONS='--experimental-vm-modules' jest",
     "test:watch": "NODE_OPTIONS='--experimental-vm-modules' jest --watch",
@@ -39,7 +38,8 @@
     "stripe": "^18.3.0",
     "tsx": "^3.12.2",
     "uuid": "^9.0.0",
-    "zod": "^3.23.8"
+    "zod": "^3.23.8",
+    "typescript": "^5.3.3"
   },
   "devDependencies": {
     "@types/cors": "^2.8.13",

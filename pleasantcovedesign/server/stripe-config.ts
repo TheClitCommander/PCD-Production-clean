@@ -3,9 +3,9 @@ import * as dotenv from 'dotenv';
 import { resolve, dirname } from 'path';
 
 // Ensure environment variables are loaded - find .env in project root
-// CommonJS __dirname is available by default
-const __dirname = dirname(__filename);
-const projectRoot = resolve(__dirname, '..');
+// Use dirname for ES modules compatibility  
+const __stripe_dirname = dirname(__filename);
+const projectRoot = resolve(__stripe_dirname, '..');
 dotenv.config({ path: resolve(projectRoot, '.env') });
 
 // Debug: Check if .env file exists and log its path

@@ -13,9 +13,9 @@ app.use(cors());
 createDevAuthRoutes(app);
 
 const PYTHON_PATH = process.env.PYTHON_PATH || 'python3';
-// CommonJS __dirname is available by default
-const __dirname = path.dirname(__filename);
-const PROJECT_ROOT = path.join(__dirname, '../../');
+// Use path.dirname for ES modules compatibility
+const __minerva_dirname = path.dirname(__filename);
+const PROJECT_ROOT = path.join(__minerva_dirname, '../../');
 
 /**
  * Execute a Python Minerva command and return results

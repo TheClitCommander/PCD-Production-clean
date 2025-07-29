@@ -1089,14 +1089,18 @@
                         context = window.SQUARESPACE_CONTEXT;
                     }
                     
-                    // Method 3: Check for Squarespace global variables
-                    if (!context && typeof window.Y !== 'undefined' && window.Y.Squarespace) {
-                        context = window.Y.Squarespace.context;
+                    // Method 3: Check for Squarespace global variables (SAFER ACCESS)
+                    if (!context && typeof window.Y !== 'undefined' && window.Y && window.Y.Squarespace && window.Y.Squarespace.context) {
+                        try {
+                            context = window.Y.Squarespace.context;
+                        } catch (e) {
+                            console.log('🔇 [CONTEXT] Y.Squarespace.context access failed, skipping to avoid conflicts');
+                        }
                     }
                     
                     if (context) {
-                        // DEEP DIVE LOGGING:
-                        console.log('📦 [CONTEXT PAYLOAD] Full SQUARESPACE_CONTEXT object:', JSON.stringify(context, null, 2));
+                        // SAFER LOGGING: Avoid deep logging that might trigger conflicts
+                        console.log('📦 [CONTEXT] Context available, checking for authenticated account...');
                         
                         // NEW STRICT LOGIC:
                         if (context.authenticatedAccount && context.authenticatedAccount.email) {
@@ -2655,17 +2659,27 @@
             }
         }
         
-        // Initialize the widget when DOM is ready
+        // Initialize the widget when DOM is ready (SAFER FOR SQUARESPACE)
+        function safeWidgetInitialization() {
+            console.log('🚀 [INIT] Starting safe widget initialization...');
+            
+            // Small delay to let Squarespace finish its initialization
+            setTimeout(() => {
+                try {
+                    console.log('🎯 [INIT] Creating BulletproofMessagingWidget...');
+                    window.PCD_Widget = new BulletproofMessagingWidget();
+                    window.messagingWidget = window.PCD_Widget; // For backward compatibility
+                    console.log('✅ [INIT] Widget initialized successfully!');
+                } catch (error) {
+                    console.error('❌ [INIT] Widget initialization failed:', error);
+                }
+            }, 300); // Small delay to avoid Squarespace conflicts
+        }
+        
         if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', () => {
-                console.log('🚀 [INIT] DOM loaded, initializing widget...');
-                window.PCD_Widget = new BulletproofMessagingWidget();
-                window.messagingWidget = window.PCD_Widget; // For backward compatibility
-            });
+            document.addEventListener('DOMContentLoaded', safeWidgetInitialization);
         } else {
-            console.log('🚀 [INIT] DOM already loaded, initializing widget...');
-            window.PCD_Widget = new BulletproofMessagingWidget();
-            window.messagingWidget = window.PCD_Widget; // For backward compatibility
+            safeWidgetInitialization();
         }
     </script>
 </body>

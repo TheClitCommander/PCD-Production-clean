@@ -1,0 +1,17 @@
+{
+  "business_name": "Acme Plumbing Co",
+  "business_type": "plumbers",
+  "category": "Plumbing Services",
+  "address": "123 Main St, Brunswick, ME",
+  "location": "Brunswick, Maine",
+  "phone": "(207) 555-1234",
+  "website": "",
+  "has_website": false,
+  "maps_url": "https://maps.google.com/test",
+  "rating": "4.2",
+  "reviews": "15",
+  "years_in_business": "10",
+  "scraped_date": "2025-07-17",
+  "search_query": "plumbers in Brunswick, Maine",
+  "profile_id": "c02e6e86-1b7f-44da-b89a-414f370b6a3a"
+}

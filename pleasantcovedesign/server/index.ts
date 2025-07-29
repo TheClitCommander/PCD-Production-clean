@@ -18,6 +18,7 @@ import express, { type Express } from "express";
 import cors from "cors";
 import { createR2Storage } from './storage/r2-storage';
 import { requestLogger, errorHandler, performanceMonitor } from './middleware/logging';
+import { createCorsMiddleware } from './middleware/cors';
 import demoRoutes from './demo-routes';
 
 // For CommonJS compatibility
@@ -163,37 +164,8 @@ io.on('connection', (socket) => {
 // Export io for use in routes
 export { io };
 
-// --- CORS Configuration ---
-const allowedOrigins = [
-  'http://localhost:5173', // Admin UI
-  'http://localhost:3000', // Local server
-  'http://localhost:8080', // Test server for widget testing
-  'http://192.168.1.87:3000', // Local server via IP for mobile access
-  'https://pcd-production-clean-production.up.railway.app', // Production frontend
-  'https://www.pleasantcovedesign.com', // Squarespace production
-  'https://nectarine-sparrow-dwsp.squarespace.com', // Squarespace test site
-  'https://1ce2-2603-7080-e501-3f6a-59ca-c294-1beb-ddfc.ngrok-free.app', // ngrok for HTTPS compatibility
-];
-
-const corsOptions: cors.CorsOptions = {
-  origin: (origin, callback) => {
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
-    
-    if (allowedOrigins.indexOf(origin) !== -1) {
-      callback(null, true);
-    } else {
-      console.warn(`🚫 CORS: Blocked origin: ${origin}`);
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  credentials: true,
-  optionsSuccessStatus: 200
-};
-
-console.log('🔧 CORS Allowed Origins:', allowedOrigins);
-app.use(cors(corsOptions));
-// --- End of CORS Configuration ---
+// Apply CORS middleware (handles all preflight and cross-origin requests)
+app.use(createCorsMiddleware());
 
 // Logging and monitoring middleware
 app.use(requestLogger);

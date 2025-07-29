@@ -17,7 +17,11 @@ export function createCorsMiddleware() {
     'https://pleasantcovedesign.com',
     'https://www.pleasantcovedesign.com',
     'https://admin.pleasantcovedesign.com',
-    'https://api.pleasantcovedesign.com'
+    'https://api.pleasantcovedesign.com',
+    'https://pcd-production-clean-production.up.railway.app',
+    'https://nectarine-sparrow-dwsp.squarespace.com',
+    'https://1ce2-2603-7080-e501-3f6a-59ca-c294-1beb-ddfc.ngrok-free.app',
+    'http://192.168.1.87:3000'
   ];
 
   // Merge origins, removing duplicates
@@ -44,6 +48,11 @@ export function createCorsMiddleware() {
         return callback(null, true);
       }
 
+      // Allow Squarespace domains (dynamic check)
+      if (origin.includes('.squarespace.com') || origin.includes('.squarespace-cdn.com')) {
+        return callback(null, true);
+      }
+
       // Log rejected origins for debugging
       console.warn(`CORS: Rejected origin: ${origin}`);
       callback(new Error('Not allowed by CORS'));
@@ -62,7 +71,8 @@ export function createCorsMiddleware() {
       'Accept',
       'Accept-Language',
       'Content-Language',
-      'Last-Event-ID'
+      'Last-Event-ID',
+      'ngrok-skip-browser-warning'
     ],
     
     exposedHeaders: [

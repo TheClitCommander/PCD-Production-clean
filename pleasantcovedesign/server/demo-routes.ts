@@ -2,8 +2,8 @@ import express, { type Request, Response } from "express";
 import path from 'path';
 import fs from 'fs';
 
-// CommonJS __dirname is available by default
-const __dirname = path.dirname(__filename);
+// Use fileURLToPath for ES modules compatibility  
+const __demo_dirname = path.dirname(__filename);
 
 const router = express.Router();
 

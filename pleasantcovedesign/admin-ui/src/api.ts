@@ -9,8 +9,8 @@ const getApiBaseUrl = () => {
     return `${env.VITE_API_URL}/api`;
   }
   
-  // Use Railway production server by default for consistent experience
-  return 'https://pcd-production-clean-production.up.railway.app/api';
+  // Use localhost since Railway is down (502 errors)
+  return 'http://localhost:3000/api';
 };
 
 // Export base URL for WebSocket connections
@@ -20,8 +20,8 @@ export const getWebSocketUrl = () => {
     return env.VITE_WS_URL;
   }
   
-  // Use Railway production WebSocket by default
-  return 'https://pcd-production-clean-production.up.railway.app';
+  // Use localhost since Railway is down (502 errors)
+  return 'http://localhost:3000';
 };
 
 const api = axios.create({

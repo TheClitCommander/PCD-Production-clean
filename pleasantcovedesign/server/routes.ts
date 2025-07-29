@@ -30,8 +30,8 @@ import { processAIChat, storeUserMessage } from './ai-service';
 import { createPaymentLink, verifyWebhookSignature } from './stripe-config';
 import { sendReceiptEmail, sendWelcomeEmail, sendInvoiceEmail } from './email-service';
 
-const __filename = fileURLToPath(import.meta.url);
-const __routes_dirname = path.dirname(__filename);
+const __routes_filename = fileURLToPath(import.meta.url);
+const __routes_dirname = path.dirname(__routes_filename);
 
 // Configure Cloudflare R2 (S3-compatible) storage
 const useR2Storage = !!(process.env.R2_ENDPOINT && process.env.R2_ACCESS_KEY_ID && process.env.R2_SECRET_ACCESS_KEY && process.env.R2_BUCKET);

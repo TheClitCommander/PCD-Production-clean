@@ -3,7 +3,7 @@ import { resolve } from 'path';
 import { createServer } from "http";
 import path from "path";
 import fs from "fs";
-import { fileURLToPath } from "url";
+// Note: fileURLToPath import removed - using __filename directly
 import { registerRoutes } from "./routes";
 import { storage } from './storage';
 import { Server } from 'socket.io';
@@ -21,8 +21,7 @@ import { requestLogger, errorHandler, performanceMonitor } from './middleware/lo
 import { createCorsMiddleware } from './middleware/cors';
 import demoRoutes from './demo-routes';
 
-// ES modules compatibility - avoid __dirname conflicts
-const __filename = fileURLToPath(import.meta.url);
+// Node.js compatible __dirname alternative - avoid conflicts
 const __main_dirname = path.dirname(__filename);
 
 const app = express();

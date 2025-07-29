@@ -150,6 +150,12 @@ class InMemoryDatabase {
 
   // Save all data to disk
   private saveToDisk(): void {
+    // Skip file operations on Railway/production (read-only filesystem)
+    if (process.env.RAILWAY_ENVIRONMENT || process.env.NODE_ENV === 'production') {
+      console.log('💾 Skipping disk save (Railway/production mode)');
+      return;
+    }
+    
     try {
       const data = {
         companies: this.companies,
@@ -172,11 +178,18 @@ class InMemoryDatabase {
       console.log('💾 Data saved to disk');
     } catch (error) {
       console.error('❌ Error saving data to disk:', error);
+      // Don't throw - continue operation without disk persistence
     }
   }
 
   // Load all data from disk
   private loadFromDisk(): void {
+    // Skip file operations on Railway/production (read-only filesystem)
+    if (process.env.RAILWAY_ENVIRONMENT || process.env.NODE_ENV === 'production') {
+      console.log('💾 Using in-memory storage (Railway/production mode)');
+      return;
+    }
+    
     try {
       if (fs.existsSync(STORAGE_FILE)) {
         const data = JSON.parse(fs.readFileSync(STORAGE_FILE, 'utf8'));

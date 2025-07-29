@@ -354,11 +354,17 @@ app.use('/api/new-lead', (req, res, next) => {
 // Register all API routes
 async function startServer() {
   try {
+    console.log('🔧 Starting server initialization...');
+    
     // Register all routes
+    console.log('🔧 Registering routes...');
     await registerRoutes(app, io);
+    console.log('✅ Routes registered successfully');
     
     // Register demo serving routes
+    console.log('🔧 Registering demo routes...');
     app.use('/api', demoRoutes);
+    console.log('✅ Demo routes registered successfully');
     
     // Error handling middleware (must be last)
     app.use(errorHandler);

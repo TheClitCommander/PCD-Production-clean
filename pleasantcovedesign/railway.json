@@ -2,10 +2,10 @@
   "$schema": "https://railway.app/railway.schema.json",
   "build": {
     "builder": "NIXPACKS",
-    "buildCommand": "cd pleasantcovedesign/server && npm install"
+    "buildCommand": "cd pleasantcovedesign/server && npm install && npm run build"
   },
   "deploy": {
-    "startCommand": "cd pleasantcovedesign/server && node test-minimal.js",
+    "startCommand": "cd pleasantcovedesign/server && npm start",
     "healthcheckPath": "/api/health",
     "healthcheckTimeout": 30,
     "restartPolicyType": "ON_FAILURE",

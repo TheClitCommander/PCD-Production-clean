@@ -59,8 +59,8 @@ export class Storage {
 
   // Company operations
   async createCompany(data: NewCompany): Promise<Company> {
-    const results: any[] = db.insert(companiesTable).values(data).returning();
-    return results[0] as Company;
+    const companyId = await memoryDb.createCompany(data);
+    return await memoryDb.getCompanyById(companyId);
   }
 
   async getCompanies(tagFilter?: string): Promise<Company[]> {
@@ -98,8 +98,8 @@ export class Storage {
 
   // Project operations
   async createProject(data: NewProject): Promise<Project> {
-    const results: any[] = db.insert(projectsTable).values(data).returning();
-    return results[0] as Project;
+    const projectId = await memoryDb.createProject(data);
+    return await memoryDb.getProjectById(projectId);
   }
 
   async deleteProject(id: number): Promise<boolean> {
@@ -144,13 +144,13 @@ export class Storage {
   }
 
   async getProjectsByCompany(companyId: number, statusFilter?: string): Promise<Project[]> {
-    let results: any[] = db.select().from(projectsTable).where({ companyId });
+    let results = await memoryDb.getProjectsByCompany(companyId);
     
     if (statusFilter) {
       results = results.filter(project => project.status === statusFilter);
     }
     
-    return results as Project[];
+    return results;
   }
 
   async updateProject(id: number, data: Partial<Project>): Promise<Project | null> {
@@ -325,39 +325,17 @@ export class Storage {
   } | null> {
     console.log(`🔍 Storage: Searching for client with email: ${email}`);
     
-    // Try to find by company email first (new system)
-    // For in-memory database, we need to filter manually since the WHERE clause doesn't work properly
-    const allCompanies: any[] = db.select().from(companiesTable).orderBy({});
-    console.log(`🔍 Storage: Found ${allCompanies.length} total companies`);
-    console.log(`🔍 Storage: All company emails:`, allCompanies.map(c => c.email));
+    // Use the actual in-memory database instead of the fake db interface
+    const company = await memoryDb.findClientByEmail(email);
     
-    const companies = allCompanies.filter(c => c.email === email);
-    console.log(`🔍 Storage: Filtered companies for ${email}:`, companies.length);
-    
-    if (companies.length > 0) {
-      const company = companies[0] as Company;
+    if (company) {
       console.log(`✅ Storage: Found matching company: ${company.name} (${company.email})`);
       
       // Get the first project for this company
-      const allProjects: any[] = db.select().from(projectsTable).orderBy({});
-      const projects = allProjects.filter(p => p.companyId === company.id);
-      const project = projects[0] as Project;
+      const projects = await memoryDb.getProjectsByCompany(company.id);
+      const project = projects[0];
       
       return { company, project };
-    }
-
-    // Fallback to business table (legacy system)
-    const allBusinesses: any[] = db.select().from(businessesTable).orderBy({});
-    console.log(`🔍 Storage: Found ${allBusinesses.length} total businesses`);
-    console.log(`🔍 Storage: All business emails:`, allBusinesses.map(b => b.email));
-    
-    const businesses = allBusinesses.filter(b => b.email === email);
-    console.log(`🔍 Storage: Filtered businesses for ${email}:`, businesses.length);
-    
-    if (businesses.length > 0) {
-      const business = businesses[0] as Business;
-      console.log(`✅ Storage: Found matching business: ${business.name} (${business.email})`);
-      return { business: business };
     }
 
     console.log(`❌ Storage: No client found for email: ${email}`);

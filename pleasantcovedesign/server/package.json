@@ -4,8 +4,9 @@
   "description": "Backend server for Pleasant Cove Design - Railway fix - 20250129",
   "main": "dist/index.js",
   "scripts": {
-    "start": "node test-server.js",
-    "start-original": "node dist/index.js",
+    "start": "npm run build && node dist/index.js",
+    "start-original": "node dist/index.js", 
+    "start-test": "node test-server.js",
     "dev": "nodemon index.ts",
     "build": "tsc",
     "railway-fix": "echo 'Railway deployment fix'",

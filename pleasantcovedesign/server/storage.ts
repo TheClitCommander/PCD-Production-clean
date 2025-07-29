@@ -60,7 +60,8 @@ export class Storage {
   // Company operations
   async createCompany(data: NewCompany): Promise<Company> {
     const companyId = await memoryDb.createCompany(data);
-    return await memoryDb.getCompanyById(companyId);
+    // Find the created company by ID
+    return memoryDb.companies.find(c => c.id === companyId);
   }
 
   async getCompanies(tagFilter?: string): Promise<Company[]> {
@@ -99,7 +100,8 @@ export class Storage {
   // Project operations
   async createProject(data: NewProject): Promise<Project> {
     const projectId = await memoryDb.createProject(data);
-    return await memoryDb.getProjectById(projectId);
+    // Find the created project by ID
+    return memoryDb.projects.find(p => p.id === projectId);
   }
 
   async deleteProject(id: number): Promise<boolean> {

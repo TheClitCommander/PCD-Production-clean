@@ -70,7 +70,7 @@ const io = new Server(server, {
   cookie: false
 });
 
-const PORT = process.env.PORT || 3000;
+const PORT = Number(process.env.PORT) || 3000;
 
 // Store active connections by project token
 const activeConnections = new Map<string, Set<string>>();
@@ -334,6 +334,28 @@ app.get('/health', (req, res) => {
     services: {
       database: 'connected',
       webhooks: 'active'
+    }
+  });
+});
+
+// Diagnostic endpoint for Railway debugging
+app.get('/api/debug', (req, res) => {
+  res.json({
+    status: 'debug',
+    timestamp: new Date().toISOString(),
+    environment: {
+      NODE_ENV: process.env.NODE_ENV,
+      PORT: process.env.PORT,
+      HAS_DATABASE_URL: !!process.env.DATABASE_URL,
+      DATABASE_URL_PREFIX: process.env.DATABASE_URL ? process.env.DATABASE_URL.substring(0, 20) + '...' : 'NOT_SET',
+      DEPLOY_URL: process.env.DEPLOY_URL,
+      FRONTEND_URL: process.env.FRONTEND_URL
+    },
+    platform: {
+      node_version: process.version,
+      platform: process.platform,
+      cwd: process.cwd(),
+      __dirname: __dirname
     }
   });
 });

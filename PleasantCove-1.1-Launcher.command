@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Pleasant Cove Design v1.1 Launcher
+# Pleasant Cove Design v1.1 Launcher - Production Mode
 cd "/Users/bendickinson/Desktop/pleasantcovedesign/pleasantcovedesign"
 
 # Colors for output
@@ -10,33 +10,43 @@ RED='\033[0;31m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-echo -e "${BLUE}🚀 Pleasant Cove Design v1.1 Launcher${NC}"
-echo -e "${BLUE}===========================================${NC}"
+echo -e "${BLUE}🚀 Pleasant Cove Design v1.1 Launcher - Production Mode${NC}"
+echo -e "${BLUE}===============================================${NC}"
 
-# Kill any existing processes on both ports
-echo -e "${YELLOW}🔧 Cleaning up existing processes...${NC}"
-pkill -f "tsx server" 2>/dev/null || true
-lsof -ti:3000 | xargs kill -9 2>/dev/null || true
+# Kill any existing local processes
+echo -e "${YELLOW}🔧 Cleaning up existing local processes...${NC}"
+pkill -f "vite" 2>/dev/null || true
 lsof -ti:5173 | xargs kill -9 2>/dev/null || true
 
 # Wait for cleanup
 sleep 2
 
-# Start BOTH backend and React UI
-echo -e "${YELLOW}🚀 Starting Backend Server and React UI...${NC}"
+# Test Railway backend connection
+echo -e "${YELLOW}🔗 Testing Railway backend connection...${NC}"
+if curl -s https://pcd-production-clean-production.up.railway.app/api/health > /dev/null 2>&1; then
+    echo -e "${GREEN}✅ Railway backend is online!${NC}"
+else
+    echo -e "${RED}❌ Cannot connect to Railway backend${NC}"
+    echo -e "${RED}Please check Railway deployment status${NC}"
+    exit 1
+fi
+
+# Start ONLY the React Admin UI (connects to Railway backend)
+echo -e "${YELLOW}🚀 Starting Admin UI (connecting to Railway backend)...${NC}"
+cd admin-ui
 npm run dev &
-SERVER_PID=$!
+UI_PID=$!
 
-# Wait for both backend and frontend to start
-echo -e "${YELLOW}⏳ Waiting for system to initialize...${NC}"
-sleep 12
+# Wait for frontend to start
+echo -e "${YELLOW}⏳ Waiting for Admin UI to initialize...${NC}"
+sleep 8
 
-# Test if backend server is running
-if curl -s http://localhost:3000/health > /dev/null 2>&1; then
+# Test if Admin UI is running
+if curl -s http://localhost:5173 > /dev/null 2>&1; then
     echo -e "${GREEN}✅ Pleasant Cove Design v1.1 is running successfully!${NC}"
     echo -e "${GREEN}📍 Admin UI: http://localhost:5173${NC}"
-    echo -e "${GREEN}🔗 Backend API: http://localhost:3000/api/*${NC}"
-    echo -e "${GREEN}🎯 Webhook URL: http://localhost:3000/api/new-lead${NC}"
+    echo -e "${GREEN}🔗 Backend API: https://pcd-production-clean-production.up.railway.app/api${NC}"
+    echo -e "${GREEN}🎯 Webhook URL: https://pcd-production-clean-production.up.railway.app/api/new-lead${NC}"
     echo ""
     echo -e "${BLUE}📋 Quick Access:${NC}"
     echo -e "${BLUE}• Dashboard: http://localhost:5173/dashboard${NC}"
@@ -48,13 +58,14 @@ if curl -s http://localhost:3000/health > /dev/null 2>&1; then
     open http://localhost:5173/inbox
     
     echo -e "${GREEN}🎉 System is ready!${NC}"
-    echo -e "${YELLOW}💡 Press Ctrl+C in terminal to stop the server${NC}"
+    echo -e "${YELLOW}💡 Press Ctrl+C in terminal to stop the UI${NC}"
+    echo -e "${BLUE}ℹ️  Backend running on Railway (always available)${NC}"
     
     # Keep the script running so user can see the output
-    wait $SERVER_PID
+    wait $UI_PID
 else
     echo -e "${RED}❌ Failed to start Pleasant Cove Design v1.1${NC}"
     echo -e "${RED}Please check for errors above and try again${NC}"
-    kill $SERVER_PID 2>/dev/null || true
+    kill $UI_PID 2>/dev/null || true
     exit 1
 fi 

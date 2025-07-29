@@ -9,8 +9,8 @@ const getApiBaseUrl = () => {
     return `${env.VITE_API_URL}/api`;
   }
   
-  // Use production server by default for consistent experience
-  return 'https://pleasantcovedesign-production.up.railway.app/api';
+  // Use Railway production server by default for consistent experience
+  return 'https://pcd-production-clean-production.up.railway.app/api';
 };
 
 // Export base URL for WebSocket connections
@@ -20,8 +20,8 @@ export const getWebSocketUrl = () => {
     return env.VITE_WS_URL;
   }
   
-  // Use production server by default
-  return 'https://pleasantcovedesign-production.up.railway.app';
+  // Use Railway production WebSocket by default
+  return 'https://pcd-production-clean-production.up.railway.app';
 };
 
 const api = axios.create({

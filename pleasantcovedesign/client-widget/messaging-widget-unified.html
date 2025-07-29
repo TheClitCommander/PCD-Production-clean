@@ -659,8 +659,8 @@
                     window.location.hostname === '::1' ||
                     window.location.port === '8080' ||
                     window.location.href.includes('localhost:')) {
-                    console.debug('[WIDGET] detectBackendUrl dev → http://localhost:3000');
-                    return 'http://localhost:3000';
+                    console.debug('[WIDGET] detectBackendUrl dev → https://pcd-production-clean-production.up.railway.app');
+return 'https://pcd-production-clean-production.up.railway.app';
                 }
                 
                 // Squarespace domains (including trial sites)
@@ -686,8 +686,8 @@
                 
                 // file:// fallback
                 if (window.location.protocol === 'file:') {
-                    console.debug('[WIDGET] detectBackendUrl file:// → http://localhost:3000');
-                    return 'http://localhost:3000';
+                    console.debug('[WIDGET] detectBackendUrl file:// → https://pcd-production-clean-production.up.railway.app');
+return 'https://pcd-production-clean-production.up.railway.app';
                 }
                 
                 // Default to Railway production for any other HTTPS sites

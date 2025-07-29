@@ -356,15 +356,43 @@ async function startServer() {
   try {
     console.log('🔧 Starting server initialization...');
     
+    // Test database connection first
+    try {
+      console.log('🔧 Testing storage initialization...');
+      // Simple test to see if storage is working
+      await storage.getCompanies();
+      console.log('✅ Storage test successful');
+    } catch (storageError) {
+      console.error('⚠️  Storage test failed:', storageError);
+      console.log('🔄 Server will continue with limited functionality');
+    }
+    
     // Register all routes
     console.log('🔧 Registering routes...');
-    await registerRoutes(app, io);
-    console.log('✅ Routes registered successfully');
+    try {
+      await registerRoutes(app, io);
+      console.log('✅ Routes registered successfully');
+    } catch (routeError) {
+      console.error('❌ Failed to register routes:', routeError);
+      // Add minimal health route if main routes fail
+      app.get('/api/health', (req, res) => {
+        res.status(200).json({ 
+          status: 'limited', 
+          timestamp: new Date().toISOString(),
+          message: 'Server running with limited functionality'
+        });
+      });
+      console.log('⚠️  Added fallback health route');
+    }
     
     // Register demo serving routes
     console.log('🔧 Registering demo routes...');
-    app.use('/api', demoRoutes);
-    console.log('✅ Demo routes registered successfully');
+    try {
+      app.use('/api', demoRoutes);
+      console.log('✅ Demo routes registered successfully');
+    } catch (demoError) {
+      console.error('⚠️  Demo routes failed:', demoError);
+    }
     
     // Error handling middleware (must be last)
     app.use(errorHandler);

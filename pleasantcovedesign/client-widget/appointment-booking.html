@@ -1666,17 +1666,24 @@ SUPPORT: pleasantcovedesign@gmail.com | (207) 380-5680
         // ==================
         
         function getApiUrl() {
-            // *** LOCAL DEVELOPMENT VERSION - 2025-07-16 ***
-            // This version is configured for local development testing
+            // Updated for Railway production deployment
+            // Always use Railway production URL unless specifically on localhost for development
             
-            // Local development URL (this widget is for localhost testing)
-            const LOCAL_API_URL = 'http://localhost:3000';
+            const hostname = window.location.hostname;
             
-            console.log('🏠 Using LOCAL API for development testing:', LOCAL_API_URL);
-            console.log('📅 Widget Version: Local Development - 2025-07-16');
-            console.log('📍 This connects to your local development server');
+            // Only use localhost if we're actually on localhost for development
+            if (hostname === 'localhost' || hostname === '127.0.0.1') {
+                console.log('🏠 Using LOCAL API for development testing:', 'http://localhost:3000');
+                return 'http://localhost:3000';
+            }
             
-            return LOCAL_API_URL;
+            // All other cases (Squarespace, file://, production) use Railway
+            const PRODUCTION_API_URL = 'https://pcd-production-clean-production.up.railway.app';
+            console.log('🚀 Using PRODUCTION Railway API:', PRODUCTION_API_URL);
+            console.log('📅 Widget Version: Production Railway - 2025-01-18');
+            console.log('📍 This connects to Railway production server');
+            
+            return PRODUCTION_API_URL;
         }
 
         // ==================

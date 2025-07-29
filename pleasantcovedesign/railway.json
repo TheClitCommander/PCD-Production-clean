@@ -16,10 +16,10 @@
       "variables": {
         "NODE_ENV": "production",
         "PORT": "3000",
-        "DEPLOY_URL": "https://pleasantcovedesign-production.up.railway.app",
-        "FRONTEND_URL": "https://pleasantcovedesign-production.up.railway.app",
+        "DEPLOY_URL": "https://pcd-production-clean-production.up.railway.app",
+        "FRONTEND_URL": "https://pcd-production-clean-production.up.railway.app",
         "FROM_EMAIL": "support@pleasantcovedesign.com",
-        "ALLOWED_ORIGINS": "https://pleasantcovedesign-production.up.railway.app,https://www.pleasantcovedesign.com,https://nectarine-sparrow-dwsp.squarespace.com",
+        "ALLOWED_ORIGINS": "https://pcd-production-clean-production.up.railway.app,https://www.pleasantcovedesign.com,https://nectarine-sparrow-dwsp.squarespace.com",
         "ADMIN_EMAIL": "ben04537@gmail.com",
         "LOG_LEVEL": "info",
         "ENABLE_METRICS": "true",

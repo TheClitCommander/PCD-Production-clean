@@ -698,11 +698,18 @@ export class Storage {
 function createStorage() {
   const databaseUrl = process.env.DATABASE_URL;
   
-  if (databaseUrl) {
-    console.log('🐘 Using PostgreSQL storage (persistent)');
-    return new PostgreSQLStorage(databaseUrl);
-  } else {
-    console.log('💾 Using in-memory storage (development)');
+  try {
+    if (databaseUrl) {
+      console.log('🐘 Using PostgreSQL storage (persistent)');
+      console.log('🔗 Database URL configured:', databaseUrl.substring(0, 20) + '...');
+      return new PostgreSQLStorage(databaseUrl);
+    } else {
+      console.log('💾 Using in-memory storage (development)');
+      return new Storage();
+    }
+  } catch (error) {
+    console.error('❌ Failed to initialize storage:', error);
+    console.log('🔄 Falling back to in-memory storage');
     return new Storage();
   }
 }

@@ -17,16 +17,71 @@ export class PostgreSQLStorage {
 
   private async initializeTables() {
     try {
-      // Read and execute schema
+      console.log('🔧 Initializing PostgreSQL tables...');
+      
+      // Try multiple possible paths for schema.sql
       const fs = await import('fs');
       const path = await import('path');
-      const schemaPath = path.join(process.cwd(), 'server', 'schema.sql');
-      const schema = fs.readFileSync(schemaPath, 'utf8');
+      
+      const possiblePaths = [
+        path.join(process.cwd(), 'server', 'schema.sql'),
+        path.join(process.cwd(), 'pleasantcovedesign', 'server', 'schema.sql'),
+        path.join(__dirname, 'schema.sql'),
+        path.join(__dirname, '..', 'schema.sql')
+      ];
+      
+      let schema: string | null = null;
+      let usedPath: string | null = null;
+      
+      for (const schemaPath of possiblePaths) {
+        try {
+          if (fs.existsSync(schemaPath)) {
+            schema = fs.readFileSync(schemaPath, 'utf8');
+            usedPath = schemaPath;
+            console.log(`✅ Found schema.sql at: ${schemaPath}`);
+            break;
+          }
+        } catch (err) {
+          console.log(`⚠️  Could not read schema from: ${schemaPath}`);
+        }
+      }
+      
+      if (!schema) {
+        console.log('⚠️  schema.sql not found, using inline table creation');
+        // Inline minimal schema for Railway
+        schema = `
+          CREATE TABLE IF NOT EXISTS companies (
+            id SERIAL PRIMARY KEY,
+            name VARCHAR(255) NOT NULL,
+            email VARCHAR(255) UNIQUE,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+          );
+          
+          CREATE TABLE IF NOT EXISTS projects (
+            id SERIAL PRIMARY KEY,
+            company_id INTEGER REFERENCES companies(id),
+            title VARCHAR(255) NOT NULL,
+            access_token VARCHAR(255) UNIQUE,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+          );
+          
+          CREATE TABLE IF NOT EXISTS project_messages (
+            id SERIAL PRIMARY KEY,
+            project_id INTEGER REFERENCES projects(id),
+            sender_type VARCHAR(20) NOT NULL,
+            sender_name VARCHAR(255) NOT NULL,
+            content TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+          );
+        `;
+      }
       
       await this.pool.query(schema);
-      console.log('✅ PostgreSQL tables initialized');
+      console.log('✅ PostgreSQL tables initialized successfully');
     } catch (error) {
       console.error('❌ Failed to initialize PostgreSQL tables:', error);
+      // Don't throw - allow server to continue with degraded functionality
+      console.log('⚠️  Server will continue with limited database functionality');
     }
   }
 

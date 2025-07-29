@@ -21,8 +21,9 @@ import { requestLogger, errorHandler, performanceMonitor } from './middleware/lo
 import { createCorsMiddleware } from './middleware/cors';
 import demoRoutes from './demo-routes';
 
-// For CommonJS compatibility
-const __dirname = path.dirname(__filename);
+// ES modules compatibility - avoid __dirname conflicts
+const __filename = fileURLToPath(import.meta.url);
+const __main_dirname = path.dirname(__filename);
 
 const app = express();
 const server = createServer(app);
@@ -183,20 +184,20 @@ app.use((req, res, next) => {
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 // Serve static files from React build (if they exist)
-const buildPath = path.join(__dirname, '../dist/client');
+const buildPath = path.join(__main_dirname, '../dist/client');
 if (fs.existsSync(buildPath)) {
   app.use(express.static(buildPath));
 }
 
 // Serve client widget files
-const widgetPath = path.join(__dirname, '../client-widget');
+const widgetPath = path.join(__main_dirname, '../client-widget');
 if (fs.existsSync(widgetPath)) {
   app.use('/client-widget', express.static(widgetPath));
   console.log('📁 Serving client widget from:', widgetPath);
 }
 
 // Serve uploaded files from uploads directory with proper headers
-const uploadsPath = path.join(__dirname, '../uploads');
+const uploadsPath = path.join(__main_dirname, '../uploads');
 app.use('/uploads', (req, res, next) => {
   // Add headers for cross-origin image access
   res.header('Access-Control-Allow-Origin', '*');

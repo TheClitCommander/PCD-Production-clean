@@ -19,7 +19,12 @@ export function createCorsMiddleware() {
     'https://admin.pleasantcovedesign.com',
     'https://api.pleasantcovedesign.com',
     'https://pcd-production-clean-production-e6f3.up.railway.app',
+    // Squarespace domains - specific site
     'https://nectarine-sparrow-dwsp.squarespace.com',
+    // Additional Squarespace variants that might be needed
+    'https://nectarine-sparrow-dwsp.sqsp.net',
+    'https://www.nectarine-sparrow-dwsp.squarespace.com',
+    // Development/testing
     'https://1ce2-2603-7080-e501-3f6a-59ca-c294-1beb-ddfc.ngrok-free.app',
     'http://192.168.1.87:3000'
   ];
@@ -48,8 +53,14 @@ export function createCorsMiddleware() {
         return callback(null, true);
       }
 
-      // Allow Squarespace domains (dynamic check)
-      if (origin.includes('.squarespace.com') || origin.includes('.squarespace-cdn.com')) {
+      // Allow Squarespace domains (dynamic check) - Enhanced for all Squarespace variants
+      if (origin.includes('.squarespace.com') || 
+          origin.includes('.squarespace-cdn.com') ||
+          origin.includes('.sqsp.net') ||
+          origin.includes('.squarespace-internal.com') ||
+          origin.includes('.squarespace.dev') ||
+          origin.includes('squarespace.com')) {
+        console.log(`✅ CORS: Allowing Squarespace domain: ${origin}`);
         return callback(null, true);
       }
 

@@ -21,7 +21,7 @@ const getApiBaseUrl = () => {
   ];
 
   if (prodHosts.some(h => host === h)) {
-    return 'https://pcd-production-clean-production.up.railway.app/api';
+    return 'https://YOUR_NEW_RAILWAY_URL.up.railway.app/api';
   }
 
   // 2. If we are served from 127.0.0.1/localhost – developer mode
@@ -30,7 +30,7 @@ const getApiBaseUrl = () => {
   }
 
   // 3. Fallback (Netlify preview, Vercel, Codesandbox, etc.) – use Railway as default
-  return 'https://pcd-production-clean-production.up.railway.app/api';
+  return 'https://YOUR_NEW_RAILWAY_URL.up.railway.app/api';
 };
 
 // Export base URL for WebSocket connections
@@ -44,14 +44,14 @@ export const getWebSocketUrl = () => {
   const host = window.location.hostname;
 
   if (['pleasantcovedesign.com','www.pleasantcovedesign.com','admin.pleasantcovedesign.com'].includes(host)) {
-    return 'https://pcd-production-clean-production.up.railway.app';
+    return 'https://YOUR_NEW_RAILWAY_URL.up.railway.app';
   }
 
   if (host.includes('localhost') || host.includes('127.0.0.1')) {
     return 'http://localhost:3000';
   }
 
-  return 'https://pcd-production-clean-production.up.railway.app';
+  return 'https://YOUR_NEW_RAILWAY_URL.up.railway.app';
 };
 
 const api = axios.create({

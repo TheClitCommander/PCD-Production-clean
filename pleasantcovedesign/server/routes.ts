@@ -5,7 +5,7 @@ import type { Business } from "../shared/schema";
 import { nanoid } from "nanoid";
 import nodemailer from 'nodemailer';
 import path from 'path';
-import { fileURLToPath } from 'url';
+// Removed fileURLToPath import - using __filename directly
 import multer from 'multer';
 import multerS3 from 'multer-s3';
 import AWS from 'aws-sdk';
@@ -30,8 +30,8 @@ import { processAIChat, storeUserMessage } from './ai-service';
 import { createPaymentLink, verifyWebhookSignature } from './stripe-config';
 import { sendReceiptEmail, sendWelcomeEmail, sendInvoiceEmail } from './email-service';
 
-const __routes_filename = fileURLToPath(import.meta.url);
-const __routes_dirname = path.dirname(__routes_filename);
+// Use CommonJS compatible approach - avoid import.meta.url
+const __routes_dirname = path.dirname(__filename);
 
 // Configure Cloudflare R2 (S3-compatible) storage
 const useR2Storage = !!(process.env.R2_ENDPOINT && process.env.R2_ACCESS_KEY_ID && process.env.R2_SECRET_ACCESS_KEY && process.env.R2_BUCKET);

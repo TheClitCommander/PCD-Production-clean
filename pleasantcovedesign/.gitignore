@@ -55,3 +55,4 @@ broken_backups/
 venv/
 __pycache__/
 *.pyc
+*.backup

@@ -4,7 +4,7 @@
 
 import fs from 'fs';
 import path from 'path';
-import { Company, Project, Message, ProjectFile, Activity, AIChatMessage, Order } from '../shared/schema.js';
+import { Company, Project, Message, ProjectFile, Activity, AIChatMessage, Order } from '../shared/schema';
 
 // Persistent storage file paths
 const DATA_DIR = path.join(process.cwd(), 'data');

@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { PostgreSQLStorage } from './postgres-storage.js';
+import { PostgreSQLStorage } from './postgres-storage';
 
 async function seedProductionDatabase() {
   console.log('🌱 Starting production database seeding...');

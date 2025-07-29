@@ -1,6 +1,6 @@
 // @ts-nocheck
 import { Pool } from 'pg';
-import type { Business, NewBusiness, Activity, NewActivity, Company, NewCompany, Project, NewProject, ProjectMessage, ProjectFile, AIChatMessage } from "../shared/schema.js";
+import type { Business, NewBusiness, Activity, NewActivity, Company, NewCompany, Project, NewProject, ProjectMessage, ProjectFile, AIChatMessage } from "../shared/schema";
 
 export class PostgreSQLStorage {
   private pool: Pool;

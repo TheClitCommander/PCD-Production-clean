@@ -1,5 +1,5 @@
 import OpenAI from 'openai';
-import { storage } from './storage.js';
+import { storage } from './storage';
 import dotenv from 'dotenv';
 
 // Ensure dotenv is loaded

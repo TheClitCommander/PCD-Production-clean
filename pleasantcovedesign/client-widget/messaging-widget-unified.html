@@ -666,15 +666,15 @@
                 // Squarespace domains (including trial sites)
                 if (window.location.hostname.includes('.squarespace.com') ||
                     window.location.hostname.includes('.sqsp.net')) {
-                    console.debug('[WIDGET] detectBackendUrl Squarespace → https://pleasantcovedesign-production.up.railway.app');
-                    return 'https://pleasantcovedesign-production.up.railway.app';
+                    console.debug('[WIDGET] detectBackendUrl Squarespace → https://pcd-production-clean-production.up.railway.app');
+                    return 'https://pcd-production-clean-production.up.railway.app';
                 }
                 
                 // Production domain - ALWAYS use Railway for pleasantcovedesign.com
                 if (window.location.hostname === 'www.pleasantcovedesign.com' || 
                     window.location.hostname === 'pleasantcovedesign.com') {
-                    console.debug('[WIDGET] detectBackendUrl production → https://pleasantcovedesign-production.up.railway.app');
-                    return 'https://pleasantcovedesign-production.up.railway.app';
+                    console.debug('[WIDGET] detectBackendUrl production → https://pcd-production-clean-production.up.railway.app');
+                    return 'https://pcd-production-clean-production.up.railway.app';
                 }
                 
                 // iframe override
@@ -691,8 +691,8 @@
                 }
                 
                 // Default to Railway production for any other HTTPS sites
-                console.debug('[WIDGET] detectBackendUrl default → https://pleasantcovedesign-production.up.railway.app');
-                return 'https://pleasantcovedesign-production.up.railway.app';
+                console.debug('[WIDGET] detectBackendUrl default → https://pcd-production-clean-production.up.railway.app');
+                return 'https://pcd-production-clean-production.up.railway.app';
             }
             
             showNgrokError() {

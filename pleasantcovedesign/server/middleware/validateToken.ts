@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { validateTokenFormat } from '../utils/tokenGenerator.js';
+import { validateTokenFormat } from '../utils/tokenGenerator';
 
 // Extend Request interface to include project
 declare global {

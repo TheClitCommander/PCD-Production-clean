@@ -1,4 +1,4 @@
-import { Storage } from '../storage.js';
+import { Storage } from '../storage';
 
 /**
  * Smart Client Attribution System

@@ -4,21 +4,21 @@ import { createServer } from "http";
 import path from "path";
 import fs from "fs";
 import { fileURLToPath } from "url";
-import { registerRoutes } from "./routes.js";
-import { storage } from './storage.js';
+import { registerRoutes } from "./routes";
+import { storage } from './storage';
 import { Server } from 'socket.io';
 
 // Load environment variables FIRST before importing anything else
 dotenv.config({ path: resolve(process.cwd(), '.env') });
 
-// Debug: Log environment variable loading
+// Debug: Log environment variable loading - Railway deployment fix
 console.log('🔧 Environment variables loaded');
 
 import express, { type Express } from "express";
 import cors from "cors";
-import { createR2Storage } from './storage/r2-storage.js';
-import { requestLogger, errorHandler, performanceMonitor } from './middleware/logging.js';
-import demoRoutes from './demo-routes.js';
+import { createR2Storage } from './storage/r2-storage';
+import { requestLogger, errorHandler, performanceMonitor } from './middleware/logging';
+import demoRoutes from './demo-routes';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -51,7 +51,7 @@ const io = new Server(server, {
       'http://pleasantcovedesign.com',
       /pleasantcove/,
       // Railway production
-      'https://pleasantcovedesign-production.up.railway.app',
+      'https://pcd-production-clean-production.up.railway.app',
       // Local IP for mobile access
       'http://192.168.1.87:3000',
       // ngrok support
@@ -169,7 +169,7 @@ const allowedOrigins = [
   'http://localhost:3000', // Local server
   'http://localhost:8080', // Test server for widget testing
   'http://192.168.1.87:3000', // Local server via IP for mobile access
-  'https://pleasantcovedesign-production.up.railway.app', // Production frontend
+  'https://pcd-production-clean-production.up.railway.app', // Production frontend
   'https://www.pleasantcovedesign.com', // Squarespace production
   'https://nectarine-sparrow-dwsp.squarespace.com', // Squarespace test site
   'https://1ce2-2603-7080-e501-3f6a-59ca-c294-1beb-ddfc.ngrok-free.app', // ngrok for HTTPS compatibility

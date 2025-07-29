@@ -1,13 +1,13 @@
 {
   "name": "server",
   "version": "1.0.0",
-  "description": "Pleasant Cove Design Server - Production Ready",
+  "description": "Backend server for Pleasant Cove Design - Railway fix - 20250129",
   "main": "dist/index.js",
-  "type": "module",
   "scripts": {
     "dev": "tsx watch index.ts",
-    "build": "echo 'Build completed'",
-    "start": "tsx index.ts",
+    "build": "echo 'Build step skipped'",
+    "start": "ts-node index.ts",
+    "railway-fix": "echo 'Railway deployment fix'",
     "test": "NODE_OPTIONS='--experimental-vm-modules' jest",
     "test:watch": "NODE_OPTIONS='--experimental-vm-modules' jest --watch",
     "test:coverage": "NODE_OPTIONS='--experimental-vm-modules' jest --coverage"

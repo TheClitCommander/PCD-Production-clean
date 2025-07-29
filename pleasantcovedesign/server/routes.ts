@@ -1,7 +1,7 @@
 // @ts-nocheck
 import express, { type Request, Response, NextFunction, Express } from "express";
-import { storage } from "./storage.js";
-import type { Business } from "../shared/schema.js";
+import { storage } from "./storage";
+import type { Business } from "../shared/schema";
 import { nanoid } from "nanoid";
 import nodemailer from 'nodemailer';
 import path from 'path';
@@ -12,23 +12,23 @@ import AWS from 'aws-sdk';
 import fs from 'fs';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
-import uploadRoutes from './uploadRoutes.js';
+import uploadRoutes from './uploadRoutes';
 import { 
   generateSecureProjectToken, 
   generateConversationMetadata, 
   validateTokenFormat 
-} from './utils/tokenGenerator.js';
-import { zoomIntegration } from './zoom-integration.js';
+} from './utils/tokenGenerator';
+import { zoomIntegration } from './zoom-integration';
 import { 
   validateChatToken, 
   securityLoggingMiddleware, 
   rateLimitConversations 
-} from './middleware/validateToken.js';
-import { authenticate, requireAdmin } from './middleware/auth.js';
-import { requestLogger, errorHandler, performanceMonitor, getHealthStats } from './middleware/logging.js';
-import { processAIChat, storeUserMessage } from './ai-service.js';
-import { createPaymentLink, verifyWebhookSignature } from './stripe-config.js';
-import { sendReceiptEmail, sendWelcomeEmail, sendInvoiceEmail } from './email-service.js';
+} from './middleware/validateToken';
+import { authenticate, requireAdmin } from './middleware/auth';
+import { requestLogger, errorHandler, performanceMonitor, getHealthStats } from './middleware/logging';
+import { processAIChat, storeUserMessage } from './ai-service';
+import { createPaymentLink, verifyWebhookSignature } from './stripe-config';
+import { sendReceiptEmail, sendWelcomeEmail, sendInvoiceEmail } from './email-service';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

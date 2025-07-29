@@ -1,8 +1,8 @@
 // @ts-nocheck
 // Low-level file storage system for Pleasant Cove Design
-import { db } from "./db.js";
-import { PostgreSQLStorage } from "./postgres-storage.js";
-import type { Business, NewBusiness, Activity, NewActivity, Company, NewCompany, Project, NewProject, ProjectMessage, ProjectFile, AIChatMessage, Order } from "../shared/schema.js";
+import { db } from "./db";
+import { PostgreSQLStorage } from "./postgres-storage";
+import type { Business, NewBusiness, Activity, NewActivity, Company, NewCompany, Project, NewProject, ProjectMessage, ProjectFile, AIChatMessage, Order } from "../shared/schema";
 import { eq } from "drizzle-orm";
 
 // Mock schema objects for the in-memory database

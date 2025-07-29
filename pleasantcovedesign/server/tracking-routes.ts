@@ -10,20 +10,20 @@ function callPythonTracker(script: string, args: string[] = []): Promise<any> {
     const pythonPath = path.join(process.cwd(), '..', 'protection_env', 'bin', 'python');
     const scriptPath = path.join(process.cwd(), '..', script);
     
-    const process = spawn(pythonPath, [scriptPath, ...args]);
+    const childProcess = spawn(pythonPath, [scriptPath, ...args]);
     
     let output = '';
     let error = '';
     
-    process.stdout.on('data', (data) => {
+    childProcess.stdout.on('data', (data) => {
       output += data.toString();
     });
     
-    process.stderr.on('data', (data) => {
+    childProcess.stderr.on('data', (data) => {
       error += data.toString();
     });
     
-    process.on('close', (code) => {
+    childProcess.on('close', (code) => {
       if (code === 0) {
         try {
           resolve(JSON.parse(output));
@@ -54,7 +54,7 @@ router.post('/api/track/view', async (req, res) => {
     res.json(result);
   } catch (error) {
     console.error('View tracking failed:', error);
-    res.status(500).json({ tracked: false, error: error.message });
+    res.status(500).json({ tracked: false, error: error instanceof Error ? error.message : String(error) });
   }
 });
 
@@ -74,7 +74,7 @@ router.post('/api/track/click', async (req, res) => {
     res.json(result);
   } catch (error) {
     console.error('Click tracking failed:', error);
-    res.status(500).json({ tracked: false, error: error.message });
+    res.status(500).json({ tracked: false, error: error instanceof Error ? error.message : String(error) });
   }
 });
 
@@ -91,7 +91,7 @@ router.get('/api/leads/:id/tracking', async (req, res) => {
     res.json(result);
   } catch (error) {
     console.error('Failed to get lead tracking:', error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: error instanceof Error ? error.message : String(error) });
   }
 });
 
@@ -107,7 +107,7 @@ router.get('/api/leads/tracking/summary', async (req, res) => {
     res.json(result);
   } catch (error) {
     console.error('Failed to get tracking summary:', error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: error instanceof Error ? error.message : String(error) });
   }
 });
 
@@ -127,7 +127,7 @@ router.post('/api/leads/:id/status', async (req, res) => {
     res.json(result);
   } catch (error) {
     console.error('Failed to update lead status:', error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: error instanceof Error ? error.message : String(error) });
   }
 });
 
@@ -145,7 +145,7 @@ router.post('/api/leads/:id/generate-demo', async (req, res) => {
     res.json(result);
   } catch (error) {
     console.error('Failed to generate tracked demo:', error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: error instanceof Error ? error.message : String(error) });
   }
 });
 
@@ -164,7 +164,7 @@ router.post('/api/track/message', async (req, res) => {
     res.json(result);
   } catch (error) {
     console.error('Failed to log message:', error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: error instanceof Error ? error.message : String(error) });
   }
 });
 

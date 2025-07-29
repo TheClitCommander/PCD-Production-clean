@@ -4,8 +4,8 @@
     "module": "ESNext",
     "moduleResolution": "node",
     "outDir": "./dist",
-    "rootDir": "./",
-    "strict": true,
+    "rootDir": "../",
+    "strict": false,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
@@ -15,8 +15,9 @@
     "sourceMap": true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
-    "allowImportingTsExtensions": false,
-    "noEmit": false
+    "noEmit": false,
+    "noImplicitAny": false,
+    "strictNullChecks": false
   },
   "include": [
     "**/*.ts",

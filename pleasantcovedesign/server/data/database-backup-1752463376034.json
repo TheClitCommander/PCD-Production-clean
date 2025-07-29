@@ -1,0 +1,1699 @@
+{
+  "companies": [
+    {
+      "id": 1,
+      "name": "Ben Dickinson",
+      "email": "ben04537@gmail.com",
+      "phone": "",
+      "address": "",
+      "city": "",
+      "state": "",
+      "industry": "Testing",
+      "website": "",
+      "priority": "medium",
+      "tags": [],
+      "notes": "",
+      "createdAt": "2025-06-16T19:32:13.603Z",
+      "updatedAt": "2025-06-16T19:32:13.604Z"
+    },
+    {
+      "name": "max powers1.1",
+      "email": "harborsuits@gmail.com",
+      "phone": "No phone provided",
+      "address": "",
+      "city": "",
+      "state": "",
+      "website": "",
+      "industry": "Web Design Client",
+      "tags": [],
+      "priority": "medium",
+      "id": 8,
+      "createdAt": "2025-06-16T19:36:16.714Z"
+    },
+    {
+      "name": "Ben",
+      "email": "68484054695550705cd5c082@squarespace.member",
+      "phone": "",
+      "address": "",
+      "city": "",
+      "state": "",
+      "website": "",
+      "industry": "Web Design Client",
+      "tags": [],
+      "priority": "medium",
+      "id": 142,
+      "createdAt": "2025-06-18T18:16:22.653Z"
+    },
+    {
+      "name": "Ben",
+      "email": "68365f41ad68c86a876dcdba@squarespace.member",
+      "phone": "",
+      "address": "",
+      "city": "",
+      "state": "",
+      "website": "",
+      "industry": "Web Design Client",
+      "tags": [],
+      "priority": "medium",
+      "id": 219,
+      "createdAt": "2025-06-20T06:36:01.749Z"
+    },
+    {
+      "name": "Garth",
+      "email": "6854f35d01f8fa5d1c4e8e1a@squarespace.member",
+      "phone": "",
+      "industry": "Web Design Client",
+      "tags": [
+        "squarespace-member"
+      ],
+      "id": 239,
+      "createdAt": "2025-06-20T16:35:27.133Z"
+    }
+  ],
+  "projects": [
+    {
+      "companyId": 8,
+      "title": "max powers1.1 - Conversation 1750102576",
+      "type": "website",
+      "stage": "discovery",
+      "status": "active",
+      "totalAmount": 5000,
+      "paidAmount": 0,
+      "accessToken": "Ae06uIlLwd2HlhzmojmxEwFt",
+      "id": 9,
+      "createdAt": "2025-06-16T19:36:16.715Z"
+    },
+    {
+      "companyId": 1,
+      "title": "Test Fixed User - Conversation 1750376580814",
+      "type": "consultation",
+      "stage": "discovery",
+      "status": "active",
+      "totalAmount": 0,
+      "paidAmount": 0,
+      "accessToken": "mc410tla_OZWbLvupcw1x8CHnSqGwtw",
+      "id": 151,
+      "createdAt": "2025-06-19T23:43:00.814Z"
+    },
+    {
+      "companyId": 142,
+      "title": "Ben - 2025-06-20 - Session HC9AXW",
+      "type": "consultation",
+      "stage": "discovery",
+      "status": "active",
+      "totalAmount": 0,
+      "paidAmount": 0,
+      "accessToken": "mc4gfz4q_R_tiUWQwQb_wJd4gk799Tw",
+      "id": 231,
+      "createdAt": "2025-06-20T06:54:42.074Z"
+    },
+    {
+      "companyId": 219,
+      "title": "Ben - 2025-06-20 - Session QEMJNX",
+      "type": "consultation",
+      "stage": "discovery",
+      "status": "active",
+      "totalAmount": 0,
+      "paidAmount": 0,
+      "accessToken": "mc50o9qu_69gdwmMznqd-4weVuSkXxQ",
+      "id": 235,
+      "createdAt": "2025-06-20T16:21:01.398Z"
+    },
+    {
+      "companyId": 239,
+      "title": "Garth - Member Conversation",
+      "type": "consultation",
+      "status": "active",
+      "accessToken": "mc516tr5_CSU4OUADdSIHB3AXxZPpbw",
+      "id": 240,
+      "createdAt": "2025-06-20T16:35:27.137Z"
+    }
+  ],
+  "projectMessages": [
+    {
+      "projectId": 9,
+      "senderType": "client",
+      "senderName": "max powers1.1",
+      "content": "hey",
+      "attachments": [],
+      "id": 11,
+      "createdAt": "2025-06-16T19:36:19.376Z"
+    },
+    {
+      "projectId": 9,
+      "senderType": "client",
+      "senderName": "max powers1.1",
+      "content": "sup",
+      "attachments": [],
+      "id": 13,
+      "createdAt": "2025-06-16T19:40:41.568Z"
+    },
+    {
+      "projectId": 9,
+      "senderType": "admin",
+      "senderName": "Ben Dickinson",
+      "content": "ntm",
+      "attachments": [],
+      "id": 15,
+      "createdAt": "2025-06-16T19:40:51.467Z"
+    },
+    {
+      "projectId": 9,
+      "senderType": "admin",
+      "senderName": "Ben Dickinson",
+      "content": "ntm hbu",
+      "attachments": [],
+      "id": 17,
+      "createdAt": "2025-06-16T19:40:56.697Z"
+    },
+    {
+      "projectId": 9,
+      "senderType": "admin",
+      "senderName": "Ben Dickinson",
+      "content": "hey",
+      "attachments": [],
+      "id": 19,
+      "createdAt": "2025-06-16T19:41:02.649Z"
+    },
+    {
+      "projectId": 9,
+      "senderType": "client",
+      "senderName": "max powers1.1",
+      "content": "whats up",
+      "attachments": [],
+      "id": 21,
+      "createdAt": "2025-06-16T19:41:06.950Z"
+    },
+    {
+      "projectId": 9,
+      "senderType": "admin",
+      "senderName": "Ben Dickinson",
+      "content": "ntm just working on a jib",
+      "attachments": [],
+      "id": 23,
+      "createdAt": "2025-06-16T19:41:18.682Z"
+    },
+    {
+      "projectId": 9,
+      "senderType": "client",
+      "senderName": "max powers1.1",
+      "content": "(File attachment)",
+      "attachments": [
+        "https://pleasantcovedesign-production.up.railway.app/uploads/project-Ae06uIlL-1750103173626-Screenshot_2025-06-10_at_12.47.14___PM.png"
+      ],
+      "id": 25,
+      "createdAt": "2025-06-16T19:46:13.631Z"
+    },
+    {
+      "projectId": 9,
+      "senderType": "client",
+      "senderName": "max powers1.1",
+      "content": "(File attachment)",
+      "attachments": [
+        "https://pleasantcovedesign-production.up.railway.app/uploads/project-Ae06uIlL-1750103594420-Screenshot_2025-06-12_at_10.24.19___PM.png"
+      ],
+      "id": 27,
+      "createdAt": "2025-06-16T19:53:14.428Z"
+    },
+    {
+      "projectId": 9,
+      "senderType": "client",
+      "senderName": "max powers1.1",
+      "content": "(File attachment)",
+      "attachments": [
+        "https://pleasantcovedesign-production.up.railway.app/uploads/project-Ae06uIlL-1750103899210-ChatGPT_Image_May_27__2025__04_38_15_PM.png"
+      ],
+      "id": 29,
+      "createdAt": "2025-06-16T19:58:19.216Z"
+    },
+    {
+      "projectId": 9,
+      "senderType": "client",
+      "senderName": "max powers1.1",
+      "content": "(File attachment)",
+      "attachments": [
+        "https://pleasantcovedesign-production.up.railway.app/uploads/project-Ae06uIlL-1750104155972-Screenshot_2025-06-10_at_12.47.14___PM.png"
+      ],
+      "id": 31,
+      "createdAt": "2025-06-16T20:02:35.978Z"
+    },
+    {
+      "projectId": 9,
+      "senderType": "client",
+      "senderName": "max powers1.1",
+      "content": "(File attachment)",
+      "attachments": [
+        "https://pleasantcovedesign-production.up.railway.app/uploads/project-Ae06uIlL-1750104497508-ChatGPT_Image_May_27__2025__04_38_15_PM.png"
+      ],
+      "id": 33,
+      "createdAt": "2025-06-16T20:08:17.516Z"
+    },
+    {
+      "projectId": 9,
+      "senderType": "client",
+      "senderName": "max powers1.1",
+      "content": "(File attachment)",
+      "attachments": [
+        "https://pleasantcovedesign-production.up.railway.app/uploads/project-Ae06uIlL-1750104733976-Screenshot_2025-06-12_at_10.24.19___PM.png"
+      ],
+      "id": 35,
+      "createdAt": "2025-06-16T20:12:13.985Z"
+    },
+    {
+      "projectId": 9,
+      "senderType": "admin",
+      "senderName": "Ben Dickinson",
+      "content": "hey",
+      "attachments": [],
+      "id": 37,
+      "createdAt": "2025-06-16T20:14:49.669Z"
+    },
+    {
+      "projectId": 9,
+      "senderType": "client",
+      "senderName": "max powers1.1",
+      "content": "yo",
+      "attachments": [],
+      "id": 39,
+      "createdAt": "2025-06-16T20:14:58.027Z"
+    },
+    {
+      "projectId": 9,
+      "senderType": "client",
+      "senderName": "max powers1.1",
+      "content": "whats good",
+      "attachments": [],
+      "id": 41,
+      "createdAt": "2025-06-16T20:24:34.767Z"
+    },
+    {
+      "projectId": 9,
+      "senderType": "admin",
+      "senderName": "Ben Dickinson",
+      "content": "(File attachment)",
+      "attachments": [
+        "https://pleasantcovedesign-production.up.railway.app/uploads/project-Ae06uIlL-1750105491964-Screenshot_2025-06-10_at_12.47.14___PM.png"
+      ],
+      "id": 43,
+      "createdAt": "2025-06-16T20:24:51.971Z"
+    },
+    {
+      "projectId": 9,
+      "senderType": "client",
+      "senderName": "max powers1.1",
+      "content": "(File attachment)",
+      "attachments": [
+        "https://pleasantcovedesign-production.up.railway.app/uploads/project-Ae06uIlL-1750122666628-ChatGPT_Image_May_27__2025__04_38_15_PM.png"
+      ],
+      "id": 45,
+      "createdAt": "2025-06-17T01:11:06.636Z"
+    },
+    {
+      "projectId": 151,
+      "senderType": "client",
+      "senderName": "Ben Dickinson",
+      "content": "hehy",
+      "attachments": [],
+      "id": 54,
+      "createdAt": "2025-06-17T01:32:10.208Z"
+    },
+    {
+      "projectId": 151,
+      "senderType": "client",
+      "senderName": "Ben Dickinson",
+      "content": "heuy",
+      "attachments": [],
+      "id": 56,
+      "createdAt": "2025-06-17T01:59:52.431Z"
+    },
+    {
+      "projectId": 151,
+      "senderType": "client",
+      "senderName": "Ben Dickinson",
+      "content": "yo",
+      "attachments": [],
+      "id": 58,
+      "createdAt": "2025-06-17T02:17:36.856Z"
+    },
+    {
+      "projectId": 151,
+      "senderType": "client",
+      "senderName": "Ben Dickinson",
+      "content": "yo",
+      "attachments": [],
+      "id": 60,
+      "createdAt": "2025-06-17T02:18:11.719Z"
+    },
+    {
+      "projectId": 151,
+      "senderType": "client",
+      "senderName": "Ben Dickinson",
+      "content": "sup",
+      "attachments": [],
+      "id": 62,
+      "createdAt": "2025-06-17T02:18:34.474Z"
+    },
+    {
+      "projectId": 151,
+      "senderType": "client",
+      "senderName": "Ben Dickinson",
+      "content": "yo",
+      "attachments": [],
+      "id": 76,
+      "createdAt": "2025-06-17T02:46:02.124Z"
+    },
+    {
+      "projectId": 151,
+      "senderType": "client",
+      "senderName": "Ben Dickinson",
+      "content": "hey",
+      "attachments": [],
+      "id": 78,
+      "createdAt": "2025-06-17T02:46:11.315Z"
+    },
+    {
+      "projectId": 151,
+      "senderType": "client",
+      "senderName": "Ben Dickinson",
+      "content": "yo",
+      "attachments": [],
+      "id": 80,
+      "createdAt": "2025-06-17T03:42:23.929Z"
+    },
+    {
+      "projectId": 151,
+      "senderType": "client",
+      "senderName": "API Test User",
+      "content": "Test message from API - should appear in Biz Pro Inbox immediately",
+      "attachments": [],
+      "id": 82,
+      "createdAt": "2025-06-17T03:43:12.139Z"
+    },
+    {
+      "projectId": 151,
+      "senderType": "client",
+      "senderName": "Integration Test",
+      "content": "🎉 INTEGRATION TEST: This message should appear INSTANTLY in Biz Pro Inbox via WebSocket!",
+      "attachments": [],
+      "id": 84,
+      "createdAt": "2025-06-17T03:45:26.015Z"
+    },
+    {
+      "projectId": 151,
+      "senderType": "client",
+      "senderName": "Ben Dickinson",
+      "content": "yo",
+      "attachments": [],
+      "id": 86,
+      "createdAt": "2025-06-17T04:12:18.429Z"
+    },
+    {
+      "projectId": 151,
+      "senderType": "client",
+      "senderName": "Ben Dickinson",
+      "content": "hey",
+      "attachments": [],
+      "id": 88,
+      "createdAt": "2025-06-17T04:14:57.767Z"
+    },
+    {
+      "projectId": 151,
+      "senderType": "client",
+      "senderName": "Ben Dickinson",
+      "content": "heduf",
+      "attachments": [],
+      "id": 90,
+      "createdAt": "2025-06-17T04:15:01.932Z"
+    },
+    {
+      "projectId": 151,
+      "senderType": "client",
+      "senderName": "Ben Dickinson",
+      "content": "hey",
+      "attachments": [],
+      "id": 92,
+      "createdAt": "2025-06-17T04:15:41.607Z"
+    },
+    {
+      "projectId": 151,
+      "senderType": "client",
+      "senderName": "Ben Dickinson",
+      "content": "iuytfbk",
+      "attachments": [],
+      "id": 94,
+      "createdAt": "2025-06-17T04:23:36.394Z"
+    },
+    {
+      "projectId": 151,
+      "senderType": "admin",
+      "senderName": "Ben Dickinson",
+      "content": "hey",
+      "attachments": [],
+      "id": 96,
+      "createdAt": "2025-06-17T04:23:46.695Z"
+    },
+    {
+      "projectId": 151,
+      "senderType": "client",
+      "senderName": "Ben Dickinson",
+      "content": "yup",
+      "attachments": [],
+      "id": 98,
+      "createdAt": "2025-06-17T04:27:54.245Z"
+    },
+    {
+      "projectId": 151,
+      "senderType": "admin",
+      "senderName": "Ben Dickinson",
+      "content": "yup[",
+      "attachments": [],
+      "id": 100,
+      "createdAt": "2025-06-17T04:28:05.419Z"
+    },
+    {
+      "projectId": 151,
+      "senderType": "client",
+      "senderName": "Ben Dickinson",
+      "content": "hey",
+      "attachments": [],
+      "id": 102,
+      "createdAt": "2025-06-17T04:37:35.426Z"
+    },
+    {
+      "projectId": 151,
+      "senderType": "client",
+      "senderName": "Ben Dickinson",
+      "content": "how are you tonight",
+      "attachments": [],
+      "id": 104,
+      "createdAt": "2025-06-17T04:41:34.211Z"
+    },
+    {
+      "projectId": 151,
+      "senderType": "admin",
+      "senderName": "Ben Dickinson",
+      "content": "i am well, thank you",
+      "attachments": [],
+      "id": 106,
+      "createdAt": "2025-06-17T04:41:45.633Z"
+    },
+    {
+      "projectId": 151,
+      "senderType": "client",
+      "senderName": "Ben Dickinson",
+      "content": "Test message to verify field mapping fix",
+      "attachments": [],
+      "id": 108,
+      "createdAt": "2025-06-18T00:58:41.279Z"
+    },
+    {
+      "projectId": 151,
+      "senderType": "client",
+      "senderName": "Ben Dickinson",
+      "content": "🔥 TESTING FIXED MESSAGE BROADCAST 🔥",
+      "attachments": [],
+      "id": 110,
+      "createdAt": "2025-06-18T01:05:45.352Z"
+    },
+    {
+      "projectId": 151,
+      "senderType": "client",
+      "senderName": "Ben Dickinson",
+      "content": "🔥 TESTING FIXED FIELD MAPPING 🔥",
+      "attachments": [],
+      "id": 112,
+      "createdAt": "2025-06-18T01:16:39.396Z"
+    },
+    {
+      "projectId": 151,
+      "senderType": "client",
+      "senderName": "Ben Dickinson",
+      "content": "🎯 TESTING FIXED SERVER BROADCAST FORMAT 🎯",
+      "attachments": [],
+      "id": 114,
+      "createdAt": "2025-06-18T01:30:28.820Z"
+    },
+    {
+      "projectId": 151,
+      "senderType": "client",
+      "senderName": "Ben Dickinson",
+      "content": "✅ FINAL TEST - ALL FIXES APPLIED ✅",
+      "attachments": [],
+      "id": 116,
+      "createdAt": "2025-06-18T01:31:39.775Z"
+    },
+    {
+      "projectId": 151,
+      "senderType": "client",
+      "senderName": "Ben Dickinson",
+      "content": "hey",
+      "attachments": [],
+      "id": 144,
+      "createdAt": "2025-06-19T04:56:16.265Z"
+    },
+    {
+      "projectId": 151,
+      "senderType": "admin",
+      "senderName": "Ben Dickinson",
+      "content": "",
+      "attachments": [
+        "https://pleasantcovedesign-production.up.railway.app/uploads/project-mbzull5i-1750308986435-Screenshot_2025-06-18_at_12.08.16___PM.png"
+      ],
+      "id": 146,
+      "createdAt": "2025-06-19T04:56:26.445Z"
+    },
+    {
+      "projectId": 151,
+      "senderType": "client",
+      "senderName": "Ben Dickinson",
+      "content": "hwo are you",
+      "attachments": [],
+      "id": 148,
+      "createdAt": "2025-06-19T05:20:43.601Z"
+    },
+    {
+      "projectId": 151,
+      "senderType": "client",
+      "senderName": "Test Fixed User",
+      "content": "Testing the businessData fix",
+      "attachments": [],
+      "createdAt": "2025-06-19T23:43:00.814Z",
+      "id": 152
+    },
+    {
+      "projectId": 151,
+      "senderType": "client",
+      "senderName": "Test User",
+      "content": "Test from curl",
+      "attachments": [],
+      "id": 163,
+      "createdAt": "2025-06-20T03:33:03.254Z"
+    },
+    {
+      "projectId": 9,
+      "senderType": "client",
+      "senderName": "BEN dickinson",
+      "content": "Test message from curl to see if it appears in admin",
+      "attachments": [],
+      "id": 165,
+      "createdAt": "2025-06-20T04:23:04.155Z"
+    },
+    {
+      "projectId": 9,
+      "senderType": "client",
+      "senderName": "TEST USER",
+      "content": "TEST MESSAGE - Can you see this in admin UI?",
+      "attachments": [],
+      "id": 167,
+      "createdAt": "2025-06-20T04:28:05.263Z"
+    },
+    {
+      "projectId": 9,
+      "senderType": "admin",
+      "senderName": "Ben Dickinson",
+      "content": "yes ",
+      "attachments": [],
+      "id": 169,
+      "createdAt": "2025-06-20T04:28:10.384Z"
+    },
+    {
+      "projectId": 9,
+      "senderType": "client",
+      "senderName": "Terminal Test User",
+      "content": "TEST FROM TERMINAL - Please check admin UI",
+      "attachments": [],
+      "id": 171,
+      "createdAt": "2025-06-20T04:35:05.916Z"
+    },
+    {
+      "projectId": 9,
+      "senderType": "client",
+      "senderName": "System Test",
+      "content": "FINAL TEST - Check admin UI at http://localhost:5173",
+      "attachments": [],
+      "id": 173,
+      "createdAt": "2025-06-20T04:36:20.542Z"
+    },
+    {
+      "projectId": 9,
+      "senderType": "admin",
+      "senderName": "Ben Dickinson",
+      "content": "hey",
+      "attachments": [],
+      "id": 175,
+      "createdAt": "2025-06-20T04:44:05.262Z"
+    },
+    {
+      "projectId": 9,
+      "senderType": "client",
+      "senderName": "BEN dickinson",
+      "content": "yo yo",
+      "attachments": [],
+      "id": 177,
+      "createdAt": "2025-06-20T04:45:37.850Z"
+    },
+    {
+      "projectId": 9,
+      "senderType": "client",
+      "senderName": "BEN dickinson",
+      "content": "",
+      "attachments": [
+        "https://pleasantcovedesign-production.up.railway.app/uploads/project-Ae06uIlL-1750394753928-Screenshot_2025-06-18_at_12.08.16___PM.png"
+      ],
+      "id": 179,
+      "createdAt": "2025-06-20T04:45:53.935Z"
+    },
+    {
+      "projectId": 9,
+      "senderType": "admin",
+      "senderName": "Ben Dickinson",
+      "content": "",
+      "attachments": [
+        "https://pleasantcovedesign-production.up.railway.app/uploads/project-Ae06uIlL-1750394777527-ChatGPT_Image_May_27__2025__04_38_15_PM.png"
+      ],
+      "id": 181,
+      "createdAt": "2025-06-20T04:46:17.533Z"
+    },
+    {
+      "projectId": 9,
+      "senderType": "client",
+      "senderName": "BEN dickinson",
+      "content": "hey",
+      "attachments": [],
+      "id": 183,
+      "createdAt": "2025-06-20T04:49:20.470Z"
+    },
+    {
+      "projectId": 9,
+      "senderType": "client",
+      "senderName": "Automated Integration Test",
+      "content": "Test message at 2025-06-20T04:54:09.437Z",
+      "attachments": [],
+      "id": 185,
+      "createdAt": "2025-06-20T04:54:09.449Z"
+    },
+    {
+      "projectId": 9,
+      "senderType": "client",
+      "senderName": "Automated Integration Test",
+      "content": "Test message at 2025-06-20T05:02:49.660Z",
+      "attachments": [],
+      "id": 187,
+      "createdAt": "2025-06-20T05:02:49.671Z"
+    },
+    {
+      "projectId": 9,
+      "senderType": "client",
+      "senderName": "Automated Integration Test",
+      "content": "Test message at 2025-06-20T05:08:04.000Z",
+      "attachments": [],
+      "id": 189,
+      "createdAt": "2025-06-20T05:08:04.010Z"
+    },
+    {
+      "projectId": 9,
+      "senderType": "client",
+      "senderName": "Automated Integration Test",
+      "content": "Test message at 2025-06-20T05:10:10.900Z",
+      "attachments": [],
+      "id": 191,
+      "createdAt": "2025-06-20T05:10:10.910Z"
+    },
+    {
+      "projectId": 9,
+      "senderType": "admin",
+      "senderName": "Ben Dickinson",
+      "content": "yo",
+      "attachments": [],
+      "id": 193,
+      "createdAt": "2025-06-20T05:12:28.024Z"
+    },
+    {
+      "projectId": 9,
+      "senderType": "client",
+      "senderName": "BEN dickinson",
+      "content": "hey",
+      "attachments": [],
+      "id": 195,
+      "createdAt": "2025-06-20T05:14:08.611Z"
+    },
+    {
+      "projectId": 9,
+      "senderType": "client",
+      "senderName": "BEN dickinson",
+      "content": "sup supsup",
+      "attachments": [],
+      "id": 197,
+      "createdAt": "2025-06-20T05:14:38.896Z"
+    },
+    {
+      "projectId": 9,
+      "senderType": "client",
+      "senderName": "Automated Integration Test",
+      "content": "Test message at 2025-06-20T05:20:41.534Z",
+      "attachments": [],
+      "id": 199,
+      "createdAt": "2025-06-20T05:20:41.548Z"
+    },
+    {
+      "projectId": 9,
+      "senderType": "client",
+      "senderName": "BEN dickinson",
+      "content": "hey",
+      "attachments": [],
+      "id": 201,
+      "createdAt": "2025-06-20T05:24:38.582Z"
+    },
+    {
+      "projectId": 9,
+      "senderType": "client",
+      "senderName": "Automated Integration Test",
+      "content": "Test message at 2025-06-20T05:28:48.674Z",
+      "attachments": [],
+      "id": 203,
+      "createdAt": "2025-06-20T05:28:48.687Z"
+    },
+    {
+      "projectId": 9,
+      "senderType": "client",
+      "senderName": "Automated Integration Test",
+      "content": "Test message at 2025-06-20T05:33:11.997Z",
+      "attachments": [],
+      "id": 205,
+      "createdAt": "2025-06-20T05:33:12.008Z"
+    },
+    {
+      "projectId": 9,
+      "senderType": "client",
+      "senderName": "Automated Integration Test",
+      "content": "Test message at 2025-06-20T05:44:55.678Z",
+      "attachments": [],
+      "id": 207,
+      "createdAt": "2025-06-20T05:44:55.690Z"
+    },
+    {
+      "projectId": 9,
+      "senderType": "client",
+      "senderName": "BEN dickinson",
+      "content": "hey",
+      "attachments": [],
+      "id": 209,
+      "createdAt": "2025-06-20T05:46:08.996Z"
+    },
+    {
+      "projectId": 9,
+      "senderType": "admin",
+      "senderName": "Ben Dickinson",
+      "content": "yo",
+      "attachments": [],
+      "id": 211,
+      "createdAt": "2025-06-20T06:01:07.663Z"
+    },
+    {
+      "projectId": 9,
+      "senderType": "client",
+      "senderName": "Automated Integration Test",
+      "content": "Test message at 2025-06-20T06:07:35.528Z",
+      "attachments": [],
+      "id": 213,
+      "createdAt": "2025-06-20T06:07:35.545Z"
+    },
+    {
+      "projectId": 9,
+      "senderType": "client",
+      "senderName": "Automated Integration Test",
+      "content": "Test message at 2025-06-20T06:09:44.120Z",
+      "attachments": [],
+      "id": 215,
+      "createdAt": "2025-06-20T06:09:44.131Z"
+    },
+    {
+      "projectId": 9,
+      "senderType": "client",
+      "senderName": "Automated Integration Test",
+      "content": "Test message at 2025-06-20T06:12:26.490Z",
+      "attachments": [],
+      "id": 217,
+      "createdAt": "2025-06-20T06:12:26.501Z"
+    },
+    {
+      "projectId": 235,
+      "senderType": "admin",
+      "senderName": "Ben",
+      "content": "hey",
+      "attachments": [],
+      "createdAt": "2025-06-20T06:38:20.680Z",
+      "id": 223
+    },
+    {
+      "projectId": 231,
+      "senderType": "admin",
+      "senderName": "Ben",
+      "content": "yo yo",
+      "attachments": [],
+      "createdAt": "2025-06-20T06:39:01.836Z",
+      "id": 226
+    },
+    {
+      "projectId": 235,
+      "senderType": "admin",
+      "senderName": "Ben",
+      "content": "hey",
+      "attachments": [],
+      "createdAt": "2025-06-20T06:44:24.917Z",
+      "id": 228
+    },
+    {
+      "projectId": 235,
+      "senderType": "admin",
+      "senderName": "Ben",
+      "content": "heyyuiop",
+      "attachments": [],
+      "createdAt": "2025-06-20T06:53:27.936Z",
+      "id": 230
+    },
+    {
+      "projectId": 231,
+      "senderType": "admin",
+      "senderName": "Ben",
+      "content": "uuyy",
+      "attachments": [],
+      "createdAt": "2025-06-20T06:54:50.691Z",
+      "id": 232
+    },
+    {
+      "projectId": 235,
+      "senderType": "admin",
+      "senderName": "Ben",
+      "content": "jggj",
+      "attachments": [],
+      "createdAt": "2025-06-20T06:55:55.608Z",
+      "id": 234
+    },
+    {
+      "projectId": 235,
+      "senderType": "admin",
+      "senderName": "Ben",
+      "content": "sup sup\nsup",
+      "attachments": [],
+      "createdAt": "2025-06-20T16:21:07.711Z",
+      "id": 236
+    },
+    {
+      "projectId": 235,
+      "senderType": "admin",
+      "senderName": "Ben",
+      "content": "hey",
+      "attachments": [],
+      "createdAt": "2025-06-20T16:29:37.449Z",
+      "id": 237
+    },
+    {
+      "projectId": 231,
+      "senderType": "admin",
+      "senderName": "Ben",
+      "content": "supsups psudhfoahsas hahaha",
+      "attachments": [],
+      "createdAt": "2025-06-20T16:30:05.231Z",
+      "id": 238
+    },
+    {
+      "projectId": 240,
+      "senderType": "client",
+      "senderName": "Garth",
+      "content": "yo yo",
+      "attachments": [],
+      "createdAt": "2025-06-20T16:35:31.735Z",
+      "id": 241
+    },
+    {
+      "projectId": 240,
+      "senderType": "client",
+      "senderName": "Garth",
+      "content": "how are you",
+      "attachments": [],
+      "createdAt": "2025-06-20T16:35:46.181Z",
+      "id": 242
+    },
+    {
+      "projectId": 240,
+      "senderType": "admin",
+      "senderName": "Ben Dickinson",
+      "content": "hey",
+      "attachments": [],
+      "createdAt": "2025-06-20T16:40:17.581Z",
+      "id": 243
+    },
+    {
+      "projectId": 231,
+      "senderType": "admin",
+      "senderName": "Ben",
+      "content": "the is the newest",
+      "attachments": [],
+      "createdAt": "2025-06-20T16:40:58.294Z",
+      "id": 244
+    },
+    {
+      "projectId": 231,
+      "senderType": "admin",
+      "senderName": "Ben Dickinson",
+      "content": "",
+      "attachments": [
+        "https://pleasantcovedesign-production.up.railway.app/uploads/project-mc4gfz4q-1750438720603-ChatGPT_Image_May_27__2025__04_38_15_PM.png"
+      ],
+      "id": 245,
+      "createdAt": "2025-06-20T16:58:40.611Z"
+    },
+    {
+      "projectId": 231,
+      "senderType": "admin",
+      "senderName": "Ben Dickinson",
+      "content": "",
+      "attachments": [
+        "https://pleasantcovedesign-production.up.railway.app/uploads/project-mc4gfz4q-1750439088176-Screenshot_2025-06-12_at_10.24.19___PM.png"
+      ],
+      "id": 247,
+      "createdAt": "2025-06-20T17:04:48.183Z"
+    },
+    {
+      "projectId": 231,
+      "senderType": "admin",
+      "senderName": "Ben Dickinson",
+      "content": "",
+      "attachments": [
+        "https://pleasantcovedesign-production.up.railway.app/uploads/project-mc4gfz4q-1750439431310-ChatGPT_Image_May_27__2025__04_38_15_PM.png"
+      ],
+      "id": 249,
+      "createdAt": "2025-06-20T17:10:31.319Z"
+    },
+    {
+      "projectId": 231,
+      "senderType": "admin",
+      "senderName": "Ben",
+      "content": "",
+      "attachments": [],
+      "createdAt": "2025-06-20T17:29:00.830Z",
+      "id": 251
+    },
+    {
+      "projectId": 240,
+      "senderType": "client",
+      "senderName": "Garth",
+      "content": "hey",
+      "attachments": [],
+      "createdAt": "2025-06-20T17:41:32.487Z",
+      "id": 252
+    },
+    {
+      "projectId": 240,
+      "senderType": "admin",
+      "senderName": "Ben Dickinson",
+      "content": "",
+      "attachments": [
+        "https://pleasantcovedesign-production.up.railway.app/uploads/project-mc516tr5-1750441319420-ChatGPT_Image_May_27__2025__04_38_15_PM.png"
+      ],
+      "id": 253,
+      "createdAt": "2025-06-20T17:41:59.429Z"
+    },
+    {
+      "projectId": 240,
+      "senderType": "client",
+      "senderName": "Garth",
+      "content": "",
+      "attachments": [
+        "https://pleasantcovedesign-production.up.railway.app/uploads/project-unknown-1750441331289-Screenshot_2025-06-18_at_12.08.16___PM.png"
+      ],
+      "createdAt": "2025-06-20T17:42:11.293Z",
+      "id": 255
+    },
+    {
+      "projectId": 240,
+      "senderType": "client",
+      "senderName": "Garth",
+      "content": "hey",
+      "attachments": [],
+      "createdAt": "2025-06-20T18:25:20.938Z",
+      "id": 256
+    },
+    {
+      "projectId": 231,
+      "senderType": "admin",
+      "senderName": "Ben",
+      "content": "Hey",
+      "attachments": [],
+      "createdAt": "2025-06-20T18:30:46.373Z",
+      "id": 257
+    },
+    {
+      "projectId": 231,
+      "senderType": "admin",
+      "senderName": "Ben",
+      "content": "What’s up",
+      "attachments": [],
+      "createdAt": "2025-06-20T18:30:54.370Z",
+      "id": 258
+    },
+    {
+      "projectId": 231,
+      "senderType": "admin",
+      "senderName": "Ben Dickinson",
+      "content": "how are you",
+      "attachments": [],
+      "createdAt": "2025-06-20T18:31:03.898Z",
+      "id": 259
+    },
+    {
+      "projectId": 240,
+      "senderType": "client",
+      "senderName": "Garth",
+      "content": "hey",
+      "attachments": [],
+      "createdAt": "2025-06-20T18:31:31.247Z",
+      "id": 260
+    },
+    {
+      "projectId": 231,
+      "senderType": "admin",
+      "senderName": "Ben",
+      "content": "Yo yo",
+      "attachments": [],
+      "createdAt": "2025-06-20T18:31:59.803Z",
+      "id": 261
+    },
+    {
+      "projectId": 231,
+      "senderType": "admin",
+      "senderName": "Ben Dickinson",
+      "content": "whats going on",
+      "attachments": [],
+      "createdAt": "2025-06-20T18:32:12.424Z",
+      "id": 262
+    },
+    {
+      "projectId": 240,
+      "senderType": "client",
+      "senderName": "Garth",
+      "content": "how are you jububju",
+      "attachments": [],
+      "createdAt": "2025-06-20T18:32:33.914Z",
+      "id": 263
+    },
+    {
+      "projectId": 240,
+      "senderType": "admin",
+      "senderName": "Ben Dickinson",
+      "content": "fooogdfd",
+      "attachments": [],
+      "createdAt": "2025-06-20T18:32:41.490Z",
+      "id": 264
+    },
+    {
+      "projectId": 231,
+      "senderType": "admin",
+      "senderName": "Ben",
+      "content": "",
+      "attachments": [
+        "https://pleasantcovedesign-production.up.railway.app/uploads/project-unknown-1750444394742-AF81753B-DB70-458A-A7E6-214FAC893BA8.png"
+      ],
+      "createdAt": "2025-06-20T18:33:17.984Z",
+      "id": 265
+    },
+    {
+      "projectId": 231,
+      "senderType": "admin",
+      "senderName": "Ben",
+      "content": "Where is my fonversation",
+      "attachments": [],
+      "createdAt": "2025-06-20T18:39:30.717Z",
+      "id": 266
+    },
+    {
+      "projectId": 231,
+      "senderType": "admin",
+      "senderName": "Ben",
+      "content": "what’re you doing with my stuff",
+      "attachments": [],
+      "createdAt": "2025-06-20T18:39:41.430Z",
+      "id": 267
+    },
+    {
+      "projectId": 231,
+      "senderType": "admin",
+      "senderName": "Ben",
+      "content": "",
+      "attachments": [
+        "https://pleasantcovedesign-production.up.railway.app/uploads/project-unknown-1750444826495-image.jpg"
+      ],
+      "createdAt": "2025-06-20T18:40:29.277Z",
+      "id": 268
+    },
+    {
+      "projectId": 231,
+      "senderType": "admin",
+      "senderName": "Ben Dickinson",
+      "content": "",
+      "attachments": [
+        "https://pleasantcovedesign-production.up.railway.app/uploads/project-mc4gfz4q-1750444852219-ChatGPT_Image_May_27__2025__04_38_15_PM.png"
+      ],
+      "id": 269,
+      "createdAt": "2025-06-20T18:40:52.226Z"
+    },
+    {
+      "projectId": 231,
+      "senderType": "admin",
+      "senderName": "Ben Dickinson",
+      "content": "",
+      "attachments": [
+        "https://pleasantcovedesign-production.up.railway.app/uploads/project-mc4gfz4q-1750445162997-Screenshot_2025-06-12_at_10.24.19___PM.png"
+      ],
+      "id": 271,
+      "createdAt": "2025-06-20T18:46:03.005Z"
+    },
+    {
+      "projectId": 231,
+      "senderType": "admin",
+      "senderName": "Ben Dickinson",
+      "content": "",
+      "attachments": [
+        "https://1ce2-2603-7080-e501-3f6a-59ca-c294-1beb-ddfc.ngrok-free.app/uploads/project-mc4gfz4q-1750445321784-Screenshot_2025-06-12_at_10.24.19___PM.png"
+      ],
+      "id": 273,
+      "createdAt": "2025-06-20T18:48:41.792Z"
+    },
+    {
+      "projectId": 240,
+      "senderType": "client",
+      "senderName": "Garth",
+      "content": "now its showwing a dotted border that shows the name and image could not be displayed and open image, which doesn't work so we are getting closer",
+      "attachments": [],
+      "createdAt": "2025-06-20T18:57:41.804Z",
+      "id": 275
+    },
+    {
+      "projectId": 231,
+      "senderType": "admin",
+      "senderName": "Ben",
+      "content": "",
+      "attachments": [
+        "https://1ce2-2603-7080-e501-3f6a-59ca-c294-1beb-ddfc.ngrok-free.app/uploads/project-unknown-1750446763937-IMG_9102.jpeg"
+      ],
+      "createdAt": "2025-06-20T19:12:48.077Z",
+      "id": 276
+    },
+    {
+      "projectId": 231,
+      "senderType": "admin",
+      "senderName": "Ben Dickinson",
+      "content": "",
+      "attachments": [
+        "https://1ce2-2603-7080-e501-3f6a-59ca-c294-1beb-ddfc.ngrok-free.app/uploads/project-mc4gfz4q-1750446782378-ChatGPT_Image_May_27__2025__04_38_15_PM.png"
+      ],
+      "id": 277,
+      "createdAt": "2025-06-20T19:13:02.383Z"
+    },
+    {
+      "projectId": 231,
+      "senderType": "admin",
+      "senderName": "Ben Dickinson",
+      "content": "",
+      "attachments": [
+        "https://pleasantcovedesign-production.up.railway.app/uploads/project-mc4gfz4q-1750447679024-ChatGPT_Image_May_27__2025__04_38_15_PM.png"
+      ],
+      "id": 279,
+      "createdAt": "2025-06-20T19:27:59.033Z"
+    },
+    {
+      "projectId": 231,
+      "senderType": "admin",
+      "senderName": "Ben Dickinson",
+      "content": "",
+      "attachments": [
+        "http://192.168.1.87:3000/uploads/project-mc4gfz4q-1750447858695-ChatGPT_Image_May_27__2025__04_38_15_PM.png"
+      ],
+      "id": 281,
+      "createdAt": "2025-06-20T19:30:58.704Z"
+    },
+    {
+      "projectId": 231,
+      "senderType": "admin",
+      "senderName": "Ben",
+      "content": "Hey",
+      "attachments": [],
+      "createdAt": "2025-06-20T19:41:10.123Z",
+      "id": 283
+    },
+    {
+      "projectId": 231,
+      "senderType": "admin",
+      "senderName": "Ben Dickinson",
+      "content": "",
+      "attachments": [
+        "https://1ce2-2603-7080-e501-3f6a-59ca-c294-1beb-ddfc.ngrok-free.app/uploads/project-mc4gfz4q-1750448482118-Screenshot_2025-06-12_at_10.24.19___PM.png"
+      ],
+      "id": 284,
+      "createdAt": "2025-06-20T19:41:22.127Z"
+    },
+    {
+      "projectId": 231,
+      "senderType": "admin",
+      "senderName": "Ben Dickinson",
+      "content": "",
+      "attachments": [
+        "https://1ce2-2603-7080-e501-3f6a-59ca-c294-1beb-ddfc.ngrok-free.app/uploads/project-mc4gfz4q-1750448515765-ChatGPT_Image_May_27__2025__04_38_15_PM.png"
+      ],
+      "id": 286,
+      "createdAt": "2025-06-20T19:41:55.774Z"
+    },
+    {
+      "projectId": 231,
+      "senderType": "admin",
+      "senderName": "Ben",
+      "content": "Hey",
+      "attachments": [],
+      "createdAt": "2025-06-20T19:42:07.755Z",
+      "id": 288
+    },
+    {
+      "projectId": 231,
+      "senderType": "admin",
+      "senderName": "Ben Dickinson",
+      "content": "",
+      "attachments": [
+        "https://1ce2-2603-7080-e501-3f6a-59ca-c294-1beb-ddfc.ngrok-free.app/uploads/project-mc4gfz4q-1750448534491-ChatGPT_Image_May_27__2025__04_38_15_PM.png"
+      ],
+      "id": 289,
+      "createdAt": "2025-06-20T19:42:14.497Z"
+    },
+    {
+      "projectId": 231,
+      "senderType": "admin",
+      "senderName": "Ben",
+      "content": "Yo",
+      "attachments": [],
+      "createdAt": "2025-06-20T19:44:36.664Z",
+      "id": 291
+    },
+    {
+      "projectId": 231,
+      "senderType": "admin",
+      "senderName": "Ben Dickinson",
+      "content": "",
+      "attachments": [
+        "https://1ce2-2603-7080-e501-3f6a-59ca-c294-1beb-ddfc.ngrok-free.app/uploads/project-mc4gfz4q-1750448682560-Screenshot_2025-06-12_at_10.24.19___PM.png"
+      ],
+      "id": 292,
+      "createdAt": "2025-06-20T19:44:42.565Z"
+    },
+    {
+      "projectId": 240,
+      "senderType": "client",
+      "senderName": "Garth",
+      "content": "hey",
+      "attachments": [],
+      "createdAt": "2025-06-21T05:58:00.300Z",
+      "id": 294
+    },
+    {
+      "projectId": 240,
+      "senderType": "admin",
+      "senderName": "Ben Dickinson",
+      "content": "",
+      "attachments": [
+        "https://1ce2-2603-7080-e501-3f6a-59ca-c294-1beb-ddfc.ngrok-free.app/uploads/project-mc516tr5-1750485497266-Screenshot_2025-06-18_at_12.08.16___PM.png"
+      ],
+      "id": 295,
+      "createdAt": "2025-06-21T05:58:17.271Z"
+    },
+    {
+      "projectId": 240,
+      "senderType": "admin",
+      "senderName": "Ben Dickinson",
+      "content": "",
+      "attachments": [
+        "https://1ce2-2603-7080-e501-3f6a-59ca-c294-1beb-ddfc.ngrok-free.app/uploads/project-mc516tr5-1750485946548-ChatGPT_Image_May_27__2025__04_38_15_PM.png"
+      ],
+      "id": 297,
+      "createdAt": "2025-06-21T06:05:46.556Z"
+    },
+    {
+      "projectId": 240,
+      "senderType": "client",
+      "senderName": "Garth",
+      "content": "suhhhh",
+      "attachments": [],
+      "createdAt": "2025-06-21T06:11:11.782Z",
+      "id": 299
+    },
+    {
+      "projectId": 240,
+      "senderType": "admin",
+      "senderName": "Ben Dickinson",
+      "content": "",
+      "attachments": [
+        "https://pleasantcovedesign-production.up.railway.app/uploads/project-mc516tr5-1750486282080-Screenshot_2025-06-18_at_12.08.16___PM.png"
+      ],
+      "id": 300,
+      "createdAt": "2025-06-21T06:11:22.088Z"
+    },
+    {
+      "projectId": 240,
+      "senderType": "admin",
+      "senderName": "Ben Dickinson",
+      "content": "",
+      "attachments": [
+        "https://pleasantcovedesign-production.up.railway.app/uploads/project-mc516tr5-1750486454721-ChatGPT_Image_May_27__2025__04_38_15_PM.png"
+      ],
+      "id": 302,
+      "createdAt": "2025-06-21T06:14:14.729Z"
+    },
+    {
+      "projectId": 240,
+      "senderType": "client",
+      "senderName": "Garth",
+      "content": "kjh'",
+      "attachments": [],
+      "createdAt": "2025-06-21T06:14:23.435Z",
+      "id": 304
+    },
+    {
+      "projectId": 240,
+      "senderType": "admin",
+      "senderName": "Ben Dickinson",
+      "content": "",
+      "attachments": [
+        "https://pleasantcovedesign-production.up.railway.app/uploads/project-mc516tr5-1750486472510-ChatGPT_Image_May_27__2025__04_38_15_PM.png"
+      ],
+      "id": 305,
+      "createdAt": "2025-06-21T06:14:32.518Z"
+    },
+    {
+      "projectId": 240,
+      "senderType": "admin",
+      "senderName": "Ben Dickinson",
+      "content": "",
+      "attachments": [
+        "https://1ce2-2603-7080-e501-3f6a-59ca-c294-1beb-ddfc.ngrok-free.app/uploads/project-mc516tr5-1750486740673-Screenshot_2025-06-18_at_12.08.16___PM.png"
+      ],
+      "id": 307,
+      "createdAt": "2025-06-21T06:19:00.679Z"
+    },
+    {
+      "projectId": 240,
+      "senderType": "admin",
+      "senderName": "Ben Dickinson",
+      "content": "",
+      "attachments": [
+        "https://1ce2-2603-7080-e501-3f6a-59ca-c294-1beb-ddfc.ngrok-free.app/uploads/project-mc516tr5-1750646416569-Screenshot_2025-06-18_at_12.08.16___PM.png"
+      ],
+      "id": 309,
+      "createdAt": "2025-06-23T02:40:16.576Z"
+    },
+    {
+      "projectId": 240,
+      "senderType": "admin",
+      "senderName": "Ben Dickinson",
+      "content": "",
+      "attachments": [
+        "https://1ce2-2603-7080-e501-3f6a-59ca-c294-1beb-ddfc.ngrok-free.app/uploads/project-mc516tr5-1750646704215-Screenshot_2025-06-18_at_12.08.16___PM.png"
+      ],
+      "id": 311,
+      "createdAt": "2025-06-23T02:45:04.224Z"
+    },
+    {
+      "projectId": 240,
+      "senderType": "client",
+      "senderName": "Garth",
+      "content": "hey",
+      "attachments": [],
+      "id": 313,
+      "createdAt": "2025-06-23T02:50:01.758Z"
+    },
+    {
+      "projectId": 151,
+      "senderType": "client",
+      "senderName": "Manual Member",
+      "content": "yo",
+      "attachments": [],
+      "id": 315,
+      "createdAt": "2025-06-28T12:08:33.062Z"
+    },
+    {
+      "projectId": 151,
+      "senderType": "client",
+      "senderName": "Manual Member",
+      "content": "yo",
+      "attachments": [],
+      "id": 317,
+      "createdAt": "2025-06-28T12:08:34.757Z"
+    },
+    {
+      "projectId": 151,
+      "senderType": "client",
+      "senderName": "Manual Member",
+      "content": "yo",
+      "attachments": [],
+      "id": 319,
+      "createdAt": "2025-06-28T12:08:37.410Z"
+    },
+    {
+      "projectId": 151,
+      "senderType": "admin",
+      "senderName": "Ben Dickinson",
+      "content": "",
+      "attachments": [
+        "https://1ce2-2603-7080-e501-3f6a-59ca-c294-1beb-ddfc.ngrok-free.app/uploads/project-mc410tla-1751116098650-ChatGPT_Image_May_27__2025__04_38_15_PM.png"
+      ],
+      "id": 321,
+      "createdAt": "2025-06-28T13:08:18.660Z"
+    },
+    {
+      "projectId": 240,
+      "senderType": "admin",
+      "senderName": "Ben Dickinson",
+      "content": "hey",
+      "attachments": [],
+      "createdAt": "2025-06-30T22:07:33.196Z",
+      "id": 323
+    },
+    {
+      "projectId": 240,
+      "senderType": "admin",
+      "senderName": "Ben Dickinson",
+      "content": "whats up",
+      "attachments": [],
+      "createdAt": "2025-07-01T00:19:10.593Z",
+      "id": 324
+    },
+    {
+      "projectId": 240,
+      "senderType": "admin",
+      "senderName": "Ben Dickinson",
+      "content": "yoyo",
+      "attachments": [],
+      "createdAt": "2025-07-01T00:19:35.771Z",
+      "id": 325
+    },
+    {
+      "projectId": 151,
+      "senderType": "client",
+      "senderName": "Test User",
+      "content": "hey",
+      "attachments": [],
+      "createdAt": "2025-07-01T01:19:26.437Z",
+      "id": 326
+    },
+    {
+      "projectId": 151,
+      "senderType": "admin",
+      "senderName": "Ben Dickinson",
+      "content": "how are you",
+      "attachments": [],
+      "createdAt": "2025-07-01T01:19:55.135Z",
+      "id": 327
+    },
+    {
+      "projectId": 151,
+      "senderType": "admin",
+      "senderName": "Ben Dickinson",
+      "content": "whasfdhoiaafa cunt",
+      "attachments": [],
+      "createdAt": "2025-07-01T01:23:59.649Z",
+      "id": 328
+    },
+    {
+      "projectId": 240,
+      "senderType": "admin",
+      "senderName": "Ben Dickinson",
+      "content": "but but but",
+      "attachments": [],
+      "createdAt": "2025-07-01T01:24:18.069Z",
+      "id": 329
+    },
+    {
+      "projectId": 240,
+      "senderType": "admin",
+      "senderName": "Ben Dickinson",
+      "content": "hey",
+      "attachments": [],
+      "createdAt": "2025-07-01T01:31:26.351Z",
+      "id": 330
+    },
+    {
+      "projectId": 240,
+      "senderType": "admin",
+      "senderName": "Ben Dickinson",
+      "content": "hello",
+      "attachments": [],
+      "createdAt": "2025-07-01T03:10:41.736Z",
+      "id": 331
+    }
+  ],
+  "appointments": [],
+  "businesses": [
+    {
+      "name": "Fresh Test",
+      "phone": "No phone provided",
+      "email": "fresh@test.com",
+      "address": "To be enriched",
+      "city": "To be enriched",
+      "state": "To be enriched",
+      "businessType": "unknown",
+      "stage": "scraped",
+      "notes": "Squarespace Lead (Score: 60)\nMessage: No message\nAuto-classified: unknown",
+      "website": "",
+      "score": 60,
+      "priority": "medium",
+      "id": 1,
+      "createdAt": "2025-06-16T19:34:03.318Z"
+    },
+    {
+      "name": "Ben Dickinson",
+      "phone": "No phone provided",
+      "email": "ben04537@gmail.com",
+      "address": "To be enriched",
+      "city": "To be enriched",
+      "state": "To be enriched",
+      "businessType": "unknown",
+      "stage": "scraped",
+      "notes": "Squarespace Lead (Score: 60)\nMessage: No message\nAuto-classified: unknown",
+      "website": "",
+      "score": 60,
+      "priority": "medium",
+      "id": 5,
+      "createdAt": "2025-06-16T19:35:37.469Z"
+    },
+    {
+      "name": "max powers1.1",
+      "phone": "No phone provided",
+      "email": "harborsuits@gmail.com",
+      "address": "To be enriched",
+      "city": "To be enriched",
+      "state": "To be enriched",
+      "businessType": "unknown",
+      "stage": "scraped",
+      "notes": "Squarespace Lead (Score: 60)\nMessage: No message\nAuto-classified: unknown",
+      "website": "",
+      "score": 60,
+      "priority": "medium",
+      "id": 7,
+      "createdAt": "2025-06-16T19:36:16.711Z"
+    },
+    {
+      "name": "Test User",
+      "phone": "No phone provided",
+      "email": "test@example.com",
+      "address": "To be enriched",
+      "city": "To be enriched",
+      "state": "To be enriched",
+      "businessType": "unknown",
+      "stage": "scraped",
+      "notes": "Squarespace Lead (Score: 60)\nMessage: No message\nAuto-classified: unknown",
+      "website": "",
+      "score": 60,
+      "priority": "medium",
+      "id": 47,
+      "createdAt": "2025-06-17T01:31:25.521Z"
+    },
+    {
+      "name": "Ben Dickinson",
+      "phone": "No phone provided",
+      "email": "ben04537@gmail.com",
+      "address": "To be enriched",
+      "city": "To be enriched",
+      "state": "To be enriched",
+      "businessType": "unknown",
+      "stage": "scraped",
+      "notes": "Squarespace Lead (Score: 60)\nMessage: No message\nAuto-classified: unknown",
+      "website": "",
+      "score": 60,
+      "priority": "medium",
+      "id": 51,
+      "createdAt": "2025-06-17T01:32:07.636Z"
+    },
+    {
+      "name": "Member Account 1",
+      "phone": "No phone provided",
+      "email": "member1@test.com",
+      "address": "To be enriched",
+      "city": "To be enriched",
+      "state": "To be enriched",
+      "businessType": "unknown",
+      "stage": "scraped",
+      "notes": "Squarespace Lead (Score: 60)\nMessage: No message\nAuto-classified: unknown",
+      "website": "",
+      "score": 60,
+      "priority": "medium",
+      "id": 64,
+      "createdAt": "2025-06-17T02:34:09.482Z"
+    },
+    {
+      "name": "Member Account 2",
+      "phone": "No phone provided",
+      "email": "member2@test.com",
+      "address": "To be enriched",
+      "city": "To be enriched",
+      "state": "To be enriched",
+      "businessType": "unknown",
+      "stage": "scraped",
+      "notes": "Squarespace Lead (Score: 60)\nMessage: No message\nAuto-classified: unknown",
+      "website": "",
+      "score": 60,
+      "priority": "medium",
+      "id": 68,
+      "createdAt": "2025-06-17T02:34:16.563Z"
+    },
+    {
+      "name": "Member Account 3",
+      "phone": "No phone provided",
+      "email": "member3@test.com",
+      "address": "To be enriched",
+      "city": "To be enriched",
+      "state": "To be enriched",
+      "businessType": "unknown",
+      "stage": "scraped",
+      "notes": "Squarespace Lead (Score: 60)\nMessage: No message\nAuto-classified: unknown",
+      "website": "",
+      "score": 60,
+      "priority": "medium",
+      "id": 72,
+      "createdAt": "2025-06-17T02:34:16.574Z"
+    },
+    {
+      "name": "Test Member",
+      "phone": "No phone provided",
+      "email": "test-member@example.com",
+      "address": "To be enriched",
+      "city": "To be enriched",
+      "state": "To be enriched",
+      "businessType": "unknown",
+      "stage": "scraped",
+      "notes": "Squarespace Lead (Score: 60)\nMessage: Testing member conversation fix\nAuto-classified: unknown",
+      "website": "",
+      "score": 60,
+      "priority": "medium",
+      "id": 118,
+      "createdAt": "2025-06-18T16:33:05.267Z"
+    }
+  ],
+  "notifications": []
+}

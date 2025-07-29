@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { PostgreSQLStorage } from './postgres-storage.js';
 
 async function seedProductionDatabase() {

@@ -134,8 +134,7 @@ export function validateSchema(schema: z.ZodSchema<any>) {
       if (error instanceof z.ZodError) {
         const formattedErrors = error.issues.map(err => ({
           field: err.path.join('.'),
-          message: err.message,
-          received: err.input
+          message: err.message
         }));
 
         console.error(`❌ Validation failed for ${req.method} ${req.path}:`, formattedErrors);

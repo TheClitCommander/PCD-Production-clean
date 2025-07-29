@@ -433,8 +433,8 @@ async function startServer() {
     });
     
     server.listen(PORT, () => {
-      console.log('✅ In-memory database initialized (empty - ready for real data)');
-      console.log(`🚀 Pleasant Cove Design v1.1 server running on port ${PORT}`);
+        console.log('✅ In-memory database initialized (empty - ready for real data)');
+  console.log(`🚀 Pleasant Cove Design v1.1 server running on port ${PORT}`);
       console.log(`📍 Local: http://localhost:${PORT}`);
       console.log(`🔗 Webhook endpoint: http://localhost:${PORT}/api/new-lead`);
       console.log(`💾 Database: SQLite (websitewizard.db)`);

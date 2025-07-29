@@ -659,22 +659,22 @@
                     window.location.hostname === '::1' ||
                     window.location.port === '8080' ||
                     window.location.href.includes('localhost:')) {
-                    console.debug('[WIDGET] detectBackendUrl dev → https://YOUR_NEW_RAILWAY_URL.up.railway.app');
-return 'https://YOUR_NEW_RAILWAY_URL.up.railway.app';
+                    console.debug('[WIDGET] detectBackendUrl dev → https://pcd-production-clean-production-e6f3.up.railway.app');
+return 'https://pcd-production-clean-production-e6f3.up.railway.app';
                 }
                 
                 // Squarespace domains (including trial sites)
                 if (window.location.hostname.includes('.squarespace.com') ||
                     window.location.hostname.includes('.sqsp.net')) {
-                    console.debug('[WIDGET] detectBackendUrl Squarespace → https://YOUR_NEW_RAILWAY_URL.up.railway.app');
-                    return 'https://YOUR_NEW_RAILWAY_URL.up.railway.app';
+                    console.debug('[WIDGET] detectBackendUrl Squarespace → https://pcd-production-clean-production-e6f3.up.railway.app');
+                    return 'https://pcd-production-clean-production-e6f3.up.railway.app';
                 }
                 
                 // Production domain - ALWAYS use Railway for pleasantcovedesign.com
                 if (window.location.hostname === 'www.pleasantcovedesign.com' || 
                     window.location.hostname === 'pleasantcovedesign.com') {
-                    console.debug('[WIDGET] detectBackendUrl production → https://YOUR_NEW_RAILWAY_URL.up.railway.app');
-                    return 'https://YOUR_NEW_RAILWAY_URL.up.railway.app';
+                    console.debug('[WIDGET] detectBackendUrl production → https://pcd-production-clean-production-e6f3.up.railway.app');
+                    return 'https://pcd-production-clean-production-e6f3.up.railway.app';
                 }
                 
                 // iframe override
@@ -686,13 +686,13 @@ return 'https://YOUR_NEW_RAILWAY_URL.up.railway.app';
                 
                 // file:// fallback
                 if (window.location.protocol === 'file:') {
-                    console.debug('[WIDGET] detectBackendUrl file:// → https://YOUR_NEW_RAILWAY_URL.up.railway.app');
-return 'https://YOUR_NEW_RAILWAY_URL.up.railway.app';
+                    console.debug('[WIDGET] detectBackendUrl file:// → https://pcd-production-clean-production-e6f3.up.railway.app');
+return 'https://pcd-production-clean-production-e6f3.up.railway.app';
                 }
                 
                 // Default to Railway production for any other HTTPS sites
-                console.debug('[WIDGET] detectBackendUrl default → https://YOUR_NEW_RAILWAY_URL.up.railway.app');
-                return 'https://YOUR_NEW_RAILWAY_URL.up.railway.app';
+                console.debug('[WIDGET] detectBackendUrl default → https://pcd-production-clean-production-e6f3.up.railway.app');
+                return 'https://pcd-production-clean-production-e6f3.up.railway.app';
             }
             
             showNgrokError() {

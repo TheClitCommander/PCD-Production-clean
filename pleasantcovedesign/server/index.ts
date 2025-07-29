@@ -52,7 +52,7 @@ const io = new Server(server, {
       'http://pleasantcovedesign.com',
       /pleasantcove/,
       // Railway production
-      'https://YOUR_NEW_RAILWAY_URL.up.railway.app',
+      'https://pcd-production-clean-production-e6f3.up.railway.app',
       // Local IP for mobile access
       'http://192.168.1.87:3000',
       // ngrok support

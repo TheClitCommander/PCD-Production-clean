@@ -18,7 +18,7 @@ export function createCorsMiddleware() {
     'https://www.pleasantcovedesign.com',
     'https://admin.pleasantcovedesign.com',
     'https://api.pleasantcovedesign.com',
-    'https://YOUR_NEW_RAILWAY_URL.up.railway.app',
+    'https://pcd-production-clean-production-e6f3.up.railway.app',
     'https://nectarine-sparrow-dwsp.squarespace.com',
     'https://1ce2-2603-7080-e501-3f6a-59ca-c294-1beb-ddfc.ngrok-free.app',
     'http://192.168.1.87:3000'

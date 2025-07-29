@@ -34,13 +34,15 @@ export function createCorsMiddleware() {
 
   const corsOptions: cors.CorsOptions = {
     origin: function (origin, callback) {
-      // Allow requests with no origin (like mobile apps or Postman)
+      // Allow requests with no origin (like mobile apps, Postman, health checks, curl)
       if (!origin) {
+        // Always allow in development
         if (isDevelopment) {
           return callback(null, true);
         }
-        // In production, be more restrictive
-        return callback(new Error('No origin header present'));
+        // In production, allow for health checks and API monitoring
+        console.log('✅ CORS: Allowing request with no origin header (health check/monitoring)');
+        return callback(null, true);
       }
 
       // Check if origin is allowed

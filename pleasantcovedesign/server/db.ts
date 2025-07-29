@@ -151,7 +151,7 @@ class InMemoryDatabase {
   // Save all data to disk
   private saveToDisk(): void {
     // Skip file operations on Railway/production (read-only filesystem)
-    if (process.env.RAILWAY_ENVIRONMENT || process.env.NODE_ENV === 'production') {
+    if (process.env.NODE_ENV === 'production' || process.env.RAILWAY_STATIC_URL) {
       console.log('💾 Skipping disk save (Railway/production mode)');
       return;
     }
@@ -185,7 +185,7 @@ class InMemoryDatabase {
   // Load all data from disk
   private loadFromDisk(): void {
     // Skip file operations on Railway/production (read-only filesystem)
-    if (process.env.RAILWAY_ENVIRONMENT || process.env.NODE_ENV === 'production') {
+    if (process.env.NODE_ENV === 'production' || process.env.RAILWAY_STATIC_URL) {
       console.log('💾 Using in-memory storage (Railway/production mode)');
       return;
     }

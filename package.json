@@ -2,22 +2,10 @@
   "name": "pleasantcovedesign-monorepo",
   "private": true,
   "version": "1.0.0",
+  "description": "Pleasant Cove Design - Production deployment",
   "scripts": {
-    "install:all": "npm install --prefix pleasantcovedesign/server && npm install --prefix pleasantcovedesign/admin-ui",
-    "dev:server": "npm run dev --prefix pleasantcovedesign/server",
-    "dev:admin": "npm run dev --prefix pleasantcovedesign/admin-ui",
-    "dev:widget": "npx serve pleasantcovedesign/client-widget -p 8080",
-    "dev": "concurrently \"npm run dev:server\" \"npm run dev:admin\" \"npm run dev:widget\"",
-    "build:server": "npm run build --prefix pleasantcovedesign/server",
-    "build:admin": "npm run build --prefix pleasantcovedesign/admin-ui",
-    "build": "npm run build:server && npm run build:admin",
-    "start": "npm run dev"
-  },
-  "devDependencies": {
-    "@cypress/react": "^9.0.1",
-    "concurrently": "^8.2.2",
-    "cypress": "^14.5.2",
-    "cypress-real-events": "^1.14.0",
-    "serve": "^14.2.0"
+    "install": "cd pleasantcovedesign/server && npm install",
+    "build": "cd pleasantcovedesign/server && npm run build",
+    "start": "cd pleasantcovedesign/server && npm start"
   }
 }

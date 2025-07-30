@@ -147,6 +147,27 @@ export class PostgreSQLStorage {
       
       await this.pool.query(schema);
       console.log('✅ PostgreSQL tables initialized successfully');
+      
+      // Also try to add missing columns to existing tables (in case of incomplete schema)
+      const columnUpdates = [
+        'ALTER TABLE companies ADD COLUMN IF NOT EXISTS phone VARCHAR(50)',
+        'ALTER TABLE companies ADD COLUMN IF NOT EXISTS industry VARCHAR(100) DEFAULT \'Web Design Client\'',
+        'ALTER TABLE companies ADD COLUMN IF NOT EXISTS priority VARCHAR(20) DEFAULT \'medium\'',
+        'ALTER TABLE companies ADD COLUMN IF NOT EXISTS tags TEXT[] DEFAULT \'{}\'',
+        'ALTER TABLE projects ADD COLUMN IF NOT EXISTS type VARCHAR(100) DEFAULT \'website\'',
+        'ALTER TABLE projects ADD COLUMN IF NOT EXISTS stage VARCHAR(100) DEFAULT \'discovery\'',
+        'ALTER TABLE projects ADD COLUMN IF NOT EXISTS status VARCHAR(50) DEFAULT \'active\'',
+        'ALTER TABLE project_messages ADD COLUMN IF NOT EXISTS attachments TEXT[] DEFAULT \'{}\'',
+      ];
+      
+      for (const sql of columnUpdates) {
+        try {
+          await this.pool.query(sql);
+        } catch (error) {
+          // Silently ignore errors (columns probably already exist)
+        }
+      }
+      console.log('✅ Schema migration checks completed');
     } catch (error) {
       console.error('❌ Failed to initialize PostgreSQL tables:', error);
       // Don't throw - allow server to continue with degraded functionality

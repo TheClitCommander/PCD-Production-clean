@@ -341,6 +341,15 @@ export class PostgreSQLStorage {
     return this.mapProjectMessage(result.rows[0]);
   }
 
+  async markMessageAsRead(messageId: number, readAt: string): Promise<void> {
+    const query = `
+      UPDATE project_messages 
+      SET read_at = $1 
+      WHERE id = $2
+    `;
+    await this.pool.query(query, [readAt, messageId]);
+  }
+
   // Activities
   async createActivity(data: NewActivity): Promise<Activity> {
     const query = `

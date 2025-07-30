@@ -1055,13 +1055,14 @@ const Inbox: React.FC = () => {
                             const isAudio = /\.(mp3|wav|ogg|m4a)$/i.test(fileName);
                             const isPdf = /\.pdf$/i.test(fileName);
                             
-                            // Use image proxy for all images to avoid CORS and loading issues
+                            // Use Railway URLs directly (server-side URLs are now fixed)
                             let displayUrl = attachment;
-                            if (isImage && (attachment.includes('/uploads/') || !attachment.startsWith('http'))) {
-                              // Extract just the filename
-                              const parts = attachment.split('/');
-                              const filename = parts[parts.length - 1].split('?')[0];
-                              displayUrl = `/api/image-proxy/${filename}`;
+                            if (isImage && attachment.includes('/uploads/') && !attachment.startsWith('https://pcd-production-clean-production-e6f3.up.railway.app')) {
+                              // Fix any remaining old Railway URLs to use the correct domain
+                              displayUrl = attachment.replace(
+                                'https://pleasantcovedesign-production.up.railway.app',
+                                'https://pcd-production-clean-production-e6f3.up.railway.app'
+                              );
                             }
                             
                             if (isImage) {

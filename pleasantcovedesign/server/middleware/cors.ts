@@ -36,22 +36,21 @@ export function createCorsMiddleware() {
     origin: function (origin, callback) {
       // Allow requests with no origin (like mobile apps, Postman, health checks, curl)
       if (!origin) {
-        // Always allow in development
-        if (isDevelopment) {
-          return callback(null, true);
-        }
-        // In production, allow for health checks and API monitoring
         console.log('✅ CORS: Allowing request with no origin header (health check/monitoring)');
+        return callback(null, true);
+      }
+
+      // ALWAYS allow localhost and file:// access for testing/admin UI
+      if (origin === 'null' || 
+          origin.includes('localhost') || 
+          origin.includes('127.0.0.1') ||
+          origin.includes('file://')) {
+        console.log(`✅ CORS: Allowing local/file access: ${origin}`);
         return callback(null, true);
       }
 
       // Check if origin is allowed
       if (allOrigins.includes(origin)) {
-        return callback(null, true);
-      }
-
-      // Allow localhost in development
-      if (isDevelopment && (origin.includes('localhost') || origin.includes('127.0.0.1'))) {
         return callback(null, true);
       }
 

@@ -419,6 +419,11 @@ export class PostgreSQLStorage {
     return result.rows;
   }
 
+  async getAllAppointments(): Promise<any[]> {
+    const result = await this.pool.query('SELECT * FROM appointments ORDER BY datetime DESC');
+    return result.rows;
+  }
+
   // Helper methods for mapping database rows to objects
   private mapCompany(row: any): Company {
     return {

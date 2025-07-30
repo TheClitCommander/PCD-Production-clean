@@ -85,7 +85,12 @@ export function createCorsMiddleware() {
       'Accept-Language',
       'Content-Language',
       'Last-Event-ID',
-      'ngrok-skip-browser-warning'
+      'ngrok-skip-browser-warning',
+      'Cache-Control',
+      'Pragma',
+      'Expires',
+      'If-Modified-Since',
+      'If-None-Match'
     ],
     
     exposedHeaders: [

@@ -1335,7 +1335,7 @@ export async function registerRoutes(app: Express, io: any) {
           // If it starts with /uploads, convert to absolute URL
           if (key.startsWith('/uploads')) {
             const baseUrl = process.env.NODE_ENV === 'production' 
-              ? 'https://pleasantcovedesign-production.up.railway.app'
+              ? 'https://pcd-production-clean-production-e6f3.up.railway.app'
               : process.env.NGROK_URL || `https://localhost:${process.env.PORT || 3000}`;
             return `${baseUrl}${key}`;
           }
@@ -1352,7 +1352,7 @@ export async function registerRoutes(app: Express, io: any) {
           
           // Dynamically determine the base URL - always use HTTPS for production
           const baseUrl = process.env.NODE_ENV === 'production' 
-            ? 'https://pleasantcovedesign-production.up.railway.app'
+            ? 'https://pcd-production-clean-production-e6f3.up.railway.app'
             : process.env.NGROK_URL || `http://localhost:${process.env.PORT || 3000}`;
 
           attachments = uploaded.map(f => {
@@ -5370,8 +5370,8 @@ Booked via: ${source}
          
          // Dynamically determine the base URL - use HTTPS ngrok for HTTPS compatibility
          const baseUrl = process.env.NODE_ENV === 'production' 
-           ? 'https://pleasantcovedesign-production.up.railway.app' 
-           : 'https://1ce2-2603-7080-e501-3f6a-59ca-c294-1beb-ddfc.ngrok-free.app';
+           ? 'https://pcd-production-clean-production-e6f3.up.railway.app' 
+           : process.env.NGROK_URL || `http://localhost:${process.env.PORT || 3000}`;
 
          for (const file of req.files as Express.Multer.File[]) {
            try {

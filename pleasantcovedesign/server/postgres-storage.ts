@@ -140,6 +140,7 @@ export class PostgreSQLStorage {
             sender_name VARCHAR(255) NOT NULL,
             content TEXT,
             attachments TEXT[],
+            read_at TIMESTAMP,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
           );
         `;
@@ -158,6 +159,7 @@ export class PostgreSQLStorage {
         'ALTER TABLE projects ADD COLUMN IF NOT EXISTS stage VARCHAR(100) DEFAULT \'discovery\'',
         'ALTER TABLE projects ADD COLUMN IF NOT EXISTS status VARCHAR(50) DEFAULT \'active\'',
         'ALTER TABLE project_messages ADD COLUMN IF NOT EXISTS attachments TEXT[] DEFAULT \'{}\'',
+        'ALTER TABLE project_messages ADD COLUMN IF NOT EXISTS read_at TIMESTAMP',
       ];
       
       for (const sql of columnUpdates) {

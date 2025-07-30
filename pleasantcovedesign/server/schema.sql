@@ -50,6 +50,7 @@ CREATE TABLE IF NOT EXISTS project_messages (
     sender_name VARCHAR(255) NOT NULL,
     content TEXT,
     attachments TEXT[], -- Array of file URLs
+    read_at TIMESTAMP, -- When message was marked as read
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

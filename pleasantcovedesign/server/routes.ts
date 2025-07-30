@@ -5811,7 +5811,7 @@ Booked via: ${source}
         // Generate a stable token based on client ID for consistency
         const stableToken = `pcd_${clientData.id}_${Date.now().toString(36)}_${Math.random().toString(36).substring(2, 8)}`;
         
-        const newProject = await storage.createProject({
+        const projectData = {
             companyId: clientData.id,
             title: `${clientData.name} - Master Conversation`,
             type: 'consultation',
@@ -5819,7 +5819,12 @@ Booked via: ${source}
             status: 'active',
             accessToken: stableToken,
             notes: 'Master conversation thread - all messages consolidated here'
-        });
+        };
+        
+        console.log(`🔧 [MEMBER_AUTH] CREATING PROJECT WITH DATA:`, JSON.stringify(projectData, null, 2));
+        console.log(`🔧 [MEMBER_AUTH] Stage value: "${projectData.stage}" (type: ${typeof projectData.stage})`);
+        
+        const newProject = await storage.createProject(projectData);
         
         console.log(`[MEMBER_AUTH] Created master conversation: ${stableToken.substring(0, 12)}...`);
         return res.json({

@@ -1279,27 +1279,42 @@ return 'https://pcd-production-clean-production-e6f3.up.railway.app';
             
             generateMemberIdFromSession() {
                 try {
-                    // Try to generate a consistent ID from available session data
-                    const possibleIds = [
-                        // Check various cookies for session identifiers
-                        this.getCookieValue('SS_MID'),
-                        this.getCookieValue('SS_MATTR'),
-                        this.getCookieValue('crumb'),
-                        // Check for any unique page identifiers
-                        document.querySelector('[data-collection-id]')?.getAttribute('data-collection-id'),
-                        document.querySelector('[data-item-id]')?.getAttribute('data-item-id')
-                    ].filter(Boolean);
-                    
-                    if (possibleIds.length > 0) {
-                        // Use the first available ID, cleaned up
-                        const id = possibleIds[0].replace(/[^a-zA-Z0-9]/g, '').substring(0, 16);
-                        console.log('🔧 [ALTERNATIVE] Generated member ID from session:', id);
-                        return id;
+                    // CRITICAL: Use cached member ID for consistency across sessions
+                    const cachedMemberId = localStorage.getItem('pcd_stable_member_id');
+                    if (cachedMemberId) {
+                        console.log('✅ [MEMBER_ID] Using cached stable member ID:', cachedMemberId);
+                        return cachedMemberId;
                     }
+                    
+                    // Generate ONE stable ID based on browser fingerprint + domain
+                    const browserFingerprint = [
+                        navigator.userAgent,
+                        screen.width + 'x' + screen.height,
+                        window.location.hostname,
+                        navigator.language,
+                        new Date().getTimezoneOffset()
+                    ].join('|');
+                    
+                    let hash = 0;
+                    for (let i = 0; i < browserFingerprint.length; i++) {
+                        const char = browserFingerprint.charCodeAt(i);
+                        hash = ((hash << 5) - hash) + char;
+                        hash = hash & hash;
+                    }
+                    
+                    const stableId = Math.abs(hash).toString(36).substring(0, 24);
+                    
+                    // Cache permanently for this browser
+                    localStorage.setItem('pcd_stable_member_id', stableId);
+                    console.log('🔧 [MEMBER_ID] Generated stable member ID:', stableId);
+                    return stableId;
                 } catch (error) {
-                    console.error('❌ [ALTERNATIVE] Failed to generate member ID:', error);
+                    console.error('❌ [MEMBER_ID] Failed to generate member ID:', error);
+                    // Fallback to a basic stable ID
+                    const fallbackId = 'fallback_' + window.location.hostname.replace(/[^a-zA-Z0-9]/g, '');
+                    localStorage.setItem('pcd_stable_member_id', fallbackId);
+                    return fallbackId;
                 }
-                return null;
             }
             
             getCookieValue(name) {

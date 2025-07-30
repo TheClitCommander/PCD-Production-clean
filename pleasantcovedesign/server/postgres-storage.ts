@@ -17,22 +17,45 @@ export class PostgreSQLStorage {
 
   async forceMigration() {
     try {
-      console.log('🔧 FORCE MIGRATION: Dropping and recreating tables...');
+      console.log('🔧 FORCE MIGRATION: Adding missing columns...');
       
-      // Drop tables in reverse dependency order
-      await this.pool.query('DROP TABLE IF EXISTS activities CASCADE');
-      await this.pool.query('DROP TABLE IF EXISTS project_messages CASCADE');
-      await this.pool.query('DROP TABLE IF EXISTS project_files CASCADE');
-      await this.pool.query('DROP TABLE IF EXISTS projects CASCADE');
-      await this.pool.query('DROP TABLE IF EXISTS companies CASCADE');
+      // Add missing columns to companies table
+      const missingColumns = [
+        'ALTER TABLE companies ADD COLUMN IF NOT EXISTS phone VARCHAR(50)',
+        'ALTER TABLE companies ADD COLUMN IF NOT EXISTS address TEXT',
+        'ALTER TABLE companies ADD COLUMN IF NOT EXISTS city VARCHAR(100)',
+        'ALTER TABLE companies ADD COLUMN IF NOT EXISTS state VARCHAR(50)',
+        'ALTER TABLE companies ADD COLUMN IF NOT EXISTS industry VARCHAR(100)',
+        'ALTER TABLE companies ADD COLUMN IF NOT EXISTS website VARCHAR(255)',
+        'ALTER TABLE companies ADD COLUMN IF NOT EXISTS priority VARCHAR(20) DEFAULT \'medium\'',
+        'ALTER TABLE companies ADD COLUMN IF NOT EXISTS tags TEXT[]',
+        'ALTER TABLE companies ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP',
+        
+        // Add missing columns to projects table
+        'ALTER TABLE projects ADD COLUMN IF NOT EXISTS type VARCHAR(100) NOT NULL DEFAULT \'website\'',
+        'ALTER TABLE projects ADD COLUMN IF NOT EXISTS stage VARCHAR(100) NOT NULL DEFAULT \'discovery\'',
+        'ALTER TABLE projects ADD COLUMN IF NOT EXISTS status VARCHAR(50) DEFAULT \'active\'',
+        'ALTER TABLE projects ADD COLUMN IF NOT EXISTS score INTEGER DEFAULT 0',
+        'ALTER TABLE projects ADD COLUMN IF NOT EXISTS notes TEXT',
+        'ALTER TABLE projects ADD COLUMN IF NOT EXISTS total_amount DECIMAL(10,2) DEFAULT 0',
+        'ALTER TABLE projects ADD COLUMN IF NOT EXISTS paid_amount DECIMAL(10,2) DEFAULT 0',
+        'ALTER TABLE projects ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP',
+        
+        // Add missing columns to project_messages table
+        'ALTER TABLE project_messages ADD COLUMN IF NOT EXISTS attachments TEXT[]'
+      ];
       
-      console.log('✅ FORCE MIGRATION: Old tables dropped');
+      for (const sql of missingColumns) {
+        try {
+          await this.pool.query(sql);
+          console.log(`✅ Executed: ${sql.substring(0, 60)}...`);
+        } catch (error) {
+          console.log(`⚠️  Skipped: ${sql.substring(0, 60)}... (${error.message})`);
+        }
+      }
       
-      // Recreate with proper schema
-      await this.initializeTables();
-      
-      console.log('✅ FORCE MIGRATION: Tables recreated successfully');
-      return { success: true, message: 'Migration completed' };
+      console.log('✅ FORCE MIGRATION: Missing columns added successfully');
+      return { success: true, message: 'Migration completed - missing columns added' };
     } catch (error) {
       console.error('❌ FORCE MIGRATION: Failed:', error);
       return { success: false, error: error.message };

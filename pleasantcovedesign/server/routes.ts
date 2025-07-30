@@ -5711,15 +5711,20 @@ Booked via: ${source}
           console.log(`🔍 [MEMBER_AUTH] findClientByEmail result:`, existingClientData);
           let existingClient = null;
           
-          // Handle the complex return structure from findClientByEmail
+          // Handle the return structure from findClientByEmail
           console.log(`🔍 [MEMBER_AUTH] Processing findClientByEmail result...`);
           if (existingClientData) {
+            // PostgreSQL storage returns Company directly, not wrapped
             if (existingClientData.company) {
               existingClient = existingClientData.company;
               console.log(`✅ [MEMBER_AUTH] Found existing company: ${existingClient.name}`);
             } else if (existingClientData.business) {
               existingClient = existingClientData.business;
               console.log(`✅ [MEMBER_AUTH] Found existing business: ${existingClient.name}`);
+            } else {
+              // Direct Company object from PostgreSQL
+              existingClient = existingClientData;
+              console.log(`✅ [MEMBER_AUTH] Found existing client: ${existingClient.name}`);
             }
           } else {
             console.log(`❌ [MEMBER_AUTH] No existing client found`);
@@ -5810,6 +5815,7 @@ Booked via: ${source}
             companyId: clientData.id,
             title: `${clientData.name} - Master Conversation`,
             type: 'consultation',
+            stage: 'in_progress',
             status: 'active',
             accessToken: stableToken,
             notes: 'Master conversation thread - all messages consolidated here'

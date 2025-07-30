@@ -28,7 +28,7 @@ const MessagesPanel: React.FC = () => {
   const fetchMessages = async () => {
     try {
       console.log('📬 [DASHBOARD] Fetching conversations...');
-      const response = await api.get('/admin/conversations');
+      const response = await api.get('/admin/inbox');
       
       if (response.data && response.data.projectMessages) {
         setConversations(response.data.projectMessages);

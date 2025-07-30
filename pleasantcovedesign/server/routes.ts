@@ -7003,4 +7003,68 @@ Booked via: ${source}
     }
   });
 
+  // ===================
+  // ADMIN ENDPOINTS
+  // ===================
+
+  // CORRECTED ADMIN INBOX ENDPOINT - Returns projects with messages for PostgreSQL
+  app.get("/api/admin/inbox", requireAdmin, async (req: Request, res: Response) => {
+    try {
+      console.log("✅ [ADMIN INBOX] Fetching all conversations with messages...");
+      
+      // Get all projects
+      const projects = await storage.getProjects({});
+      console.log(`📋 [ADMIN INBOX] Found ${projects.length} projects`);
+      
+      // For each project, get its company info and messages
+      const projectMessages = await Promise.all(
+        projects.map(async (project) => {
+          try {
+            // Get company info
+            const company = await storage.getCompany(project.companyId);
+            
+            // Get messages for this project
+            const messages = await storage.getProjectMessages(project.id!);
+            console.log(`📋 [ADMIN INBOX] Project ${project.id}: ${messages.length} messages`);
+            
+            return {
+              projectId: project.id,
+              accessToken: project.accessToken,
+              projectTitle: project.title,
+              customerName: company?.name || 'Unknown Customer',
+              companyId: project.companyId,
+              createdAt: project.createdAt,
+              updatedAt: project.updatedAt,
+              messages: messages.map(msg => ({
+                id: msg.id,
+                projectId: msg.projectId,
+                content: msg.content,
+                senderName: msg.senderName,
+                senderType: msg.senderType,
+                createdAt: msg.createdAt,
+                attachments: msg.attachments || []
+              }))
+            };
+          } catch (error) {
+            console.error(`❌ [ADMIN INBOX] Error processing project ${project.id}:`, error);
+            return null;
+          }
+        })
+      );
+      
+      // Filter out failed projects and return in expected format
+      const validProjects = projectMessages.filter(p => p !== null);
+      console.log(`✅ [ADMIN INBOX] Returning ${validProjects.length} valid conversations`);
+      
+      res.json({
+        projectMessages: validProjects
+      });
+      
+    } catch (error) {
+      console.error('❌ [ADMIN INBOX] Error:', error);
+      res.status(500).json({ error: "Failed to fetch conversations" });
+    }
+  });
+
+  // NEW, RELIABLE ENDPOINT FOR ADMIN INBOX
 }

@@ -378,7 +378,7 @@ const Inbox: React.FC = () => {
         const businessId = 1;
         console.log(`📥 [FETCH] Fetching messages for business ${businessId}...`);
         
-        const messagesRes = await api.get(`/admin/conversations`);
+        const messagesRes = await api.get(`/admin/inbox`);
         console.log('📥 [FETCH] Raw API response:', messagesRes.data);
         
         const businessData = messagesRes.data;
@@ -827,7 +827,7 @@ const Inbox: React.FC = () => {
                     fetchHasRun.current = false;
                     const fetchConversations = async () => {
                       try {
-                        const messagesRes = await api.get(`/admin/conversations`);
+                        const messagesRes = await api.get(`/admin/inbox`);
                         const businessData = messagesRes.data;
                         
                         if (!businessData.projectMessages) {

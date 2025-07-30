@@ -231,6 +231,9 @@ export class PostgreSQLStorage {
 
   // Project operations
   async createProject(data: NewProject): Promise<Project> {
+    console.log('🔧 [CREATE_PROJECT] Input data:', JSON.stringify(data, null, 2));
+    console.log('🔧 [CREATE_PROJECT] Stage value:', data.stage, typeof data.stage);
+    
     const query = `
       INSERT INTO projects (company_id, title, type, stage, status, score, notes, total_amount, paid_amount, access_token)
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
@@ -240,6 +243,8 @@ export class PostgreSQLStorage {
       data.companyId, data.title, data.type, data.stage, data.status || 'active',
       data.score || 0, data.notes, data.totalAmount || 0, data.paidAmount || 0, data.accessToken
     ];
+    
+    console.log('🔧 [CREATE_PROJECT] SQL values:', values);
     
     const result = await this.pool.query(query, values);
     return this.mapProject(result.rows[0]);

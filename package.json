@@ -1,17 +1,13 @@
 {
   "name": "pcd-production-clean",
   "version": "1.0.0",
-  "description": "Pleasant Cove Design Railway Diagnostic",
-  "main": "pleasantcovedesign/server/railway-debug.js",
+  "description": "Pleasant Cove Design - Production Server",
+  "main": "pleasantcovedesign/server/dist/index.js",
   "scripts": {
-    "start": "cd pleasantcovedesign/server && node railway-debug.js",
-    "build": "cd pleasantcovedesign/server && npm install"
+    "start": "cd pleasantcovedesign/server && npm start",
+    "build": "cd pleasantcovedesign/server && npm install && npm run build"
   },
   "engines": {
     "node": "18"
-  },
-  "dependencies": {
-    "express": "^4.18.2",
-    "pg": "^8.11.3"
   }
 }

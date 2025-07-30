@@ -5641,6 +5641,18 @@ Booked via: ${source}
     });
   });
 
+  // Force database migration (temporary endpoint)
+  app.post('/api/force-migration', async (req: Request, res: Response) => {
+    try {
+      console.log('🚨 FORCE MIGRATION requested');
+      const result = await storage.forceMigration();
+      res.json(result);
+    } catch (error) {
+      console.error('❌ FORCE MIGRATION endpoint error:', error);
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
   app.post('/api/token', async (req: Request, res: Response) => {
     try {
       const { email, name, projectId, type = 'member' } = req.body;

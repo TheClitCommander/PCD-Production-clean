@@ -5699,20 +5699,31 @@ Booked via: ${source}
       
       // MEMBER TOKEN REQUEST (for Squarespace widgets)
       if (type === 'member' && email) {
-        console.log(`[MEMBER_AUTH] Authenticating member: ${email}`);
+        console.log(`🔐 [MEMBER_AUTH] === STARTING MEMBER AUTHENTICATION ===`);
+        console.log(`🔐 [MEMBER_AUTH] Email: ${email}`);
+        console.log(`🔐 [MEMBER_AUTH] Name: ${name}`);
+        console.log(`🔐 [MEMBER_AUTH] Database type: ${storage.constructor.name}`);
         
-        // Step 1: Find if this member (company) already exists.
-        const existingClientData = await storage.findClientByEmail(email);
-        let existingClient = null;
-        
-        // Handle the complex return structure from findClientByEmail
-        if (existingClientData) {
-          if (existingClientData.company) {
-            existingClient = existingClientData.company;
-          } else if (existingClientData.business) {
-            existingClient = existingClientData.business;
+        try {
+          // Step 1: Find if this member (company) already exists.
+          console.log(`🔍 [MEMBER_AUTH] Step 1: Looking up existing client by email...`);
+          const existingClientData = await storage.findClientByEmail(email);
+          console.log(`🔍 [MEMBER_AUTH] findClientByEmail result:`, existingClientData);
+          let existingClient = null;
+          
+          // Handle the complex return structure from findClientByEmail
+          console.log(`🔍 [MEMBER_AUTH] Processing findClientByEmail result...`);
+          if (existingClientData) {
+            if (existingClientData.company) {
+              existingClient = existingClientData.company;
+              console.log(`✅ [MEMBER_AUTH] Found existing company: ${existingClient.name}`);
+            } else if (existingClientData.business) {
+              existingClient = existingClientData.business;
+              console.log(`✅ [MEMBER_AUTH] Found existing business: ${existingClient.name}`);
+            }
+          } else {
+            console.log(`❌ [MEMBER_AUTH] No existing client found`);
           }
-        }
         
         if (existingClient?.id) {
             console.log(`[MEMBER_AUTH] Found existing client: ${existingClient.name} (ID: ${existingClient.id})`);
@@ -5775,21 +5786,22 @@ Booked via: ${source}
             console.log(`[MEMBER_AUTH] No existing client found, creating new client: ${name || email.split('@')[0]} (${email})`);
         }
 
-        // Step 3: No active project found. Create ONE master conversation for this client.
-        console.log(`[MEMBER_AUTH] No active conversation found, creating master conversation for: ${email}`);
-        
-        let clientData = existingClient;
-        if (!clientData) {
-            // First time client - create their company record
-            clientData = await storage.createCompany({
-                name: name || email.split('@')[0],
-                email: email,
-                phone: '',
-                industry: 'Web Design Client',
-                tags: ['squarespace-member']
-            });
-            console.log(`[MEMBER_AUTH] Created new client: ${clientData.name} (ID: ${clientData.id})`);
-        }
+          // Step 3: No active project found. Create ONE master conversation for this client.
+          console.log(`🔧 [MEMBER_AUTH] Step 3: No active conversation found, creating master conversation for: ${email}`);
+          
+          let clientData = existingClient;
+          if (!clientData) {
+              // First time client - create their company record
+              console.log(`🆕 [MEMBER_AUTH] Creating new client record...`);
+              clientData = await storage.createCompany({
+                  name: name || email.split('@')[0],
+                  email: email,
+                  phone: '',
+                  industry: 'Web Design Client',
+                  tags: ['squarespace-member']
+              });
+              console.log(`✅ [MEMBER_AUTH] Created new client: ${clientData.name} (ID: ${clientData.id})`);
+          }
         
         // Generate a stable token based on client ID for consistency
         const stableToken = `pcd_${clientData.id}_${Date.now().toString(36)}_${Math.random().toString(36).substring(2, 8)}`;
@@ -5815,6 +5827,12 @@ Booked via: ${source}
             clientName: clientData.name,
             messageCount: 0
         });
+        
+        } catch (memberError) {
+          console.error('🚨 [MEMBER_AUTH] DETAILED ERROR:', memberError);
+          console.error('🚨 [MEMBER_AUTH] Error stack:', memberError.stack);
+          throw memberError; // Re-throw to be caught by main catch block
+        }
       }
       
       // VALIDATION REQUEST (check if token is valid)

@@ -42,17 +42,26 @@ export interface Company {
 
 // Project interface (specific deliverables/jobs)
 export interface Project {
-  id: number;
-  companyId: string;
-  name: string;
-  type: 'website' | 'seo' | 'maintenance' | 'other';
-  status: 'lead' | 'quoted' | 'approved' | 'in_progress' | 'completed' | 'cancelled';
-  value?: number;
-  description?: string;
-  startDate?: Date;
-  endDate?: Date;
-  createdAt?: Date;
-  updatedAt?: Date;
+  id?: number;
+  companyId: number;
+  title: string;
+  type: string; // website, seo, ecommerce, branding, etc.
+  stage: string;
+  status: string; // active, archived, cancelled
+  score?: number;
+  notes?: string;
+  totalAmount?: number;
+  paidAmount?: number;
+  scheduledTime?: string;
+  appointmentStatus?: string;
+  paymentStatus?: string;
+  stripeCustomerId?: string;
+  stripePaymentLinkId?: string;
+  lastPaymentDate?: string;
+  paymentNotes?: string;
+  accessToken?: string; // UUID token for client portal access
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 // NEW: Order tracking for billing

@@ -7020,18 +7020,31 @@ Booked via: ${source}
       const projectMessages = await Promise.all(
         projects.map(async (project) => {
           try {
-            // Get company info
-            const company = await storage.getCompany(project.companyId);
+            console.log(`📋 [ADMIN INBOX] Processing project ${project.id} (${project.title})`);
             
-            // Get messages for this project
-            const messages = await storage.getProjectMessages(project.id!);
-            console.log(`📋 [ADMIN INBOX] Project ${project.id}: ${messages.length} messages`);
+            // Get company info (don't fail if this fails)
+            let company = null;
+            try {
+              company = await storage.getCompany(project.companyId);
+              console.log(`📋 [ADMIN INBOX] Found company: ${company?.name}`);
+            } catch (err) {
+              console.warn(`⚠️ [ADMIN INBOX] Could not get company ${project.companyId}:`, err);
+            }
+            
+            // Get messages for this project (don't fail if this fails)
+            let messages = [];
+            try {
+              messages = await storage.getProjectMessages(project.id!);
+              console.log(`📋 [ADMIN INBOX] Project ${project.id}: ${messages.length} messages`);
+            } catch (err) {
+              console.warn(`⚠️ [ADMIN INBOX] Could not get messages for project ${project.id}:`, err);
+            }
             
             return {
               projectId: project.id,
               accessToken: project.accessToken,
               projectTitle: project.title,
-              customerName: company?.name || 'Unknown Customer',
+              customerName: company?.name || project.title.split(' - ')[0] || 'Unknown Customer',
               companyId: project.companyId,
               createdAt: project.createdAt,
               updatedAt: project.updatedAt,
@@ -7047,13 +7060,23 @@ Booked via: ${source}
             };
           } catch (error) {
             console.error(`❌ [ADMIN INBOX] Error processing project ${project.id}:`, error);
-            return null;
+            // Return project anyway with minimal data
+            return {
+              projectId: project.id,
+              accessToken: project.accessToken,
+              projectTitle: project.title,
+              customerName: project.title.split(' - ')[0] || 'Unknown Customer',
+              companyId: project.companyId,
+              createdAt: project.createdAt,
+              updatedAt: project.updatedAt,
+              messages: []
+            };
           }
         })
       );
       
-      // Filter out failed projects and return in expected format
-      const validProjects = projectMessages.filter(p => p !== null);
+      // Don't filter out any projects - return them all
+      const validProjects = projectMessages;
       console.log(`✅ [ADMIN INBOX] Returning ${validProjects.length} valid conversations`);
       
       res.json({

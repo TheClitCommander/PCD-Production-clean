@@ -27,7 +27,11 @@ export class PostgreSQLStorage {
         path.join(process.cwd(), 'server', 'schema.sql'),
         path.join(process.cwd(), 'pleasantcovedesign', 'server', 'schema.sql'),
         path.join(__dirname, 'schema.sql'),
-        path.join(__dirname, '..', 'schema.sql')
+        path.join(__dirname, '..', 'schema.sql'),
+        '/app/pleasantcovedesign/server/schema.sql', // Railway absolute path
+        '/app/schema.sql', // Railway root path
+        path.join(process.cwd(), 'dist', 'schema.sql'), // Built path
+        path.join(process.cwd(), 'src', 'schema.sql') // Source path
       ];
       
       let schema: string | null = null;
@@ -54,23 +58,41 @@ export class PostgreSQLStorage {
             id SERIAL PRIMARY KEY,
             name VARCHAR(255) NOT NULL,
             email VARCHAR(255) UNIQUE,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            phone VARCHAR(50),
+            address TEXT,
+            city VARCHAR(100),
+            state VARCHAR(50),
+            industry VARCHAR(100),
+            website VARCHAR(255),
+            priority VARCHAR(20) DEFAULT 'medium',
+            tags TEXT[],
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
           );
           
           CREATE TABLE IF NOT EXISTS projects (
             id SERIAL PRIMARY KEY,
-            company_id INTEGER REFERENCES companies(id),
+            company_id INTEGER REFERENCES companies(id) ON DELETE CASCADE,
             title VARCHAR(255) NOT NULL,
+            type VARCHAR(100) NOT NULL,
+            stage VARCHAR(100) NOT NULL,
+            status VARCHAR(50) DEFAULT 'active',
+            score INTEGER DEFAULT 0,
+            notes TEXT,
+            total_amount DECIMAL(10,2) DEFAULT 0,
+            paid_amount DECIMAL(10,2) DEFAULT 0,
             access_token VARCHAR(255) UNIQUE,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
           );
           
           CREATE TABLE IF NOT EXISTS project_messages (
             id SERIAL PRIMARY KEY,
-            project_id INTEGER REFERENCES projects(id),
+            project_id INTEGER REFERENCES projects(id) ON DELETE CASCADE,
             sender_type VARCHAR(20) NOT NULL,
             sender_name VARCHAR(255) NOT NULL,
             content TEXT,
+            attachments TEXT[],
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
           );
         `;

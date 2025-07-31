@@ -29,11 +29,11 @@ const AppointmentsPanel: React.FC = () => {
       try {
         const response = await api.get<Appointment[]>('/appointments')
         
-        // Filter for upcoming appointments (today through next 30 days)
+        // Filter for upcoming appointments (today through next 6 months for demo purposes)
         const today = new Date()
         today.setHours(0, 0, 0, 0)
-        const thirtyDaysFromNow = new Date(today)
-        thirtyDaysFromNow.setDate(today.getDate() + 30)
+        const sixMonthsFromNow = new Date(today)
+        sixMonthsFromNow.setMonth(today.getMonth() + 6)
         
         // Handle both wrapped response format {success: true, appointments: [...]} and direct array
         const appointments = (response.data as any).appointments || response.data
@@ -44,7 +44,7 @@ const AppointmentsPanel: React.FC = () => {
             if (!aptDateTime) return false
             
             const aptDate = new Date(aptDateTime)
-            return aptDate >= today && aptDate <= thirtyDaysFromNow && apt.status !== 'cancelled'
+            return aptDate >= today && aptDate <= sixMonthsFromNow && apt.status !== 'cancelled'
           })
           .sort((a: Appointment, b: Appointment) => {
             const aDateTime = a.datetime || a.appointmentDate || a.appointment_time;

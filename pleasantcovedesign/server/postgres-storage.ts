@@ -290,6 +290,10 @@ export class PostgreSQLStorage {
     return result.rows[0] ? this.mapProject(result.rows[0]) : null;
   }
 
+  async getProjectByAccessToken(token: string): Promise<Project | null> {
+    return this.getProjectByToken(token);
+  }
+
   async getProjectsByCompany(companyId: number): Promise<Project[]> {
     const result = await this.pool.query('SELECT * FROM projects WHERE company_id = $1 ORDER BY created_at DESC', [companyId]);
     return result.rows.map(row => this.mapProject(row));

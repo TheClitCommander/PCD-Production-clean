@@ -250,7 +250,6 @@ const PUBLIC_API_ROUTES = [
   "/api/public/project",
   "/api/book-appointment",
   "/api/availability",
-  "/api/test-availability",
   "/health"
 ];
 
@@ -5105,21 +5104,7 @@ Booked via: ${source}
     }
   });
 
-  // Test endpoint first
-  app.get("/api/test-availability", (req: Request, res: Response) => {
-    res.json({ test: "working" });
-  });
-
-  // Get availability for a specific date (for widget real-time checking)
-  app.get("/api/availability/:date", (req: Request, res: Response) => {
-    res.json({
-      success: true,
-      date: req.params.date,
-      availableSlots: ['8:30 AM', '9:00 AM'],
-      bookedSlots: [],
-      timestamp: new Date().toISOString()
-    });
-  });
+  // REMOVED: Test endpoints - moved availability to working location near health endpoint
 
   app.get("/api/debug/r2", (req: Request, res: Response) => {
     res.json({ 
@@ -5564,6 +5549,17 @@ Booked via: ${source}
       timestamp: new Date().toISOString(),
       service: 'Pleasant Cove Design API',
       version: '1.1'
+    });
+  });
+
+  // Availability check endpoint for widget
+  app.get('/api/availability/:date', (req: Request, res: Response) => {
+    res.status(200).json({
+      success: true,
+      date: req.params.date,
+      availableSlots: ['8:30 AM', '9:00 AM'],
+      bookedSlots: [],
+      timestamp: new Date().toISOString()
     });
   });
 

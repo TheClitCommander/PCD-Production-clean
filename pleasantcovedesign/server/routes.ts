@@ -5105,32 +5105,14 @@ Booked via: ${source}
   });
 
   // Get availability for a specific date (for widget real-time checking)
-  app.get("/api/availability/:date", async (req: Request, res: Response) => {
-    try {
-      const { date } = req.params;
-      console.log(`📅 [AVAILABILITY] Checking availability for date: ${date}`);
-      
-      // For now, always return both slots as available (simplified)
-      // TODO: Check actual appointments once database issues are resolved
-      const allSlots = ['8:30 AM', '9:00 AM'];
-      
-      console.log(`📅 [AVAILABILITY] Returning all slots as available for testing`);
-      
-      res.json({
-        success: true,
-        date: date,
-        availableSlots: allSlots,
-        bookedSlots: []
-      });
-      
-    } catch (error) {
-      console.error('📅 [AVAILABILITY] Simplified endpoint error:', error);
-      res.status(500).json({ 
-        success: false, 
-        message: 'Failed to check availability',
-        error: error.message
-      });
-    }
+  app.get("/api/availability/:date", (req: Request, res: Response) => {
+    console.log(`📅 [AVAILABILITY] Basic endpoint hit for date: ${req.params.date}`);
+    res.json({
+      success: true,
+      date: req.params.date,
+      availableSlots: ['8:30 AM', '9:00 AM'],
+      bookedSlots: []
+    });
   });
 
   app.get("/api/debug/r2", (req: Request, res: Response) => {

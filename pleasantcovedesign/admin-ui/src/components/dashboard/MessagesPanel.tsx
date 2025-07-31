@@ -93,10 +93,13 @@ const MessagesPanel: React.FC = () => {
       ) : (
         <div className="space-y-3">
           {conversations.map((conversation, index) => {
-            const lastMsg = conversation.lastMessage
-            const hasUnread = conversation.messages.some(msg => 
+            const lastMsg = conversation.lastMessage || conversation.messages?.[conversation.messages.length - 1]
+            const hasUnread = conversation.messages?.some(msg => 
               msg.senderType === 'client' && !msg.readAt
-            )
+            ) || false
+            
+            // Skip conversations without messages
+            if (!lastMsg) return null
             
             return (
               <div 

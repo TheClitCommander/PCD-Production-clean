@@ -5562,6 +5562,22 @@ Booked via: ${source}
     });
   });
 
+  // Analytics endpoint (stub for now)
+  app.get('/api/analytics', requireAdmin, (req: Request, res: Response) => {
+    const period = req.query.period || '30d';
+    res.json({
+      period,
+      metrics: {
+        totalRevenue: 0,
+        totalClients: 0,
+        totalProjects: 0,
+        conversionRate: 0
+      },
+      revenueData: [],
+      clientData: []
+    });
+  });
+
   // Force database migration (temporary endpoint)
   app.post('/api/force-migration', async (req: Request, res: Response) => {
     try {

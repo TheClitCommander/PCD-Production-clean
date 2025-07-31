@@ -1686,6 +1686,21 @@ SUPPORT: pleasantcovedesign@gmail.com | (207) 380-5680
             return PRODUCTION_API_URL;
         }
 
+        function getWidgetSource() {
+            const hostname = window.location.hostname;
+            
+            // Detect environment and return appropriate source identifier
+            if (hostname === 'localhost' || hostname === '127.0.0.1') {
+                return 'local_development_widget';
+            } else if (hostname.includes('.squarespace.com') || hostname.includes('.sqsp.net')) {
+                return 'squarespace_appointment_widget';
+            } else if (hostname === 'pleasantcovedesign.com' || hostname === 'www.pleasantcovedesign.com') {
+                return 'production_appointment_widget';
+            } else {
+                return 'unknown_appointment_widget';
+            }
+        }
+
         // ==================
         // FORM SUBMISSION
         // ==================
@@ -1717,7 +1732,7 @@ SUPPORT: pleasantcovedesign@gmail.com | (207) 380-5680
                     appointmentTime: formData.appointmentTime,
                     meetingType: formData.meetingType,
                     additionalNotes: formData.additionalNotes,
-                    source: 'local_development_widget',
+                    source: getWidgetSource(),
                     timestamp: new Date().toISOString()
                 };
 

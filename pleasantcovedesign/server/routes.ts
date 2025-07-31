@@ -5133,20 +5133,29 @@ Booked via: ${source}
   app.get("/api/availability/:date", async (req: Request, res: Response) => {
     try {
       const { date } = req.params;
+      console.log(`📅 [AVAILABILITY] Checking availability for date: ${date}`);
       
       // Define business hours - only two slots available daily
       const allSlots = ['8:30 AM', '9:00 AM'];
       
       // Get existing appointments for this date
+      console.log(`📅 [AVAILABILITY] Fetching appointments...`);
       const appointments = await storage.getAppointments();
+      console.log(`📅 [AVAILABILITY] Found ${appointments.length} total appointments`);
       const appointmentsForDate = appointments.filter(apt => {
         if (apt.status === 'cancelled') return false; // Ignore cancelled appointments
         
-        const appointmentDate = new Date(apt.datetime);
-        const requestedDate = new Date(date);
-        
-        // Check if appointment is on the same date
-        return appointmentDate.toDateString() === requestedDate.toDateString();
+        try {
+          const appointmentDate = new Date(apt.datetime);
+          const requestedDate = new Date(date);
+          console.log(`📅 [AVAILABILITY] Comparing ${appointmentDate.toDateString()} vs ${requestedDate.toDateString()}`);
+          
+          // Check if appointment is on the same date
+          return appointmentDate.toDateString() === requestedDate.toDateString();
+        } catch (dateError) {
+          console.error(`📅 [AVAILABILITY] Date parsing error:`, dateError);
+          return false;
+        }
       });
       
       // Extract booked time slots from appointments

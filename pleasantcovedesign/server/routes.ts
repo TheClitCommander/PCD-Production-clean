@@ -324,8 +324,8 @@ export async function registerRoutes(app: Express, io: any) {
   // APPOINTMENT BOOKING ROUTES (from appointment-server.js)
   // ===================
   
-  // Book appointment (PUBLIC - for Squarespace widget)
-  app.post('/api/book-appointment', async (req: Request, res: Response) => {
+  // REMOVED: Book appointment (PUBLIC - for Squarespace widget) - using comprehensive version below
+  /*app.post('/api/book-appointment', async (req: Request, res: Response) => {
     try {
       const {
         firstName,
@@ -552,39 +552,9 @@ export async function registerRoutes(app: Express, io: any) {
         message: 'Server error occurred' 
       });
     }
-  });
+  });*/
   
-  // Get availability for a specific date (PUBLIC)
-  app.get('/api/availability/:date', async (req: Request, res: Response) => {
-    try {
-      const { date } = req.params;
-      
-      // Define business hours - only two slots
-      const allSlots = ['8:30 AM', '9:00 AM'];
-      
-      // Query booked slots for this date
-      const bookedAppointments = await storage.getAppointmentsByDate(date);
-      const bookedSlots = bookedAppointments
-        .filter(apt => apt.status !== 'cancelled')
-        .map(apt => apt.appointmentTime);
-      
-      const availableSlots = allSlots.filter(slot => !bookedSlots.includes(slot));
-      
-      res.json({
-        success: true,
-        date: date,
-        availableSlots: availableSlots,
-        bookedSlots: bookedSlots
-      });
-      
-    } catch (error) {
-      console.error('Availability check error:', error);
-      res.status(500).json({ 
-        success: false, 
-        message: 'Failed to check availability' 
-      });
-    }
-  });
+  // REMOVED: Duplicate availability endpoint - using the simplified one below
   
   // Get all appointments (ADMIN)
   app.get('/api/appointments', requireAdmin, async (req: Request, res: Response) => {

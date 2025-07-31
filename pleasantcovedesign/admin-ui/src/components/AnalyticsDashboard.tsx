@@ -224,19 +224,28 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
       )}
 
       {/* Overview Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-white rounded-xl shadow-sm border p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Total Revenue</p>
-              <p className="text-2xl font-bold text-gray-900">{formatCurrency(analyticsData.overview.totalRevenue)}</p>
-              <p className={`text-sm ${getGrowthColor(analyticsData.overview.revenueGrowth)}`}>
-                {getGrowthIcon(analyticsData.overview.revenueGrowth)} {formatPercentage(Math.abs(analyticsData.overview.revenueGrowth))}
-              </p>
-            </div>
-            <DollarSign className="h-8 w-8 text-green-600" />
-          </div>
+      {loading ? (
+        <div className="text-center py-8">
+          <div className="text-gray-500">Loading analytics...</div>
         </div>
+      ) : !analyticsData ? (
+        <div className="text-center py-8">
+          <div className="text-gray-500">No analytics data available</div>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="bg-white rounded-xl shadow-sm border p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Total Revenue</p>
+                <p className="text-2xl font-bold text-gray-900">{formatCurrency(analyticsData.overview.totalRevenue)}</p>
+                <p className={`text-sm ${getGrowthColor(analyticsData.overview.revenueGrowth)}`}>
+                  {getGrowthIcon(analyticsData.overview.revenueGrowth)} {formatPercentage(Math.abs(analyticsData.overview.revenueGrowth))}
+                </p>
+              </div>
+              <DollarSign className="h-8 w-8 text-green-600" />
+            </div>
+          </div>
 
         <div className="bg-white rounded-xl shadow-sm border p-6">
           <div className="flex items-center justify-between">
@@ -401,6 +410,7 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
           </div>
         </div>
       </div>
+      )}
     </div>
   )
 }

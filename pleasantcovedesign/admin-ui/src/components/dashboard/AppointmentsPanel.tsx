@@ -6,8 +6,9 @@ import api from '../../api'
 
 interface Appointment {
   id: number
-  client_name: string
-  appointment_time: string
+  datetime: string          // Main datetime field from database
+  client_name?: string
+  appointment_time?: string
   appointmentDate?: string  // Add this field to match actual API data
   appointmentTime?: string  // Add this field to match actual API data
   firstName?: string        // Add this field to match actual API data
@@ -15,6 +16,8 @@ interface Appointment {
   service_type?: string
   notes?: string
   status?: string
+  company_id?: number
+  project_id?: number
 }
 
 const AppointmentsPanel: React.FC = () => {
@@ -26,30 +29,31 @@ const AppointmentsPanel: React.FC = () => {
       try {
         const response = await api.get<Appointment[]>('/appointments')
         
-        // Filter for recent appointments (today and yesterday)
+        // Filter for upcoming appointments (today through next 30 days)
         const today = new Date()
         today.setHours(0, 0, 0, 0)
-        const yesterday = new Date(today)
-        yesterday.setDate(today.getDate() - 1)
-        const tomorrow = new Date(today)
-        tomorrow.setDate(tomorrow.getDate() + 1)
+        const thirtyDaysFromNow = new Date(today)
+        thirtyDaysFromNow.setDate(today.getDate() + 30)
         
         // Handle both wrapped response format {success: true, appointments: [...]} and direct array
         const appointments = (response.data as any).appointments || response.data
-        const recentAppointments = (appointments as Appointment[])
+        const upcomingAppointments = (appointments as Appointment[])
           .filter((apt: Appointment) => {
-            // Use appointmentDate field (which exists) instead of appointment_time (which is null)
-            const aptDate = new Date(apt.appointmentDate || apt.appointment_time)
-            return aptDate >= yesterday && aptDate < tomorrow && apt.status !== 'cancelled'
+            // Use datetime field (main field from database) with fallbacks
+            const aptDateTime = apt.datetime || apt.appointmentDate || apt.appointment_time
+            if (!aptDateTime) return false
+            
+            const aptDate = new Date(aptDateTime)
+            return aptDate >= today && aptDate <= thirtyDaysFromNow && apt.status !== 'cancelled'
           })
           .sort((a: Appointment, b: Appointment) => {
-            const aDateTime = a.appointmentDate || a.appointment_time;
-            const bDateTime = b.appointmentDate || b.appointment_time;
+            const aDateTime = a.datetime || a.appointmentDate || a.appointment_time;
+            const bDateTime = b.datetime || b.appointmentDate || b.appointment_time;
             return new Date(aDateTime).getTime() - new Date(bDateTime).getTime();
           })
           .slice(0, 5) // Max 5 appointments
           
-        setAppointments(recentAppointments)
+        setAppointments(upcomingAppointments)
       } catch (error) {
         console.error('Failed to fetch appointments:', error)
       } finally {
@@ -69,13 +73,33 @@ const AppointmentsPanel: React.FC = () => {
     })
   }
 
+  const extractClientName = (appointment: Appointment): string => {
+    // Try client_name first
+    if (appointment.client_name) return appointment.client_name
+    
+    // Try firstName/lastName combination
+    const fullName = `${appointment.firstName || ''} ${appointment.lastName || ''}`.trim()
+    if (fullName) return fullName
+    
+    // Extract from notes if available
+    if (appointment.notes) {
+      const nameMatch = appointment.notes.match(/Name:\s*([^\n\r]+)/)
+      if (nameMatch) return nameMatch[1].trim()
+      
+      const businessMatch = appointment.notes.match(/Business:\s*([^\n\r]+)/)
+      if (businessMatch) return businessMatch[1].trim()
+    }
+    
+    return 'Unknown Client'
+  }
+
   return (
     <Card>
       <Link to="/schedule" className="block">
         <div className="flex items-center gap-2 mb-4 hover:text-blue-600 transition-colors cursor-pointer">
           <Calendar className="w-5 h-5" />
           <h3 className="text-lg font-semibold">
-            Appointments ({appointments.length} recent)
+            Appointments ({appointments.length} upcoming)
           </h3>
         </div>
       </Link>
@@ -83,7 +107,7 @@ const AppointmentsPanel: React.FC = () => {
       {loading ? (
         <div className="text-center py-4 text-gray-500">Loading...</div>
       ) : appointments.length === 0 ? (
-        <div className="text-center py-4 text-gray-500">No recent appointments</div>
+        <div className="text-center py-4 text-gray-500">No upcoming appointments</div>
       ) : (
         <div className="space-y-3">
           {appointments.map((appointment) => (
@@ -94,7 +118,7 @@ const AppointmentsPanel: React.FC = () => {
             >
               <div className="flex items-start gap-2">
                 <span className="text-sm font-medium text-gray-600 whitespace-nowrap">
-                  {appointment.appointmentTime || formatTime(appointment.appointment_time)}
+                  {appointment.appointmentTime || formatTime(appointment.datetime || appointment.appointment_time)}
                 </span>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm">
@@ -106,7 +130,7 @@ const AppointmentsPanel: React.FC = () => {
                     )}
                     {' • '}
                     <span className="text-gray-700">
-                      {appointment.client_name || `${appointment.firstName || ''} ${appointment.lastName || ''}`.trim()}
+                      {extractClientName(appointment)}
                     </span>
                   </p>
                 </div>

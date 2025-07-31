@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin UI Test - Pleasant Cove Design</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .section { border: 1px solid #ccc; padding: 15px; margin: 10px 0; }
+        .success { background: #d4edda; border-color: #c3e6cb; }
+        .error { background: #f8d7da; border-color: #f5c6cb; }
+        pre { background: #f8f9fa; padding: 10px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>🔧 Admin UI Connectivity Test</h1>
+    
+    <div id="connection-test" class="section">
+        <h3>🌐 Testing Railway Connection...</h3>
+        <div id="connection-result">Loading...</div>
+    </div>
+    
+    <div id="projects-test" class="section">
+        <h3>📋 Testing Projects API...</h3>
+        <div id="projects-result">Loading...</div>
+    </div>
+    
+    <div id="messages-test" class="section">
+        <h3>💬 Testing Ben's Messages...</h3>
+        <div id="messages-result">Loading...</div>
+    </div>
+
+    <script>
+        const API_BASE = 'https://pcd-production-clean-production-e6f3.up.railway.app/api';
+        const ADMIN_TOKEN = 'pleasantcove2024admin';
+        
+        async function testConnection() {
+            try {
+                const response = await fetch(`${API_BASE}/health`);
+                const result = await response.text();
+                document.getElementById('connection-result').innerHTML = `
+                    <div class="success">✅ Railway server is online</div>
+                    <pre>${result}</pre>
+                `;
+            } catch (error) {
+                document.getElementById('connection-result').innerHTML = `
+                    <div class="error">❌ Connection failed: ${error.message}</div>
+                `;
+            }
+        }
+        
+        async function testProjects() {
+            try {
+                const response = await fetch(`${API_BASE}/projects`, {
+                    headers: { 'Authorization': `Bearer ${ADMIN_TOKEN}` }
+                });
+                const projects = await response.json();
+                document.getElementById('projects-result').innerHTML = `
+                    <div class="success">✅ Found ${projects.length} projects</div>
+                    <pre>${JSON.stringify(projects, null, 2)}</pre>
+                `;
+            } catch (error) {
+                document.getElementById('projects-result').innerHTML = `
+                    <div class="error">❌ Projects API failed: ${error.message}</div>
+                `;
+            }
+        }
+        
+        async function testMessages() {
+            try {
+                const response = await fetch(`${API_BASE}/public/project/pcd_1_mdpfmflk_0znrku/messages`);
+                const data = await response.json();
+                document.getElementById('messages-result').innerHTML = `
+                    <div class="success">✅ Found ${data.messages.length} messages in Ben's conversation</div>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                `;
+            } catch (error) {
+                document.getElementById('messages-result').innerHTML = `
+                    <div class="error">❌ Messages API failed: ${error.message}</div>
+                `;
+            }
+        }
+        
+        // Run all tests
+        testConnection();
+        testProjects();
+        testMessages();
+    </script>
+</body>
+</html> 

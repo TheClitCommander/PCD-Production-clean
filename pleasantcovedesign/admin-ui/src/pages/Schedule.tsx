@@ -450,17 +450,38 @@ export default function Schedule() {
     }
   }, [pendingSlotData, fetchAppointments, fetchPendingAppointments]);
 
+  // Parse customer data from appointment notes
+  const parseCustomerDataFromNotes = (notes: string) => {
+    if (!notes) return {}
+    
+    const nameMatch = notes.match(/Name:\s*([^\n\r]+)/)
+    const emailMatch = notes.match(/Email:\s*([^\n\r]+)/)
+    const phoneMatch = notes.match(/Phone:\s*([^\n\r]+)/)
+    const businessMatch = notes.match(/Business:\s*([^\n\r]+)/)
+    
+    return {
+      clientName: nameMatch?.[1]?.trim() || '',
+      email: emailMatch?.[1]?.trim() || '',
+      phone: phoneMatch?.[1]?.trim() || '',
+      businessName: businessMatch?.[1]?.trim() || ''
+    }
+  }
+
   // Handle clicking on existing event
   const handleSelectEvent = useCallback((event: CalendarEvent) => {
+    const notes = event.resource?.notes || ''
+    const parsedCustomerData = parseCustomerDataFromNotes(notes)
+    
     setModalData({
       id: event.resource?.appointmentId,
       title: event.title,
       start: event.start.toISOString(),
       end: event.end.toISOString(),
-      notes: event.resource?.notes || '',
-      clientName: event.resource?.clientName || '',
-      phone: event.resource?.phone || '',
-      email: event.resource?.email || '',
+      notes: notes,
+      // Use parsed customer data with fallbacks
+      clientName: parsedCustomerData.clientName || event.resource?.clientName || 'Unknown Client',
+      phone: parsedCustomerData.phone || event.resource?.phone || '',
+      email: parsedCustomerData.email || event.resource?.email || '',
       client_id: event.resource?.businessId,
       isEdit: true,
       meetingType: event.resource?.meetingType,

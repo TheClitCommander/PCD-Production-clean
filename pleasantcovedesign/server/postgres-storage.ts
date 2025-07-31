@@ -431,7 +431,7 @@ export class PostgreSQLStorage {
 
   // Get appointments that exactly match date + time (to detect conflicts)
   async getAppointmentsByDateTime(date: string, time: string): Promise<any[]> {
-    const result = await this.pool.query('SELECT * FROM appointments WHERE DATE(datetime) = $1 AND TO_CHAR(datetime, \"HH12:MI AM\") = $2', [date, time]);
+    const result = await this.pool.query(`SELECT * FROM appointments WHERE DATE(datetime) = $1 AND TO_CHAR(datetime, 'HH12:MI AM') = $2`, [date, time]);
     return result.rows;
   }
 

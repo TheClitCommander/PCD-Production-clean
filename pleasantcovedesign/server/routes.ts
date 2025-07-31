@@ -325,7 +325,7 @@ export async function registerRoutes(app: Express, io: any) {
   // ===================
   
   // REMOVED: Book appointment (PUBLIC - for Squarespace widget) - using comprehensive version below
-  app.post('/api/book-appointment', async (req: Request, res: Response) => {
+  /*app.post('/api/book-appointment', async (req: Request, res: Response) => {
     try {
       const {
         firstName,
@@ -524,8 +524,7 @@ export async function registerRoutes(app: Express, io: any) {
             <p><strong>Additional Notes:</strong> ${additionalNotes || 'None'}</p>
           `
         });
-        */
-      } catch (emailError) {
+        } catch (emailError) {
         console.error('Email error:', emailError);
         // Don't fail the appointment if email fails
       }
@@ -552,7 +551,7 @@ export async function registerRoutes(app: Express, io: any) {
         message: 'Server error occurred' 
       });
     }
-  });
+  });*/
   
   // REMOVED: Duplicate availability endpoint - using the simplified one below
   

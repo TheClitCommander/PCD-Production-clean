@@ -5161,22 +5161,33 @@ Booked via: ${source}
       // Extract booked time slots from appointments
       const bookedSlots: string[] = [];
       appointmentsForDate.forEach(apt => {
-        const appointmentTime = new Date(apt.datetime);
-        
-        // Convert to Eastern Time and format as 12-hour time
-        const easternTime = new Date(appointmentTime.getTime() - (4 * 60 * 60 * 1000)); // Assuming EDT (UTC-4)
-        const hours = easternTime.getHours();
-        const minutes = easternTime.getMinutes();
-        
-        let timeString = '';
-        if (hours === 8 && minutes === 30) {
-          timeString = '8:30 AM';
-        } else if (hours === 9 && minutes === 0) {
-          timeString = '9:00 AM';
-        }
-        
-        if (timeString && !bookedSlots.includes(timeString)) {
-          bookedSlots.push(timeString);
+        try {
+          if (!apt.datetime) {
+            console.log(`📅 [AVAILABILITY] Skipping appointment with null datetime:`, apt.id);
+            return;
+          }
+          
+          const appointmentTime = new Date(apt.datetime);
+          console.log(`📅 [AVAILABILITY] Processing appointment time: ${apt.datetime} -> ${appointmentTime}`);
+          
+          // Convert to Eastern Time and format as 12-hour time
+          const easternTime = new Date(appointmentTime.getTime() - (4 * 60 * 60 * 1000)); // Assuming EDT (UTC-4)
+          const hours = easternTime.getHours();
+          const minutes = easternTime.getMinutes();
+          
+          let timeString = '';
+          if (hours === 8 && minutes === 30) {
+            timeString = '8:30 AM';
+          } else if (hours === 9 && minutes === 0) {
+            timeString = '9:00 AM';
+          }
+          
+          if (timeString && !bookedSlots.includes(timeString)) {
+            bookedSlots.push(timeString);
+            console.log(`📅 [AVAILABILITY] Added booked slot: ${timeString}`);
+          }
+        } catch (timeError) {
+          console.error(`📅 [AVAILABILITY] Time processing error for appointment ${apt.id}:`, timeError);
         }
       });
       

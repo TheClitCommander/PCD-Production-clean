@@ -423,6 +423,18 @@ export class PostgreSQLStorage {
     return result.rows;
   }
 
+  // Get appointments for a specific calendar date (YYYY-MM-DD)
+  async getAppointmentsByDate(date: string): Promise<any[]> {
+    const result = await this.pool.query('SELECT * FROM appointments WHERE DATE(datetime) = $1 ORDER BY datetime', [date]);
+    return result.rows;
+  }
+
+  // Get appointments that exactly match date + time (to detect conflicts)
+  async getAppointmentsByDateTime(date: string, time: string): Promise<any[]> {
+    const result = await this.pool.query('SELECT * FROM appointments WHERE DATE(datetime) = $1 AND TO_CHAR(datetime, \"HH12:MI AM\") = $2', [date, time]);
+    return result.rows;
+  }
+
   async getAllAppointments(): Promise<any[]> {
     const result = await this.pool.query('SELECT * FROM appointments ORDER BY datetime DESC');
     return result.rows;

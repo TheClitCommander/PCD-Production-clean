@@ -4862,7 +4862,7 @@ ${meetingNotes.special_instructions}
       const requestedDateTime = createAppointmentDateTime(appointmentDate, appointmentTime);
       
       // Check for existing appointments at the same date/time
-      const existingAppointments = await storage.getAppointments();
+      const existingAppointments = await storage.getAppointmentsByDateTime(appointmentDate, appointmentTime);
       const conflictingAppointment = existingAppointments.find(apt => {
         if (apt.status === 'cancelled') return false; // Ignore cancelled appointments
         

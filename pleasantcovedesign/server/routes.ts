@@ -250,6 +250,7 @@ const PUBLIC_API_ROUTES = [
   "/api/public/project",
   "/api/book-appointment",
   "/api/availability",
+  "/api/test-availability",
   "/health"
 ];
 
@@ -5102,6 +5103,11 @@ Booked via: ${source}
         error: error.message
       });
     }
+  });
+
+  // Test endpoint first
+  app.get("/api/test-availability", (req: Request, res: Response) => {
+    res.json({ test: "working", timestamp: new Date().toISOString() });
   });
 
   // Get availability for a specific date (for widget real-time checking)

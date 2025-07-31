@@ -524,7 +524,7 @@ async function getProjectDetails({ projectId }: { projectId: number }) {
       return { error: "Project not found" };
     }
     
-    const company = await storage.getCompanyById(parseInt(project.companyId));
+    const company = await storage.getCompanyById(project.companyId);
     
     return {
       project: {
@@ -548,7 +548,7 @@ async function getUpcomingAppointments({ limit = 5, leadId }: { limit?: number; 
     
     if (leadId) {
       const projects = await storage.getProjects();
-      const leadProjects = projects.filter(p => p.companyId === leadId);
+      const leadProjects = projects.filter(p => p.companyId === Number(leadId));
       const projectIds = leadProjects.map(p => p.id);
       filtered = filtered.filter(apt => projectIds.includes(apt.projectId));
     }

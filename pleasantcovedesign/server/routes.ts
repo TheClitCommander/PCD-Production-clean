@@ -5107,17 +5107,17 @@ Booked via: ${source}
 
   // Test endpoint first
   app.get("/api/test-availability", (req: Request, res: Response) => {
-    res.json({ test: "working", timestamp: new Date().toISOString() });
+    res.json({ test: "working" });
   });
 
   // Get availability for a specific date (for widget real-time checking)
   app.get("/api/availability/:date", (req: Request, res: Response) => {
-    console.log(`📅 [AVAILABILITY] Basic endpoint hit for date: ${req.params.date}`);
     res.json({
       success: true,
       date: req.params.date,
       availableSlots: ['8:30 AM', '9:00 AM'],
-      bookedSlots: []
+      bookedSlots: [],
+      timestamp: new Date().toISOString()
     });
   });
 

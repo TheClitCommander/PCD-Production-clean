@@ -73,24 +73,41 @@ const AppointmentsPanel: React.FC = () => {
     })
   }
 
-  const extractClientName = (appointment: Appointment): string => {
-    // Try client_name first
-    if (appointment.client_name) return appointment.client_name
+  // Parse structured appointment data from notes
+  const parseAppointmentData = (appointment: Appointment) => {
+    const notes = appointment.notes || ''
     
-    // Try firstName/lastName combination
-    const fullName = `${appointment.firstName || ''} ${appointment.lastName || ''}`.trim()
-    if (fullName) return fullName
+    // Extract key information using regex patterns
+    const servicesMatch = notes.match(/Services Requested:\s*([^\n\r]+)/)
+    const budgetMatch = notes.match(/Budget:\s*([^\n\r]+)/)
+    const timelineMatch = notes.match(/Timeline:\s*([^\n\r]+)/)
+    const nameMatch = notes.match(/Name:\s*([^\n\r]+)/)
+    const emailMatch = notes.match(/Email:\s*([^\n\r]+)/)
+    const phoneMatch = notes.match(/Phone:\s*([^\n\r]+)/)
+    const businessMatch = notes.match(/Business:\s*([^\n\r]+)/)
+    const sourceMatch = notes.match(/Booked via:\s*([^\n\r]+)/)
+    const meetingTypeMatch = notes.match(/Meeting Type:\s*([^\n\r]+)/)
     
-    // Extract from notes if available
-    if (appointment.notes) {
-      const nameMatch = appointment.notes.match(/Name:\s*([^\n\r]+)/)
-      if (nameMatch) return nameMatch[1].trim()
-      
-      const businessMatch = appointment.notes.match(/Business:\s*([^\n\r]+)/)
-      if (businessMatch) return businessMatch[1].trim()
+    // Extract project description (multiline)
+    const projectDescMatch = notes.match(/Project Description:\s*\n([\s\S]*?)(?=\n\n|Contact Information:|Additional Notes:|$)/)
+    
+    return {
+      services: servicesMatch?.[1]?.trim() || appointment.service_type || 'Consultation',
+      budget: budgetMatch?.[1]?.trim(),
+      timeline: timelineMatch?.[1]?.trim(),
+      clientName: nameMatch?.[1]?.trim() || appointment.client_name || 'Unknown Client',
+      email: emailMatch?.[1]?.trim() || appointment.email,
+      phone: phoneMatch?.[1]?.trim() || appointment.phone,
+      businessName: businessMatch?.[1]?.trim(),
+      source: sourceMatch?.[1]?.trim(),
+      meetingType: meetingTypeMatch?.[1]?.trim(),
+      projectDescription: projectDescMatch?.[1]?.trim()
     }
-    
-    return 'Unknown Client'
+  }
+
+  const extractClientName = (appointment: Appointment): string => {
+    const parsed = parseAppointmentData(appointment)
+    return parsed.clientName
   }
 
   return (
@@ -110,33 +127,46 @@ const AppointmentsPanel: React.FC = () => {
         <div className="text-center py-4 text-gray-500">No upcoming appointments</div>
       ) : (
         <div className="space-y-3">
-          {appointments.map((appointment) => (
-            <Link
-              key={appointment.id}
-              to="/schedule"
-              className="block hover:bg-gray-50 -mx-2 px-2 py-2 rounded transition-colors cursor-pointer"
-            >
-              <div className="flex items-start gap-2">
-                <span className="text-sm font-medium text-gray-600 whitespace-nowrap">
-                  {appointment.appointmentTime || formatTime(appointment.datetime || appointment.appointment_time)}
-                </span>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm">
-                    <span className="font-medium">
-                      {appointment.service_type || 'Consultation'}
-                    </span>
-                    {appointment.notes && (
-                      <span className="text-gray-500"> (Regarding)</span>
+          {appointments.map((appointment) => {
+            const parsed = parseAppointmentData(appointment)
+            return (
+              <Link
+                key={appointment.id}
+                to="/schedule"
+                className="block hover:bg-gray-50 -mx-2 px-2 py-2 rounded transition-colors cursor-pointer"
+              >
+                <div className="flex items-start gap-2">
+                  <span className="text-sm font-medium text-gray-600 whitespace-nowrap">
+                    {appointment.appointmentTime || formatTime(appointment.datetime || appointment.appointment_time)}
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm">
+                      <span className="font-medium">
+                        {parsed.services}
+                      </span>
+                      {' • '}
+                      <span className="text-gray-700">
+                        {parsed.clientName}
+                      </span>
+                      {parsed.businessName && (
+                        <span className="text-gray-500"> ({parsed.businessName})</span>
+                      )}
+                    </p>
+                    {parsed.budget && parsed.timeline && (
+                      <p className="text-xs text-gray-500 mt-1">
+                        {parsed.budget} • {parsed.timeline}
+                        {parsed.source && (
+                          <span className="ml-2 px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded text-xs">
+                            {parsed.source.replace('_', ' ')}
+                          </span>
+                        )}
+                      </p>
                     )}
-                    {' • '}
-                    <span className="text-gray-700">
-                      {extractClientName(appointment)}
-                    </span>
-                  </p>
+                  </div>
                 </div>
-              </div>
-            </Link>
-          ))}
+              </Link>
+            )
+          })}
         </div>
       )}
 

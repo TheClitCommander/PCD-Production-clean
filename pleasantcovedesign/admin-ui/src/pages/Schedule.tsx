@@ -976,6 +976,67 @@ export default function Schedule() {
                 </div>
               </div>
               
+              {/* Appointment Details Section */}
+              {modalData.notes && modalData.notes.includes('Services Requested:') && (
+                <div className="border rounded-lg p-4 bg-gray-50">
+                  <h3 className="font-semibold mb-3 text-gray-800">Appointment Details</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                    {(() => {
+                      const notes = modalData.notes || ''
+                      const servicesMatch = notes.match(/Services Requested:\s*([^\n\r]+)/)
+                      const budgetMatch = notes.match(/Budget:\s*([^\n\r]+)/)
+                      const timelineMatch = notes.match(/Timeline:\s*([^\n\r]+)/)
+                      const businessMatch = notes.match(/Business:\s*([^\n\r]+)/)
+                      const sourceMatch = notes.match(/Booked via:\s*([^\n\r]+)/)
+                      const projectDescMatch = notes.match(/Project Description:\s*\n([\s\S]*?)(?=\n\n|Contact Information:|Additional Notes:|$)/)
+                      
+                      return (
+                        <>
+                          {servicesMatch && (
+                            <div>
+                              <span className="font-medium text-gray-600">Services:</span>
+                              <p className="text-gray-800">{servicesMatch[1].trim()}</p>
+                            </div>
+                          )}
+                          {budgetMatch && (
+                            <div>
+                              <span className="font-medium text-gray-600">Budget:</span>
+                              <p className="text-gray-800">{budgetMatch[1].trim()}</p>
+                            </div>
+                          )}
+                          {timelineMatch && (
+                            <div>
+                              <span className="font-medium text-gray-600">Timeline:</span>
+                              <p className="text-gray-800">{timelineMatch[1].trim()}</p>
+                            </div>
+                          )}
+                          {businessMatch && (
+                            <div>
+                              <span className="font-medium text-gray-600">Business:</span>
+                              <p className="text-gray-800">{businessMatch[1].trim()}</p>
+                            </div>
+                          )}
+                          {sourceMatch && (
+                            <div>
+                              <span className="font-medium text-gray-600">Source:</span>
+                              <span className="ml-1 px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs">
+                                {sourceMatch[1].trim().replace(/_/g, ' ')}
+                              </span>
+                            </div>
+                          )}
+                          {projectDescMatch && projectDescMatch[1].trim() && (
+                            <div className="md:col-span-2">
+                              <span className="font-medium text-gray-600">Project Description:</span>
+                              <p className="text-gray-800 mt-1 whitespace-pre-wrap">{projectDescMatch[1].trim()}</p>
+                            </div>
+                          )}
+                        </>
+                      )
+                    })()}
+                  </div>
+                </div>
+              )}
+
               <div>
                 <label className="block text-sm font-medium mb-1">Notes</label>
                 <textarea

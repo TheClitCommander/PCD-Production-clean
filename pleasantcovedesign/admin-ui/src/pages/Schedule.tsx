@@ -955,93 +955,110 @@ export default function Schedule() {
 
       {/* Enhanced Appointment Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-96 max-w-full">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
             <h2 className="text-lg font-bold mb-4">
               {modalData.isEdit ? '✏️ Edit Appointment' : '📅 New Appointment'}
             </h2>
             
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium mb-1 flex items-center gap-1">
-                  👤 Client Name
-                </label>
-                <input
-                  type="text"
-                  className={`w-full border rounded px-3 py-2 ${modalData.isEdit ? 'bg-gray-100' : ''}`}
-                  value={modalData.clientName}
-                  onChange={(e) => setModalData({...modalData, clientName: e.target.value})}
-                  placeholder="Enter client name"
-                  readOnly={modalData.isEdit}
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-1 flex items-center gap-1">
-                  📞 Phone Number
-                </label>
-                <input
-                  type="tel"
-                  className="w-full border rounded px-3 py-2"
-                  value={modalData.phone}
-                  onChange={(e) => setModalData({...modalData, phone: e.target.value})}
-                  placeholder="(555) 123-4567"
-                />
-              </div>
-               
-              <div>
-                <label className="block text-sm font-medium mb-1 flex items-center gap-1">
-                  ✉️ Email
-                </label>
-                <input
-                  type="email"
-                  className="w-full border rounded px-3 py-2"
-                  value={modalData.email}
-                  onChange={(e) => setModalData({...modalData, email: e.target.value})}
-                  placeholder="Enter email"
-                />
-              </div>
-
-              {/* Business Name Field */}
-              {(() => {
-                const notes = modalData.notes || ''
-                const businessMatch = notes.match(/Business:\s*([^\n\r]+)/)
-                const businessName = businessMatch?.[1]?.trim()
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Left Column - Contact Information */}
+              <div className="space-y-4">
+                <h3 className="font-semibold text-gray-800 border-b pb-2">Contact Information</h3>
                 
-                if (businessName) {
-                  return (
-                    <div>
-                      <label className="block text-sm font-medium mb-1 flex items-center gap-1">
-                        🏢 Business Name
-                      </label>
-                      <input
-                        type="text"
-                        className="w-full border rounded px-3 py-2 bg-blue-50 border-blue-200 font-medium"
-                        value={businessName}
-                        readOnly
-                        title="Business information from appointment booking"
-                      />
+                <div>
+                  <label className="block text-sm font-medium mb-1 flex items-center gap-1">
+                    👤 Client Name
+                  </label>
+                  <input
+                    type="text"
+                    className={`w-full border rounded px-3 py-2 ${modalData.isEdit ? 'bg-gray-100' : ''}`}
+                    value={modalData.clientName}
+                    onChange={(e) => setModalData({...modalData, clientName: e.target.value})}
+                    placeholder="Enter client name"
+                    readOnly={modalData.isEdit}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-1 flex items-center gap-1">
+                    📞 Phone Number
+                  </label>
+                  <input
+                    type="tel"
+                    className="w-full border rounded px-3 py-2"
+                    value={modalData.phone}
+                    onChange={(e) => setModalData({...modalData, phone: e.target.value})}
+                    placeholder="(555) 123-4567"
+                  />
+                </div>
+                 
+                <div>
+                  <label className="block text-sm font-medium mb-1 flex items-center gap-1">
+                    ✉️ Email
+                  </label>
+                  <input
+                    type="email"
+                    className="w-full border rounded px-3 py-2"
+                    value={modalData.email}
+                    onChange={(e) => setModalData({...modalData, email: e.target.value})}
+                    placeholder="Enter email"
+                  />
+                </div>
+
+                {/* Business Name Field */}
+                {(() => {
+                  const notes = modalData.notes || ''
+                  const businessMatch = notes.match(/Business:\s*([^\n\r]+)/)
+                  const businessName = businessMatch?.[1]?.trim()
+                  
+                  if (businessName) {
+                    return (
+                      <div>
+                        <label className="block text-sm font-medium mb-1 flex items-center gap-1">
+                          🏢 Business Name
+                        </label>
+                        <input
+                          type="text"
+                          className="w-full border rounded px-3 py-2 bg-blue-50 border-blue-200 font-medium"
+                          value={businessName}
+                          readOnly
+                          title="Business information from appointment booking"
+                        />
+                      </div>
+                    )
+                  }
+                  return null
+                })()}
+                
+                <div>
+                  <label className="block text-sm font-medium mb-1">📅 Date & Time</label>
+                  <div className="text-sm text-gray-600 bg-gray-50 p-3 rounded border">
+                    <div className="font-medium">
+                      {new Date(modalData.start).toLocaleDateString('en-US', { 
+                        weekday: 'long', 
+                        year: 'numeric', 
+                        month: 'long', 
+                        day: 'numeric' 
+                      })}
                     </div>
-                  )
-                }
-                return null
-              })()}
-              
-              <div>
-                <label className="block text-sm font-medium mb-1">Date & Time</label>
-                <div className="text-sm text-gray-600 bg-gray-50 p-2 rounded">
-                  {new Date(modalData.start).toLocaleDateString()} at{' '}
-                  {new Date(modalData.start).toLocaleTimeString('en-US', { 
-                    hour: 'numeric', 
-                    minute: '2-digit',
-                    hour12: true 
-                  })} - {new Date(modalData.end).toLocaleTimeString('en-US', { 
-                    hour: 'numeric', 
-                    minute: '2-digit',
-                    hour12: true 
-                  })}
+                    <div className="text-blue-600 font-medium">
+                      {new Date(modalData.start).toLocaleTimeString('en-US', { 
+                        hour: 'numeric', 
+                        minute: '2-digit',
+                        hour12: true 
+                      })} - {new Date(modalData.end).toLocaleTimeString('en-US', { 
+                        hour: 'numeric', 
+                        minute: '2-digit',
+                        hour12: true 
+                      })}
+                    </div>
+                  </div>
                 </div>
               </div>
+
+              {/* Right Column - Appointment Details & Notes */}
+              <div className="space-y-4">
               
               {/* Appointment Details Section */}
               {modalData.notes && modalData.notes.includes('Services Requested:') && (
@@ -1124,19 +1141,26 @@ export default function Schedule() {
                 </div>
               )}
 
-              <div>
-                <label className="block text-sm font-medium mb-1">Notes</label>
-                <textarea
-                  className="w-full border rounded px-3 py-2"
-                  rows={3}
-                  value={modalData.notes}
-                  onChange={(e) => setModalData({...modalData, notes: e.target.value})}
-                  placeholder="Add any notes or details about the appointment"
-                />
+                <div>
+                  <label className="block text-sm font-medium mb-1 flex items-center gap-1">
+                    📝 Notes & Additional Information
+                  </label>
+                  <textarea
+                    className="w-full border rounded px-3 py-2 resize-y"
+                    rows={12}
+                    value={modalData.notes}
+                    onChange={(e) => setModalData({...modalData, notes: e.target.value})}
+                    placeholder="Add any notes or details about the appointment..."
+                  />
+                  <div className="text-xs text-gray-500 mt-1">
+                    Original appointment data is preserved above. Add additional notes as needed.
+                  </div>
+                </div>
               </div>
-              
-              {/* Meeting Details Section */}
-              {modalData.meetingType && (
+            </div>
+
+            {/* Meeting Details Section - Full Width */}
+            {modalData.meetingType && (
                 <div className="border-t pt-4">
                   <h3 className="font-semibold mb-2">Meeting Details</h3>
                   
@@ -1181,7 +1205,6 @@ export default function Schedule() {
                   </div>
                 </div>
               )}
-            </div>
             
             <div className="flex justify-between mt-6">
               <div>

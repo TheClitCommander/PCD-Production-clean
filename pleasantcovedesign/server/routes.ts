@@ -1484,7 +1484,7 @@ export async function registerRoutes(app: Express, io: any) {
       }
       
       // Get business details (companies and businesses are the same for orders)
-      const company = await storage.getBusinessById(company_id);
+      const company = await storage.getBusinessById(parseInt(company_id));
       if (!company) {
         return res.status(404).json({ error: 'Business not found' });
       }
@@ -1669,7 +1669,7 @@ export async function registerRoutes(app: Express, io: any) {
       }
       
       // Get company details for response
-      const company = await storage.getBusinessById(order.companyId);
+      const company = await storage.getBusinessById(parseInt(order.companyId));
       
       res.json({
         ...order,
@@ -1741,7 +1741,7 @@ export async function registerRoutes(app: Express, io: any) {
       }
 
       // Get company details for email
-      const company = await storage.getBusinessById(order.companyId);
+              const company = await storage.getBusinessById(parseInt(order.companyId));
       if (!company) {
         return res.status(404).json({ error: 'Business not found' });
       }
@@ -1796,7 +1796,7 @@ export async function registerRoutes(app: Express, io: any) {
       console.log(`🧾 Generating and emailing receipt for order ${order.id}`);
       
       // Get company details
-      const company = await storage.getBusinessById(order.companyId);
+              const company = await storage.getBusinessById(parseInt(order.companyId));
       if (!company) {
         console.error(`❌ Business ${order.companyId} not found for receipt`);
         return;
@@ -2150,7 +2150,7 @@ export async function registerRoutes(app: Express, io: any) {
       }
 
       // Get company details
-      const company = await storage.getBusinessById(order.companyId);
+              const company = await storage.getBusinessById(parseInt(order.companyId));
       if (!company) {
         console.error(`❌ Business ${order.companyId} not found for fulfillment`);
         return;
@@ -6368,7 +6368,7 @@ Booked via: ${source}
       }
       
       // Get company details
-      const company = await storage.getBusinessById(order.companyId);
+              const company = await storage.getBusinessById(parseInt(order.companyId));
       const companyName = company?.name || 'Customer';
       
       // Determine payment status display

@@ -450,6 +450,19 @@ export default function Schedule() {
     }
   }, [pendingSlotData, fetchAppointments, fetchPendingAppointments]);
 
+  // Format phone number for display
+  const formatPhoneNumber = (phone: string) => {
+    if (!phone) return phone
+    const cleaned = phone.replace(/\D/g, '')
+    if (cleaned.length === 10) {
+      return `(${cleaned.slice(0, 3)}) ${cleaned.slice(3, 6)}-${cleaned.slice(6)}`
+    }
+    if (cleaned.length === 11 && cleaned.startsWith('1')) {
+      return `+1 (${cleaned.slice(1, 4)}) ${cleaned.slice(4, 7)}-${cleaned.slice(7)}`
+    }
+    return phone // Return original if format doesn't match
+  }
+
   // Parse customer data from appointment notes
   const parseCustomerDataFromNotes = (notes: string) => {
     if (!notes) return {}
@@ -459,10 +472,12 @@ export default function Schedule() {
     const phoneMatch = notes.match(/Phone:\s*([^\n\r]+)/)
     const businessMatch = notes.match(/Business:\s*([^\n\r]+)/)
     
+    const rawPhone = phoneMatch?.[1]?.trim() || ''
+    
     return {
       clientName: nameMatch?.[1]?.trim() || '',
       email: emailMatch?.[1]?.trim() || '',
-      phone: phoneMatch?.[1]?.trim() || '',
+      phone: formatPhoneNumber(rawPhone),
       businessName: businessMatch?.[1]?.trim() || ''
     }
   }
@@ -948,7 +963,9 @@ export default function Schedule() {
             
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium mb-1">Client Name</label>
+                <label className="block text-sm font-medium mb-1 flex items-center gap-1">
+                  👤 Client Name
+                </label>
                 <input
                   type="text"
                   className={`w-full border rounded px-3 py-2 ${modalData.isEdit ? 'bg-gray-100' : ''}`}
@@ -960,7 +977,9 @@ export default function Schedule() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-1">Phone Number</label>
+                <label className="block text-sm font-medium mb-1 flex items-center gap-1">
+                  📞 Phone Number
+                </label>
                 <input
                   type="tel"
                   className="w-full border rounded px-3 py-2"
@@ -971,7 +990,9 @@ export default function Schedule() {
               </div>
                
               <div>
-                <label className="block text-sm font-medium mb-1">Email</label>
+                <label className="block text-sm font-medium mb-1 flex items-center gap-1">
+                  ✉️ Email
+                </label>
                 <input
                   type="email"
                   className="w-full border rounded px-3 py-2"
@@ -980,6 +1001,31 @@ export default function Schedule() {
                   placeholder="Enter email"
                 />
               </div>
+
+              {/* Business Name Field */}
+              {(() => {
+                const notes = modalData.notes || ''
+                const businessMatch = notes.match(/Business:\s*([^\n\r]+)/)
+                const businessName = businessMatch?.[1]?.trim()
+                
+                if (businessName) {
+                  return (
+                    <div>
+                      <label className="block text-sm font-medium mb-1 flex items-center gap-1">
+                        🏢 Business Name
+                      </label>
+                      <input
+                        type="text"
+                        className="w-full border rounded px-3 py-2 bg-blue-50 border-blue-200 font-medium"
+                        value={businessName}
+                        readOnly
+                        title="Business information from appointment booking"
+                      />
+                    </div>
+                  )
+                }
+                return null
+              })()}
               
               <div>
                 <label className="block text-sm font-medium mb-1">Date & Time</label>
@@ -999,8 +1045,10 @@ export default function Schedule() {
               
               {/* Appointment Details Section */}
               {modalData.notes && modalData.notes.includes('Services Requested:') && (
-                <div className="border rounded-lg p-4 bg-gray-50">
-                  <h3 className="font-semibold mb-3 text-gray-800">Appointment Details</h3>
+                <div className="border rounded-lg p-4 bg-gradient-to-r from-blue-50 to-gray-50 border-blue-200">
+                  <h3 className="font-semibold mb-3 text-gray-800 flex items-center gap-2">
+                    📋 Appointment Details
+                  </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
                     {(() => {
                       const notes = modalData.notes || ''
@@ -1011,44 +1059,62 @@ export default function Schedule() {
                       const sourceMatch = notes.match(/Booked via:\s*([^\n\r]+)/)
                       const projectDescMatch = notes.match(/Project Description:\s*\n([\s\S]*?)(?=\n\n|Contact Information:|Additional Notes:|$)/)
                       
+                      // Format services for better display
+                      const formatServices = (services: string) => {
+                        return services.split(',').map(service => {
+                          const trimmed = service.trim()
+                          if (trimmed.toLowerCase() === 'seo') return 'SEO'
+                          if (trimmed.toLowerCase() === 'other') return 'Other Services'
+                          return trimmed.charAt(0).toUpperCase() + trimmed.slice(1).toLowerCase()
+                        }).join(', ')
+                      }
+                      
+                      // Format timeline for better display
+                      const formatTimeline = (timeline: string) => {
+                        const lower = timeline.toLowerCase()
+                        if (lower === 'asap') return 'ASAP'
+                        if (lower.includes('month')) return timeline.charAt(0).toUpperCase() + timeline.slice(1)
+                        return timeline
+                      }
+                      
                       return (
                         <>
                           {servicesMatch && (
                             <div>
                               <span className="font-medium text-gray-600">Services:</span>
-                              <p className="text-gray-800">{servicesMatch[1].trim()}</p>
+                              <p className="text-gray-800 font-medium">{formatServices(servicesMatch[1].trim())}</p>
                             </div>
                           )}
                           {budgetMatch && (
                             <div>
                               <span className="font-medium text-gray-600">Budget:</span>
-                              <p className="text-gray-800">{budgetMatch[1].trim()}</p>
+                              <p className="text-gray-800 font-medium text-green-700">{budgetMatch[1].trim()}</p>
                             </div>
                           )}
                           {timelineMatch && (
                             <div>
                               <span className="font-medium text-gray-600">Timeline:</span>
-                              <p className="text-gray-800">{timelineMatch[1].trim()}</p>
+                              <p className="text-gray-800 font-medium">{formatTimeline(timelineMatch[1].trim())}</p>
                             </div>
                           )}
                           {businessMatch && (
                             <div>
                               <span className="font-medium text-gray-600">Business:</span>
-                              <p className="text-gray-800">{businessMatch[1].trim()}</p>
+                              <p className="text-gray-800 font-medium">{businessMatch[1].trim()}</p>
                             </div>
                           )}
                           {sourceMatch && (
                             <div>
                               <span className="font-medium text-gray-600">Source:</span>
-                              <span className="ml-1 px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs">
-                                {sourceMatch[1].trim().replace(/_/g, ' ')}
+                              <span className="ml-1 px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs font-medium">
+                                {sourceMatch[1].trim().replace(/_/g, ' ').toUpperCase()}
                               </span>
                             </div>
                           )}
                           {projectDescMatch && projectDescMatch[1].trim() && (
                             <div className="md:col-span-2">
                               <span className="font-medium text-gray-600">Project Description:</span>
-                              <p className="text-gray-800 mt-1 whitespace-pre-wrap">{projectDescMatch[1].trim()}</p>
+                              <p className="text-gray-800 mt-1 whitespace-pre-wrap bg-gray-50 p-2 rounded border">{projectDescMatch[1].trim()}</p>
                             </div>
                           )}
                         </>

@@ -160,6 +160,33 @@ export class PostgreSQLStorage {
         'ALTER TABLE projects ADD COLUMN IF NOT EXISTS status VARCHAR(50) DEFAULT \'active\'',
         'ALTER TABLE project_messages ADD COLUMN IF NOT EXISTS attachments TEXT[] DEFAULT \'{}\'',
         'ALTER TABLE project_messages ADD COLUMN IF NOT EXISTS read_at TIMESTAMP',
+        // Create orders table if it doesn't exist
+        `CREATE TABLE IF NOT EXISTS orders (
+          id VARCHAR(255) PRIMARY KEY,
+          company_id VARCHAR(255) NOT NULL,
+          project_id INTEGER REFERENCES projects(id) ON DELETE SET NULL,
+          status VARCHAR(50) NOT NULL DEFAULT 'draft',
+          package VARCHAR(50),
+          custom_items JSONB DEFAULT '[]'::jsonb,
+          subtotal DECIMAL(10,2) NOT NULL DEFAULT 0,
+          tax DECIMAL(10,2) NOT NULL DEFAULT 0,
+          total DECIMAL(10,2) NOT NULL DEFAULT 0,
+          notes TEXT,
+          invoice_id VARCHAR(255),
+          invoice_status VARCHAR(50) DEFAULT 'draft',
+          invoice_url TEXT,
+          payment_status VARCHAR(50) DEFAULT 'pending',
+          payment_method VARCHAR(50),
+          payment_date TIMESTAMP,
+          stripe_payment_intent_id VARCHAR(255),
+          stripe_payment_link_url TEXT,
+          stripe_product_id VARCHAR(255),
+          stripe_price_id VARCHAR(255),
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )`,
+        'CREATE INDEX IF NOT EXISTS idx_orders_company_id ON orders(company_id)',
+        'CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(status)',
       ];
       
       for (const sql of columnUpdates) {
@@ -682,5 +709,128 @@ export class PostgreSQLStorage {
 
   async getAIChatContext(leadId?: string, projectId?: number, limit: number = 10): Promise<AIChatMessage[]> {
     throw new Error('AI Chat messages not implemented in PostgreSQL storage yet. Switch to in-memory storage for AI features.');
+  }
+
+  // Order Management Methods
+  async createOrder(order: Omit<Order, 'createdAt' | 'updatedAt'>): Promise<Order> {
+    const query = `
+      INSERT INTO orders (
+        id, company_id, project_id, status, package, custom_items, 
+        subtotal, tax, total, notes, invoice_id, invoice_status, 
+        invoice_url, payment_status, payment_method, payment_date,
+        stripe_payment_intent_id, stripe_payment_link_url, 
+        stripe_product_id, stripe_price_id, created_at, updated_at
+      ) VALUES (
+        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, NOW(), NOW()
+      ) RETURNING *
+    `;
+    
+    const values = [
+      order.id,
+      order.companyId,
+      order.projectId || null,
+      order.status,
+      order.package || null,
+      JSON.stringify(order.customItems || []),
+      order.subtotal,
+      order.tax,
+      order.total,
+      order.notes || null,
+      order.invoiceId || null,
+      order.invoiceStatus || 'draft',
+      order.invoiceUrl || null,
+      order.paymentStatus || 'pending',
+      order.paymentMethod || null,
+      order.paymentDate || null,
+      order.stripePaymentIntentId || null,
+      order.stripePaymentLinkUrl || null,
+      order.stripeProductId || null,
+      order.stripePriceId || null
+    ];
+
+    const result = await this.pool.query(query, values);
+    return this.mapOrder(result.rows[0]);
+  }
+
+  async getOrderById(orderId: string): Promise<Order | null> {
+    const result = await this.pool.query('SELECT * FROM orders WHERE id = $1', [orderId]);
+    return result.rows.length > 0 ? this.mapOrder(result.rows[0]) : null;
+  }
+
+  async updateOrder(orderId: string, updates: Partial<Order>): Promise<Order | null> {
+    const setParts: string[] = [];
+    const values: any[] = [];
+    let paramIndex = 1;
+
+    Object.entries(updates).forEach(([key, value]) => {
+      if (value !== undefined && key !== 'id' && key !== 'createdAt') {
+        const dbKey = key === 'companyId' ? 'company_id' :
+                     key === 'projectId' ? 'project_id' :
+                     key === 'customItems' ? 'custom_items' :
+                     key === 'invoiceId' ? 'invoice_id' :
+                     key === 'invoiceStatus' ? 'invoice_status' :
+                     key === 'invoiceUrl' ? 'invoice_url' :
+                     key === 'paymentStatus' ? 'payment_status' :
+                     key === 'paymentMethod' ? 'payment_method' :
+                     key === 'paymentDate' ? 'payment_date' :
+                     key === 'stripePaymentIntentId' ? 'stripe_payment_intent_id' :
+                     key === 'stripePaymentLinkUrl' ? 'stripe_payment_link_url' :
+                     key === 'stripeProductId' ? 'stripe_product_id' :
+                     key === 'stripePriceId' ? 'stripe_price_id' :
+                     key;
+
+        setParts.push(`${dbKey} = $${paramIndex}`);
+        values.push(key === 'customItems' ? JSON.stringify(value) : value);
+        paramIndex++;
+      }
+    });
+
+    if (setParts.length === 0) {
+      return this.getOrderById(orderId);
+    }
+
+    setParts.push(`updated_at = NOW()`);
+    values.push(orderId);
+
+    const query = `UPDATE orders SET ${setParts.join(', ')} WHERE id = $${paramIndex} RETURNING *`;
+    const result = await this.pool.query(query, values);
+    return result.rows.length > 0 ? this.mapOrder(result.rows[0]) : null;
+  }
+
+  async getOrders(): Promise<Order[]> {
+    const result = await this.pool.query('SELECT * FROM orders ORDER BY created_at DESC');
+    return result.rows.map(row => this.mapOrder(row));
+  }
+
+  async getOrdersByCompany(companyId: string): Promise<Order[]> {
+    const result = await this.pool.query('SELECT * FROM orders WHERE company_id = $1 ORDER BY created_at DESC', [companyId]);
+    return result.rows.map(row => this.mapOrder(row));
+  }
+
+  private mapOrder(row: any): Order {
+    return {
+      id: row.id,
+      companyId: row.company_id,
+      projectId: row.project_id,
+      status: row.status,
+      package: row.package,
+      customItems: row.custom_items ? JSON.parse(row.custom_items) : [],
+      subtotal: parseFloat(row.subtotal),
+      tax: parseFloat(row.tax),
+      total: parseFloat(row.total),
+      notes: row.notes,
+      invoiceId: row.invoice_id,
+      invoiceStatus: row.invoice_status,
+      invoiceUrl: row.invoice_url,
+      paymentStatus: row.payment_status,
+      paymentMethod: row.payment_method,
+      paymentDate: row.payment_date,
+      stripePaymentIntentId: row.stripe_payment_intent_id,
+      stripePaymentLinkUrl: row.stripe_payment_link_url,
+      stripeProductId: row.stripe_product_id,
+      stripePriceId: row.stripe_price_id,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at
+    };
   }
 } 

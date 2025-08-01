@@ -141,6 +141,32 @@ CREATE TABLE IF NOT EXISTS progress_entries (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Orders table (billing and payments)
+CREATE TABLE IF NOT EXISTS orders (
+    id VARCHAR(255) PRIMARY KEY,
+    company_id VARCHAR(255) NOT NULL,
+    project_id INTEGER REFERENCES projects(id) ON DELETE SET NULL,
+    status VARCHAR(50) NOT NULL DEFAULT 'draft',
+    package VARCHAR(50),
+    custom_items JSONB DEFAULT '[]'::jsonb,
+    subtotal DECIMAL(10,2) NOT NULL DEFAULT 0,
+    tax DECIMAL(10,2) NOT NULL DEFAULT 0,
+    total DECIMAL(10,2) NOT NULL DEFAULT 0,
+    notes TEXT,
+    invoice_id VARCHAR(255),
+    invoice_status VARCHAR(50) DEFAULT 'draft',
+    invoice_url TEXT,
+    payment_status VARCHAR(50) DEFAULT 'pending',
+    payment_method VARCHAR(50),
+    payment_date TIMESTAMP,
+    stripe_payment_intent_id VARCHAR(255),
+    stripe_payment_link_url TEXT,
+    stripe_product_id VARCHAR(255),
+    stripe_price_id VARCHAR(255),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Indexes for performance
 CREATE INDEX IF NOT EXISTS idx_companies_email ON companies(email);
 CREATE INDEX IF NOT EXISTS idx_projects_access_token ON projects(access_token);
@@ -149,4 +175,6 @@ CREATE INDEX IF NOT EXISTS idx_project_messages_project_id ON project_messages(p
 CREATE INDEX IF NOT EXISTS idx_activities_company_id ON activities(company_id);
 CREATE INDEX IF NOT EXISTS idx_activities_project_id ON activities(project_id);
 CREATE INDEX IF NOT EXISTS idx_appointments_company_id ON appointments(company_id);
-CREATE INDEX IF NOT EXISTS idx_appointments_project_id ON appointments(project_id); 
+CREATE INDEX IF NOT EXISTS idx_appointments_project_id ON appointments(project_id);
+CREATE INDEX IF NOT EXISTS idx_orders_company_id ON orders(company_id);
+CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(status); 

@@ -669,22 +669,37 @@ export class Storage {
 
   // Order Management Methods
   async createOrder(order: Omit<Order, 'createdAt' | 'updatedAt'>): Promise<Order> {
+    if (this.postgresStorage) {
+      return await this.postgresStorage.createOrder(order);
+    }
     return await memoryDb.createOrder(order);
   }
 
   async getOrderById(orderId: string): Promise<Order | null> {
+    if (this.postgresStorage) {
+      return await this.postgresStorage.getOrderById(orderId);
+    }
     return await memoryDb.getOrderById(orderId);
   }
 
   async getOrdersByCompanyId(companyId: string): Promise<Order[]> {
+    if (this.postgresStorage) {
+      return await this.postgresStorage.getOrdersByCompany(companyId);
+    }
     return await memoryDb.getOrdersByCompanyId(companyId);
   }
 
   async updateOrder(orderId: string, updates: Partial<Order>): Promise<Order | null> {
+    if (this.postgresStorage) {
+      return await this.postgresStorage.updateOrder(orderId, updates);
+    }
     return await memoryDb.updateOrder(orderId, updates);
   }
 
   async getOrders(): Promise<Order[]> {
+    if (this.postgresStorage) {
+      return await this.postgresStorage.getOrders();
+    }
     return await memoryDb.getOrders();
   }
 

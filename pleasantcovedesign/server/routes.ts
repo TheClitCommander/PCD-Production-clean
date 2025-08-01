@@ -1476,16 +1476,21 @@ export async function registerRoutes(app: Express, io: any) {
   // Order Management Endpoints
   app.post('/api/orders', async (req: Request, res: Response) => {
     try {
+      console.log('🔵 Order creation started:', req.body);
       const { company_id, package: packageType, addons, custom_items } = req.body;
       
       // Validate required fields
       if (!company_id) {
+        console.log('❌ Missing company_id');
         return res.status(400).json({ error: 'Company ID is required' });
       }
       
+      console.log('🔍 Looking up company:', company_id, 'parsed as:', parseInt(company_id));
       // Get business details (companies and businesses are the same for orders)
       const company = await storage.getBusinessById(parseInt(company_id));
+      console.log('🏢 Company lookup result:', company ? 'Found' : 'Not found', company?.name);
       if (!company) {
+        console.log('❌ Business not found for ID:', company_id);
         return res.status(404).json({ error: 'Business not found' });
       }
       
@@ -1578,7 +1583,9 @@ export async function registerRoutes(app: Express, io: any) {
       };
       
       // Save to database
+      console.log('💾 Creating order in database:', orderData);
       const order = await storage.createOrder(orderData);
+      console.log('✅ Order created successfully:', order.id);
       
       // Call Minerva to create invoice
       try {
@@ -1652,8 +1659,17 @@ export async function registerRoutes(app: Express, io: any) {
       });
       
     } catch (error) {
-      console.error('Error creating order:', error);
-      res.status(500).json({ error: 'Failed to create order' });
+      console.error('❌ Error creating order:', error);
+      console.error('❌ Error details:', {
+        message: error.message,
+        stack: error.stack,
+        company_id,
+        packageType
+      });
+      res.status(500).json({ 
+        error: 'Failed to create order',
+        details: process.env.NODE_ENV === 'development' ? error.message : undefined
+      });
     }
   });
 

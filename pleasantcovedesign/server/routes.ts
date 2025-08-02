@@ -24,7 +24,7 @@ import {
   securityLoggingMiddleware, 
   rateLimitConversations 
 } from './middleware/validateToken';
-import { authenticate, requireAdmin } from './middleware/auth';
+// Note: Using custom requireAdmin below instead of importing from auth middleware
 import { requestLogger, errorHandler, performanceMonitor, getHealthStats } from './middleware/logging';
 import { processAIChat, storeUserMessage } from './ai-service';
 import { createPaymentLink, verifyWebhookSignature } from './stripe-config';

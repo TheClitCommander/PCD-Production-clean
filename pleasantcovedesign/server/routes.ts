@@ -255,7 +255,16 @@ const PUBLIC_API_ROUTES = [
   "/health"
 ];
 
-// Note: requireAdmin is imported from './middleware/auth'
+// Custom admin auth middleware for simple token
+const requireAdmin = (req: Request, res: Response, next: NextFunction) => {
+  const token = req.query.token || req.headers.authorization?.replace('Bearer ', '');
+  
+  if (token !== 'pleasantcove2024admin') {
+    return res.status(401).json({ error: 'Unauthorized. Admin access required.' });
+  }
+  
+  next();
+};
 
 export async function registerRoutes(app: Express, io: any) {
   console.log('🔌 Socket.IO server initialized for routes');

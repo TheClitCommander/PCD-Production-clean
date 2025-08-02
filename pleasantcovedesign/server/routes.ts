@@ -7251,4 +7251,66 @@ Booked via: ${source}
   });
 
   // NEW, RELIABLE ENDPOINT FOR ADMIN INBOX
+
+  // =====================
+  // MISSING ENDPOINTS FIX
+  // =====================
+
+  // GET /api/proposals - For admin UI proposals page
+  app.get('/api/proposals', async (req, res) => {
+    try {
+      console.log('📝 [PROPOSALS] Fetching proposals list');
+      // Mock proposals data for now
+      const proposals = [
+        {
+          id: 1,
+          company_name: "Sample Company",
+          package_type: "professional",
+          total_amount: 1997,
+          status: "pending",
+          created_at: new Date().toISOString()
+        }
+      ];
+      res.json(proposals);
+    } catch (error) {
+      console.error('❌ [PROPOSALS] Error fetching proposals:', error);
+      res.status(500).json({ error: 'Failed to fetch proposals' });
+    }
+  });
+
+  // GET /api/companies/:id/orders - For company orders
+  app.get('/api/companies/:id/orders', async (req, res) => {
+    try {
+      const companyId = parseInt(req.params.id);
+      console.log(`🏢 [ORDERS] Fetching orders for company ${companyId}`);
+      
+      const orders = await storage.getOrdersByCompanyId(companyId);
+      res.json(orders);
+    } catch (error) {
+      console.error('❌ [ORDERS] Error fetching company orders:', error);
+      res.status(500).json({ error: 'Failed to fetch orders' });
+    }
+  });
+
+  // GET /api/outreach/campaigns - For outreach campaigns page
+  app.get('/api/outreach/campaigns', async (req, res) => {
+    try {
+      console.log('📢 [OUTREACH] Fetching campaigns list');
+      // Mock campaigns data for now
+      const campaigns = [
+        {
+          id: 1,
+          name: "Website Services Outreach",
+          status: "active",
+          sent_count: 45,
+          response_count: 12,
+          created_at: new Date().toISOString()
+        }
+      ];
+      res.json(campaigns);
+    } catch (error) {
+      console.error('❌ [OUTREACH] Error fetching campaigns:', error);
+      res.status(500).json({ error: 'Failed to fetch campaigns' });
+    }
+  });
 }

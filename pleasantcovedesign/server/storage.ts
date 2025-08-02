@@ -29,6 +29,13 @@ export class Storage {
     // Use the in-memory database method directly
     await memoryDb.markMessageAsRead(messageId, readAt);
   }
+
+  // Orders operations
+  async getOrdersByCompanyId(companyId: number): Promise<Order[]> {
+    // Mock implementation - return empty array for now
+    // In a real implementation, this would query the database
+    return [];
+  }
   // Business operations (legacy compatibility)
   async createBusiness(data: any): Promise<Business> {
     const results: any[] = db.insert(businessesTable).values(data).returning();

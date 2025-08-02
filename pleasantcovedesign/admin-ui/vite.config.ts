@@ -8,15 +8,15 @@ export default defineConfig({
     port: 5173,
     proxy: {
       '/api': {
-        // Point to the production Railway server
-        target: 'https://pleasantcovedesign-production.up.railway.app',
+        // Point to local development server
+        target: 'http://localhost:3000',
         changeOrigin: true,
-        secure: false, // No need for SSL verification in proxy
-        ws: true, // Enable WebSocket proxying
+        secure: false,
+        ws: true,
       },
       '/socket.io': {
-        // Also proxy socket.io to the Railway server
-        target: 'https://pleasantcovedesign-production.up.railway.app',
+        // Also proxy socket.io to local server
+        target: 'http://localhost:3000',
         changeOrigin: true,
         ws: true,
       },

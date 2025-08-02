@@ -29,6 +29,8 @@ import { requestLogger, errorHandler, performanceMonitor, getHealthStats } from 
 import { processAIChat, storeUserMessage } from './ai-service';
 import { createPaymentLink, verifyWebhookSignature } from './stripe-config';
 import { sendReceiptEmail, sendWelcomeEmail, sendInvoiceEmail } from './email-service';
+import { sendProposal, acceptProposal, rejectProposal, ProposalServiceError, validateProposalForSending } from './proposal-service';
+import { insertProposalSchema, updateProposalSchema } from './shared/schema';
 
 // Use CommonJS compatible approach - avoid import.meta.url
 const __routes_dirname = path.dirname(__filename);
@@ -253,19 +255,11 @@ const PUBLIC_API_ROUTES = [
   "/health"
 ];
 
-// Admin auth middleware
-const requireAdmin = (req: Request, res: Response, next: NextFunction) => {
-  const token = req.query.token || req.headers.authorization?.replace('Bearer ', '');
-  
-  if (token !== 'pleasantcove2024admin') {
-    return res.status(401).json({ error: 'Unauthorized. Admin access required.' });
-  }
-  
-  next();
-};
+// Note: requireAdmin is imported from './middleware/auth'
 
 export async function registerRoutes(app: Express, io: any) {
   console.log('🔌 Socket.IO server initialized for routes');
+  console.log('🚀 registerRoutes function called - about to register all routes');
 
   // Helper function to broadcast to admin room
   const broadcastToAdmin = (eventName: string, data: any) => {
@@ -2805,6 +2799,207 @@ ${meetingNotes.special_instructions}
       });
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch project" });
+    }
+  });
+
+  console.log('📍 About to register proposals routes - checking if we reach this point...');
+
+  // ===================
+  // PROPOSALS API (Phase 1)
+  // ===================
+  console.log('🔧 Registering proposals routes...');
+
+  // Create new proposal
+  app.post('/api/proposals', requireAdmin, async (req: Request, res: Response) => {
+    console.log('👀 POST /api/proposals route hit!', req.method, req.path);
+    try {
+      // Validate request data with Zod schema
+      const validationResult = insertProposalSchema.safeParse(req.body);
+      if (!validationResult.success) {
+        return res.status(400).json({ 
+          error: 'Validation failed', 
+          details: validationResult.error.issues 
+        });
+      }
+
+      const proposalData = validationResult.data;
+
+      // Validate that the lead exists
+      const lead = await storage.getCompanyById(proposalData.leadId);
+      if (!lead) {
+        return res.status(404).json({ error: 'Lead not found' });
+      }
+
+      const proposal = await storage.createProposal(proposalData);
+      
+      console.log(`✅ Proposal created: ${proposal.id} for lead ${lead.name} ($${proposal.totalAmount})`);
+      
+      res.status(201).json(proposal);
+    } catch (error) {
+      console.error('Error creating proposal:', error);
+      res.status(500).json({ error: 'Failed to create proposal' });
+    }
+  });
+
+  // Get all proposals
+  app.get('/api/proposals', requireAdmin, async (req: Request, res: Response) => {
+    console.log('👀 GET /api/proposals route hit!', req.method, req.path);
+    try {
+      const proposals = await storage.getProposals();
+      
+      // Enrich with lead information
+      const enrichedProposals = await Promise.all(
+        proposals.map(async (proposal) => {
+          const lead = await storage.getCompanyById(proposal.leadId);
+          return {
+            ...proposal,
+            leadName: lead?.name || 'Unknown Lead',
+            leadEmail: lead?.email || null
+          };
+        })
+      );
+      
+      res.json(enrichedProposals);
+    } catch (error) {
+      console.error('Error fetching proposals:', error);
+      res.status(500).json({ error: 'Failed to fetch proposals' });
+    }
+  });
+
+  // Get proposals for a specific lead
+  app.get('/api/leads/:leadId/proposals', requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const leadId = parseInt(req.params.leadId);
+      
+      // Validate lead exists
+      const lead = await storage.getCompanyById(leadId);
+      if (!lead) {
+        return res.status(404).json({ error: 'Lead not found' });
+      }
+
+      const proposals = await storage.getProposalsByLead(leadId);
+      res.json(proposals);
+    } catch (error) {
+      console.error('Error fetching lead proposals:', error);
+      res.status(500).json({ error: 'Failed to fetch proposals for lead' });
+    }
+  });
+
+  // Get single proposal by ID
+  app.get('/api/proposals/:id', requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const proposal = await storage.getProposalById(req.params.id);
+      
+      if (!proposal) {
+        return res.status(404).json({ error: 'Proposal not found' });
+      }
+
+      // Enrich with lead information
+      const lead = await storage.getCompanyById(proposal.leadId);
+      
+      res.json({
+        ...proposal,
+        leadName: lead?.name || 'Unknown Lead',
+        leadEmail: lead?.email || null,
+        leadPhone: lead?.phone || null
+      });
+    } catch (error) {
+      console.error('Error fetching proposal:', error);
+      res.status(500).json({ error: 'Failed to fetch proposal' });
+    }
+  });
+
+  // Update proposal
+  app.patch('/api/proposals/:id', requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const proposalId = req.params.id;
+      const updates = req.body;
+
+      // Validate request data with Zod schema
+      const validationResult = updateProposalSchema.safeParse(updates);
+      if (!validationResult.success) {
+        return res.status(400).json({ 
+          error: 'Validation failed', 
+          details: validationResult.error.issues 
+        });
+      }
+
+      // Check if this is a status change that requires service method
+      if (updates.status) {
+        const currentProposal = await storage.getProposalById(proposalId);
+        if (!currentProposal) {
+          return res.status(404).json({ error: 'Proposal not found' });
+        }
+
+        try {
+          let updatedProposal;
+          
+          switch (updates.status) {
+            case 'sent':
+              updatedProposal = await sendProposal(proposalId);
+              break;
+              
+            case 'accepted':
+              updatedProposal = await acceptProposal(proposalId);
+              break;
+              
+            case 'rejected':
+              updatedProposal = await rejectProposal(proposalId);
+              break;
+              
+            default:
+              // For other status changes or regular updates, use storage directly
+              updatedProposal = await storage.updateProposal(proposalId, validationResult.data);
+              break;
+          }
+
+          if (!updatedProposal) {
+            return res.status(404).json({ error: 'Proposal not found' });
+          }
+
+          console.log(`✅ Proposal updated: ${proposalId} - Status: ${updatedProposal.status}`);
+          res.json(updatedProposal);
+          
+        } catch (serviceError) {
+          if (serviceError instanceof ProposalServiceError) {
+            return res.status(400).json({ 
+              error: serviceError.message,
+              code: serviceError.code 
+            });
+          }
+          throw serviceError;
+        }
+      } else {
+        // Regular update without status change
+        const updatedProposal = await storage.updateProposal(proposalId, validationResult.data);
+        
+        if (!updatedProposal) {
+          return res.status(404).json({ error: 'Proposal not found' });
+        }
+
+        console.log(`✅ Proposal updated: ${proposalId}`);
+        res.json(updatedProposal);
+      }
+    } catch (error) {
+      console.error('Error updating proposal:', error);
+      res.status(500).json({ error: 'Failed to update proposal' });
+    }
+  });
+
+  // Delete proposal
+  app.delete('/api/proposals/:id', requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const success = await storage.deleteProposal(req.params.id);
+      
+      if (!success) {
+        return res.status(404).json({ error: 'Proposal not found' });
+      }
+
+      console.log(`🗑️ Proposal deleted: ${req.params.id}`);
+      res.json({ success: true, message: 'Proposal deleted successfully' });
+    } catch (error) {
+      console.error('Error deleting proposal:', error);
+      res.status(500).json({ error: 'Failed to delete proposal' });
     }
   });
 

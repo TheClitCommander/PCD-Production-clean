@@ -12,6 +12,8 @@ const getApiBaseUrl = () => {
   // Auto-detect production versus local environment
   // 1. If we are running on pleasantcovedesign.com or any Squarespace preview → use Railway
   const host = window.location.hostname;
+  
+  console.log('🔍 [API] Detecting environment - hostname:', host);
 
   // Production & staging hostnames that should hit Railway
   const prodHosts = [
@@ -21,16 +23,19 @@ const getApiBaseUrl = () => {
   ];
 
   if (prodHosts.some(h => host === h)) {
+    console.log('🔍 [API] Using production Railway server');
     return 'https://pcd-production-clean-production-e6f3.up.railway.app/api';
   }
 
   // 2. If we are served from 127.0.0.1/localhost – developer mode
   if (host.includes('localhost') || host.includes('127.0.0.1')) {
+    console.log('🔍 [API] Using local development server');
     return 'http://localhost:3000/api';
   }
 
-  // 3. Fallback (Netlify preview, Vercel, Codesandbox, etc.) – use Railway as default
-  return 'https://pcd-production-clean-production-e6f3.up.railway.app/api';
+  // 3. For development, force local server (temporary fix)
+  console.log('🔍 [API] Fallback - forcing local development server');
+  return 'http://localhost:3000/api';
 };
 
 // Export base URL for WebSocket connections

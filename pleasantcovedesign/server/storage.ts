@@ -2,8 +2,13 @@
 // Low-level file storage system for Pleasant Cove Design
 import { db } from "./db";
 import { PostgreSQLStorage } from "./postgres-storage";
-import type { Business, NewBusiness, Activity, NewActivity, Company, NewCompany, Project, NewProject, ProjectMessage, ProjectFile, AIChatMessage, Order } from "../shared/schema";
+import type { Business, NewBusiness, Activity, NewActivity, Company, NewCompany, Project, NewProject, ProjectMessage, ProjectFile, AIChatMessage, Order, Proposal, NewProposal } from "../shared/schema";
 import { eq } from "drizzle-orm";
+
+// Global memory storage for proposals (development mode)
+declare global {
+  var memoryProposals: Proposal[] | undefined;
+}
 
 // Mock schema objects for the in-memory database
 const businessesTable = { tableName: 'businesses' };
@@ -705,6 +710,68 @@ export class Storage {
 
   async deleteOrder(orderId: string): Promise<boolean> {
     return await memoryDb.deleteOrder(orderId);
+  }
+
+  // Proposal Management Methods (Phase 1) - In-Memory Storage
+  async createProposal(proposal: NewProposal): Promise<Proposal> {
+    const newProposal: Proposal = {
+      id: `proposal_${Date.now()}_${Math.random().toString(36).substring(2)}`,
+      leadId: proposal.leadId,
+      status: proposal.status || 'draft',
+      totalAmount: proposal.totalAmount,
+      lineItems: proposal.lineItems || [],
+      notes: proposal.notes || '',
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    
+    // Store in memory (using a simple array for now)
+    if (!global.memoryProposals) {
+      global.memoryProposals = [];
+    }
+    global.memoryProposals.push(newProposal);
+    
+    return newProposal;
+  }
+
+  async getProposals(): Promise<Proposal[]> {
+    return global.memoryProposals || [];
+  }
+
+  async getProposalById(id: string): Promise<Proposal | null> {
+    const proposals = global.memoryProposals || [];
+    return proposals.find(p => p.id === id) || null;
+  }
+
+  async getProposalsByLead(leadId: number): Promise<Proposal[]> {
+    const proposals = global.memoryProposals || [];
+    return proposals.filter(p => p.leadId === leadId);
+  }
+
+  async updateProposal(id: string, data: Partial<Proposal>): Promise<Proposal | null> {
+    const proposals = global.memoryProposals || [];
+    const index = proposals.findIndex(p => p.id === id);
+    
+    if (index === -1) return null;
+    
+    const updated = {
+      ...proposals[index],
+      ...data,
+      updatedAt: new Date()
+    };
+    
+    proposals[index] = updated;
+    return updated;
+  }
+
+  async deleteProposal(id: string): Promise<boolean> {
+    if (!global.memoryProposals) return false;
+    
+    const index = global.memoryProposals.findIndex(p => p.id === id);
+    if (index === -1) return false;
+    
+    global.memoryProposals.splice(index, 1);
+    return true;
   }
 }
 

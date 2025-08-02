@@ -167,11 +167,26 @@ CREATE TABLE IF NOT EXISTS orders (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Proposals table (Phase 1: Convert leads to structured proposals)
+CREATE TABLE IF NOT EXISTS proposals (
+    id VARCHAR(255) PRIMARY KEY DEFAULT gen_random_uuid()::text,
+    lead_id INTEGER REFERENCES companies(id) ON DELETE CASCADE,
+    status VARCHAR(50) NOT NULL DEFAULT 'draft',
+    total_amount DECIMAL(10,2) NOT NULL DEFAULT 0,
+    line_items JSONB DEFAULT '[]'::jsonb,
+    notes TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT proposals_status_check CHECK (status IN ('draft', 'sent', 'accepted', 'rejected'))
+);
+
 -- Indexes for performance
 CREATE INDEX IF NOT EXISTS idx_companies_email ON companies(email);
 CREATE INDEX IF NOT EXISTS idx_projects_access_token ON projects(access_token);
 CREATE INDEX IF NOT EXISTS idx_projects_company_id ON projects(company_id);
 CREATE INDEX IF NOT EXISTS idx_project_messages_project_id ON project_messages(project_id);
+CREATE INDEX IF NOT EXISTS idx_proposals_lead_id ON proposals(lead_id);
+CREATE INDEX IF NOT EXISTS idx_proposals_status ON proposals(status);
 CREATE INDEX IF NOT EXISTS idx_activities_company_id ON activities(company_id);
 CREATE INDEX IF NOT EXISTS idx_activities_project_id ON activities(project_id);
 CREATE INDEX IF NOT EXISTS idx_appointments_company_id ON appointments(company_id);

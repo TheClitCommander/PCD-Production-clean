@@ -73,6 +73,17 @@ const AppointmentsPanel: React.FC = () => {
     })
   }
 
+  const formatAppointmentDate = (datetime: string | Date): string => {
+    const date = new Date(datetime);
+    const now = new Date();
+
+    const isTomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1).toDateString() === date.toDateString();
+    const dayName = date.toLocaleDateString('en-US', { weekday: 'long' });
+    const timeString = date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+
+    return isTomorrow ? `Tomorrow ${timeString}` : `${dayName} ${timeString}`;
+  }
+
   // Parse structured appointment data from notes
   const parseAppointmentData = (appointment: Appointment) => {
     const notes = appointment.notes || ''
@@ -137,7 +148,7 @@ const AppointmentsPanel: React.FC = () => {
               >
                 <div className="flex items-start gap-2">
                   <span className="text-sm font-medium text-gray-600 whitespace-nowrap">
-                    {appointment.appointmentTime || formatTime(appointment.datetime || appointment.appointment_time)}
+                    {formatAppointmentDate(appointment.datetime || appointment.appointment_time)}
                   </span>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm">

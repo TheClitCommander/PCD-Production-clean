@@ -833,4 +833,90 @@ export class PostgreSQLStorage {
       updatedAt: row.updated_at
     };
   }
+
+  // Proposal Management Methods (Phase 1)
+  async createProposal(proposal: NewProposal): Promise<Proposal> {
+    const query = `
+      INSERT INTO proposals (
+        id, lead_id, status, total_amount, line_items, notes, created_at, updated_at
+      ) VALUES (
+        gen_random_uuid()::text, $1, $2, $3, $4, $5, NOW(), NOW()
+      ) RETURNING *
+    `;
+    
+    const values = [
+      proposal.leadId,
+      proposal.status || 'draft',
+      proposal.totalAmount,
+      JSON.stringify(proposal.lineItems || []),
+      proposal.notes || null
+    ];
+
+    const result = await this.pool.query(query, values);
+    return this.mapProposal(result.rows[0]);
+  }
+
+  async getProposals(): Promise<Proposal[]> {
+    const result = await this.pool.query('SELECT * FROM proposals ORDER BY created_at DESC');
+    return result.rows.map(row => this.mapProposal(row));
+  }
+
+  async getProposalById(id: string): Promise<Proposal | null> {
+    const result = await this.pool.query('SELECT * FROM proposals WHERE id = $1', [id]);
+    return result.rows[0] ? this.mapProposal(result.rows[0]) : null;
+  }
+
+  async getProposalsByLead(leadId: number): Promise<Proposal[]> {
+    const result = await this.pool.query('SELECT * FROM proposals WHERE lead_id = $1 ORDER BY created_at DESC', [leadId]);
+    return result.rows.map(row => this.mapProposal(row));
+  }
+
+  async updateProposal(id: string, data: Partial<Proposal>): Promise<Proposal | null> {
+    const fields = [];
+    const values = [];
+    let paramCount = 1;
+
+    Object.entries(data).forEach(([key, value]) => {
+      if (value !== undefined && key !== 'id' && key !== 'createdAt') {
+        fields.push(`${this.camelToSnake(key)} = $${paramCount}`);
+        if (key === 'lineItems') {
+          values.push(JSON.stringify(value));
+        } else {
+          values.push(value);
+        }
+        paramCount++;
+      }
+    });
+
+    if (fields.length === 0) return null;
+
+    const query = `
+      UPDATE proposals 
+      SET ${fields.join(', ')}, updated_at = CURRENT_TIMESTAMP
+      WHERE id = $${paramCount}
+      RETURNING *
+    `;
+    values.push(id);
+
+    const result = await this.pool.query(query, values);
+    return result.rows[0] ? this.mapProposal(result.rows[0]) : null;
+  }
+
+  async deleteProposal(id: string): Promise<boolean> {
+    const result = await this.pool.query('DELETE FROM proposals WHERE id = $1', [id]);
+    return result.rowCount > 0;
+  }
+
+  private mapProposal(row: any): Proposal {
+    return {
+      id: row.id,
+      leadId: parseInt(row.lead_id),
+      status: row.status,
+      totalAmount: parseFloat(row.total_amount),
+      lineItems: row.line_items ? JSON.parse(row.line_items) : [],
+      notes: row.notes,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at
+    };
+  }
 } 

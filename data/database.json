@@ -1,0 +1,63 @@
+{
+  "companies": [
+    {
+      "id": 1,
+      "name": "Pleasant Cove Design",
+      "email": "ben04537@gmail.com",
+      "phone": "",
+      "address": "",
+      "city": "",
+      "state": "",
+      "industry": "Testing",
+      "website": "",
+      "priority": "medium",
+      "tags": [],
+      "notes": "",
+      "createdAt": "2025-08-03T03:47:02.081Z",
+      "updatedAt": "2025-08-03T03:47:02.082Z"
+    }
+  ],
+  "projects": [
+    {
+      "id": 1,
+      "companyId": 1,
+      "title": "Pleasant Cove Design - Website Project",
+      "type": "website",
+      "stage": "planning",
+      "status": "active",
+      "score": 0,
+      "notes": "Test project for Squarespace integration",
+      "totalAmount": 0,
+      "paidAmount": 0,
+      "paymentStatus": "pending",
+      "accessToken": "Q_lXDL9XQ-Q8d-jay7W2a2ZU",
+      "token": "Q_lXDL9XQ-Q8d-jay7W2a2ZU",
+      "createdAt": "2025-08-03T03:47:02.085Z",
+      "updatedAt": "2025-08-03T03:47:02.085Z"
+    }
+  ],
+  "projectMessages": [],
+  "aiChatMessages": [],
+  "projectFiles": [],
+  "orders": [],
+  "businesses": [],
+  "activities": [],
+  "campaigns": [],
+  "templates": [],
+  "appointments": [],
+  "progressEntries": [],
+  "counters": {
+    "companies": 0,
+    "projects": 0,
+    "projectMessages": 0,
+    "projectFiles": 0,
+    "orders": 0,
+    "businesses": 0,
+    "activities": 0,
+    "campaigns": 0,
+    "templates": 0,
+    "appointments": 0,
+    "progressEntries": 0
+  },
+  "nextId": 1
+}

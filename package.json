@@ -1,10 +1,10 @@
 {
-  "name": "pcd-production-clean",
+  "name": "pleasant-cove-design-production",
   "version": "1.0.0",
   "description": "Pleasant Cove Design - Production Server",
   "main": "pleasantcovedesign/server/dist/index.js",
   "scripts": {
-    "start": "cd pleasantcovedesign/server && npm start",
+    "start": "node pleasantcovedesign/server/dist/index.js",
     "build": "cd pleasantcovedesign/server && npm install && npm run build"
   },
   "engines": {

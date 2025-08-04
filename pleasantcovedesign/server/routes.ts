@@ -7186,7 +7186,7 @@ Booked via: ${source}
             // Get company info (don't fail if this fails)
             let company = null;
             try {
-              company = await storage.getCompany(project.companyId);
+              company = await storage.getCompanyById(project.companyId);
               console.log(`📋 [ADMIN INBOX] Found company: ${company?.name}`);
             } catch (err) {
               console.warn(`⚠️ [ADMIN INBOX] Could not get company ${project.companyId}:`, err);

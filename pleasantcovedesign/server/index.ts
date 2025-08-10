@@ -14,7 +14,7 @@ import { registerDemoRoutes } from './routes/demo-routes';
 dotenv.config({ path: resolve(process.cwd(), '.env') });
 
 // Debug: Log environment variable loading - Railway deployment fix
-console.log('🔧 Environment variables loaded');
+console.log('🔧 Environment variables loaded - nanoid ESM fix applied');
 
 import express, { type Express } from "express";
 import cors from "cors";

@@ -2,7 +2,12 @@
 import { storage } from './storage';
 import { sendEmail } from './email-service';
 import type { Proposal, Company, Order } from '../shared/schema';
-import { nanoid } from 'nanoid';
+// Use dynamic import to support ESM-only nanoid in CommonJS build
+async function generateId() {
+  const mod = await import('nanoid');
+  const fn = (mod as any).nanoid || (mod as any).default || (() => Math.random().toString(36).slice(2));
+  return fn();
+}
 
 /**
  * ProposalService - Core business logic for proposal workflow
@@ -236,11 +241,11 @@ This proposal is valid for 30 days from the date sent.
  * Create an order from an accepted proposal
  */
 async function createOrderFromProposal(proposal: Proposal, lead: Company): Promise<Order> {
-  const orderId = nanoid();
+  const orderId = await generateId();
   
   // Convert proposal line items to order format
   const customItems = proposal.lineItems.map(item => ({
-    id: nanoid(),
+    id: await generateId(),
     orderId: orderId,
     description: item.description,
     category: 'custom' as const,

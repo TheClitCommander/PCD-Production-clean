@@ -2,11 +2,7 @@
 import express, { type Request, Response, NextFunction, Express } from "express";
 import { storage } from "./storage";
 import type { Business } from "../shared/schema";
-// Safe nanoid generator for CJS builds
-async function safeNanoid() {
-  const mod: any = await import('nanoid');
-  return (mod.nanoid || mod.default || (() => Math.random().toString(36).slice(2)))();
-}
+import { nanoid } from "nanoid";
 import nodemailer from 'nodemailer';
 import path from 'path';
 // Removed fileURLToPath import - using __filename directly

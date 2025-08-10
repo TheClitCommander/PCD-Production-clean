@@ -1,0 +1,59 @@
+<!-- Pleasant Cove Design - Canvas Viewer Widget -->
+<div id="pcd-canvas-viewer-container"></div>
+<script>
+  (function() {
+    // Configuration
+    const config = {
+      projectToken: 'YOUR_PROJECT_TOKEN', // Replace with actual project token
+      clientName: 'Client Name', // Replace with client name
+      serverUrl: 'https://your-server-url.com', // Replace with your server URL
+      containerSelector: '#pcd-canvas-viewer-container'
+    };
+    
+    // Create iframe
+    const iframe = document.createElement('iframe');
+    iframe.style.width = '100%';
+    iframe.style.height = '800px';
+    iframe.style.border = 'none';
+    iframe.style.borderRadius = '8px';
+    iframe.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.1)';
+    
+    // Set iframe source
+    const url = new URL(`${config.serverUrl}/client-widget/canvas-viewer.html`);
+    url.searchParams.set('token', config.projectToken);
+    url.searchParams.set('name', encodeURIComponent(config.clientName));
+    iframe.src = url.toString();
+    
+    // Add iframe to container
+    const container = document.querySelector(config.containerSelector);
+    if (container) {
+      container.appendChild(iframe);
+    } else {
+      console.error('Canvas viewer container not found:', config.containerSelector);
+    }
+    
+    // Make container responsive
+    const style = document.createElement('style');
+    style.textContent = `
+      #pcd-canvas-viewer-container {
+        width: 100%;
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+      
+      @media (max-width: 768px) {
+        #pcd-canvas-viewer-container iframe {
+          height: 600px;
+        }
+      }
+      
+      @media (max-width: 480px) {
+        #pcd-canvas-viewer-container iframe {
+          height: 500px;
+        }
+      }
+    `;
+    document.head.appendChild(style);
+  })();
+</script>
+<!-- End Pleasant Cove Design - Canvas Viewer Widget -->

@@ -170,6 +170,8 @@ class InMemoryDatabase {
         templates: this.templates,
         appointments: this.appointments,
         progressEntries: this.progressEntries,
+        canvasData: this.canvasData,
+        canvasVersions: this.canvasVersions,
         counters: this.counters,
         nextId: this.nextId
       };
@@ -206,6 +208,8 @@ class InMemoryDatabase {
         this.templates = data.templates || [];
         this.appointments = data.appointments || [];
         this.progressEntries = data.progressEntries || [];
+        this.canvasData = data.canvasData || {};
+        this.canvasVersions = data.canvasVersions || {};
         this.counters = data.counters || {
           companies: 0,
           projects: 0,
@@ -869,6 +873,44 @@ class InMemoryDatabase {
     }
     
     return false;
+  }
+
+  // Canvas data storage
+  private canvasData: Record<number, any> = {};
+  private canvasVersions: Record<number, any[]> = {};
+
+  async getCanvasData(projectId: number): Promise<any | null> {
+    return this.canvasData[projectId] || null;
+  }
+
+  async saveCanvasData(projectId: number, data: any): Promise<void> {
+    this.canvasData[projectId] = {
+      ...data,
+      updatedAt: new Date().toISOString()
+    };
+    this.saveToDisk();
+  }
+
+  async getCanvasVersions(projectId: number): Promise<any[]> {
+    return this.canvasVersions[projectId] || [];
+  }
+
+  async saveCanvasVersion(projectId: number, versionData: any): Promise<void> {
+    if (!this.canvasVersions[projectId]) {
+      this.canvasVersions[projectId] = [];
+    }
+    
+    this.canvasVersions[projectId].push({
+      ...versionData,
+      createdAt: new Date().toISOString()
+    });
+    
+    this.saveToDisk();
+  }
+
+  async getCanvasVersion(projectId: number, versionId: string): Promise<any | null> {
+    const versions = this.canvasVersions[projectId] || [];
+    return versions.find(v => v.id === versionId) || null;
   }
 }
 

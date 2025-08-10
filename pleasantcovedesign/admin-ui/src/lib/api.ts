@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // Get backend URL from environment or default to production
-const API_URL = import.meta.env.VITE_API_URL || 'https://pcd-production-clean-production-e6f3.up.railway.app/api';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 const ADMIN_TOKEN = import.meta.env.VITE_ADMIN_TOKEN || 'pleasantcove2024admin';
 
 console.log('API request to Railway:', API_URL.replace('/api', ''));

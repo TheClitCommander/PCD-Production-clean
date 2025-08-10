@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Canvas Viewer Debug</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f8fafc;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .debug-panel {
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+        button {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        input {
+            padding: 8px;
+            border: 1px solid #e5e7eb;
+            border-radius: 4px;
+            flex-grow: 1;
+        }
+        pre {
+            background: #f1f5f9;
+            padding: 12px;
+            border-radius: 4px;
+            overflow: auto;
+            max-height: 300px;
+            margin-top: 16px;
+        }
+        .iframe-container {
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            overflow: hidden;
+            height: 700px;
+            background: white;
+        }
+        @keyframes pcdSpinnerAnimation {
+            to { transform: rotate(360deg); }
+        }
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(59, 130, 246, 0.2);
+            border-left-color: #3b82f6;
+            border-radius: 50%;
+            animation: pcdSpinnerAnimation 1s linear infinite;
+            margin: 0 auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="debug-panel">
+            <h2>Canvas Viewer Debug</h2>
+            
+            <div class="controls">
+                <input type="text" id="projectToken" placeholder="Enter project token (e.g., pcd_47_mdnoyuoh_hxgn1o)" value="pcd_47_mdnoyuoh_hxgn1o">
+                <button id="loadCanvas">Load Canvas</button>
+                <button id="clearConsole">Clear Console</button>
+                <button id="checkStatus">Check Status</button>
+            </div>
+            
+            <div id="status"></div>
+            
+            <pre id="consoleOutput"></pre>
+        </div>
+        
+        <div class="iframe-container" id="canvasContainer">
+            <iframe id="canvasFrame" style="width:100%; height:100%; border:none;"></iframe>
+        </div>
+    </div>
+
+    <script>
+        // Debug console
+        const consoleOutput = document.getElementById('consoleOutput');
+        const statusEl = document.getElementById('status');
+        const projectTokenInput = document.getElementById('projectToken');
+        const canvasFrame = document.getElementById('canvasFrame');
+        const canvasContainer = document.getElementById('canvasContainer');
+        
+        // Original console methods
+        const originalConsole = {
+            log: console.log,
+            error: console.error,
+            warn: console.warn
+        };
+        
+        // Override console methods
+        console.log = function(...args) {
+            originalConsole.log(...args);
+            appendToConsole('LOG', ...args);
+        };
+        
+        console.error = function(...args) {
+            originalConsole.error(...args);
+            appendToConsole('ERROR', ...args);
+        };
+        
+        console.warn = function(...args) {
+            originalConsole.warn(...args);
+            appendToConsole('WARN', ...args);
+        };
+        
+        function appendToConsole(type, ...args) {
+            const timestamp = new Date().toLocaleTimeString();
+            const message = args.map(arg => {
+                if (typeof arg === 'object') {
+                    try {
+                        return JSON.stringify(arg, null, 2);
+                    } catch (e) {
+                        return String(arg);
+                    }
+                }
+                return String(arg);
+            }).join(' ');
+            
+            const color = type === 'ERROR' ? 'red' : (type === 'WARN' ? 'orange' : 'black');
+            
+            consoleOutput.innerHTML += `<div style="color: ${color};">[${timestamp}] [${type}] ${message}</div>`;
+            consoleOutput.scrollTop = consoleOutput.scrollHeight;
+        }
+        
+        // Listen for messages from the iframe
+        window.addEventListener('message', function(event) {
+            if (event.data && event.data.type === 'IFRAME_CONSOLE') {
+                const { level, args } = event.data;
+                appendToConsole(level.toUpperCase(), `[IFRAME] ${args.join(' ')}`);
+            } else if (event.data && event.data.type === 'IFRAME_ERROR') {
+                const { message, source, lineno, colno } = event.data;
+                appendToConsole('ERROR', `[IFRAME ERROR] ${message} at ${source}:${lineno}:${colno}`);
+            }
+        });
+        
+        // Define loadCanvas function in global scope
+        window.loadCanvas = function() {
+            const token = projectTokenInput.value.trim();
+            if (!token) {
+                console.error('Please enter a project token');
+                return;
+            }
+            
+            console.log('Loading canvas with token:', token);
+            
+            // Show loading state
+            canvasFrame.style.display = 'none';
+            canvasContainer.innerHTML = `
+                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%;">
+                    <div class="spinner"></div>
+                    <div style="margin-top: 16px;">Loading canvas viewer...</div>
+                </div>
+            `;
+            
+            // Configuration
+            const serverUrl = 'http://localhost:3000';
+            
+            // Fetch the canvas viewer HTML
+            console.log('Fetching canvas viewer from:', `${serverUrl}/client-widget/canvas-viewer.html`);
+            fetch(`${serverUrl}/client-widget/canvas-viewer.html`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error ${response.status}: ${response.statusText}`);
+                    }
+                    console.log('Canvas viewer fetched successfully');
+                    return response.text();
+                })
+                .then(html => {
+                    // Replace the server URL placeholder
+                    console.log('Replacing server URL placeholder...');
+                    let modifiedHtml = html.replace('{{SERVER_URL_PLACEHOLDER}}', serverUrl);
+                    
+                    // Add debug script to capture console messages from iframe
+                    const debugScript = `
+                        <script>
+                            // Override console methods to report to parent
+                            const originalConsole = {
+                                log: console.log,
+                                error: console.error,
+                                warn: console.warn
+                            };
+                            
+                            console.log = function(...args) {
+                                originalConsole.log(...args);
+                                try {
+                                    window.parent.postMessage({
+                                        type: 'IFRAME_CONSOLE',
+                                        level: 'log',
+                                        args: args.map(arg => typeof arg === 'object' ? JSON.stringify(arg) : String(arg))
+                                    }, '*');
+                                } catch (e) {}
+                            };
+                            
+                            console.error = function(...args) {
+                                originalConsole.error(...args);
+                                try {
+                                    window.parent.postMessage({
+                                        type: 'IFRAME_CONSOLE',
+                                        level: 'error',
+                                        args: args.map(arg => typeof arg === 'object' ? JSON.stringify(arg) : String(arg))
+                                    }, '*');
+                                } catch (e) {}
+                            };
+                            
+                            console.warn = function(...args) {
+                                originalConsole.warn(...args);
+                                try {
+                                    window.parent.postMessage({
+                                        type: 'IFRAME_CONSOLE',
+                                        level: 'warn',
+                                        args: args.map(arg => typeof arg === 'object' ? JSON.stringify(arg) : String(arg))
+                                    }, '*');
+                                } catch (e) {}
+                            };
+                            
+                            // Report errors to parent
+                            window.addEventListener('error', function(event) {
+                                try {
+                                    window.parent.postMessage({
+                                        type: 'IFRAME_ERROR',
+                                        message: event.message,
+                                        source: event.filename,
+                                        lineno: event.lineno,
+                                        colno: event.colno
+                                    }, '*');
+                                } catch (e) {}
+                            });
+                            
+                            // Inject the project token
+                            window.PCD_INJECTED_TOKEN = "${token}";
+                            console.log('Injected project token:', window.PCD_INJECTED_TOKEN);
+                            
+                            // Add URL parameter for token detection
+                            const urlParams = new URLSearchParams(window.location.search);
+                            if (!urlParams.has('token')) {
+                                urlParams.set('token', "${token}");
+                            }
+                        <\/script>
+                    `;
+                    
+                    // Insert debug script at the beginning of the body
+                    modifiedHtml = modifiedHtml.replace('<body>', '<body>' + debugScript);
+                    
+                    // Create iframe
+                    const iframe = document.createElement('iframe');
+                    iframe.id = 'canvasFrame';
+                    iframe.style.width = '100%';
+                    iframe.style.height = '100%';
+                    iframe.style.border = 'none';
+                    iframe.srcdoc = modifiedHtml;
+                    
+                    // Clear container and add iframe
+                    canvasContainer.innerHTML = '';
+                    canvasContainer.appendChild(iframe);
+                    
+                    console.log('Canvas viewer loaded');
+                })
+                .catch(error => {
+                    console.error('Failed to load canvas viewer:', error);
+                    canvasContainer.innerHTML = `
+                        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%;">
+                            <div style="color: red; font-weight: bold; margin-bottom: 16px;">Error Loading Canvas Viewer</div>
+                            <div>${error.message}</div>
+                            <button onclick="window.loadCanvas()" style="margin-top: 16px;">Try Again</button>
+                        </div>
+                    `;
+                });
+        };
+        
+        // Button handlers
+        document.getElementById('clearConsole').addEventListener('click', () => {
+            consoleOutput.innerHTML = '';
+        });
+        
+        document.getElementById('checkStatus').addEventListener('click', () => {
+            try {
+                const frameWindow = canvasFrame.contentWindow;
+                if (frameWindow && frameWindow.pcdCanvasWidget && frameWindow.pcdCanvasWidget.getStatus) {
+                    const status = frameWindow.pcdCanvasWidget.getStatus();
+                    console.log('Canvas Widget Status:', status);
+                    
+                    statusEl.innerHTML = `
+                        <div style="padding: 10px; background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 4px; margin-top: 10px;">
+                            <strong>Status:</strong> ${status.connected ? '✅ Connected' : '❌ Disconnected'}<br>
+                            <strong>Project Token:</strong> ${status.projectToken || 'Not set'}<br>
+                            <strong>Client Name:</strong> ${status.clientName || 'Not set'}
+                        </div>
+                    `;
+                } else {
+                    console.error('Canvas widget not initialized or getStatus method not available');
+                    statusEl.innerHTML = '<div style="color: red; margin-top: 10px;">Canvas widget not initialized</div>';
+                }
+            } catch (error) {
+                console.error('Error checking status:', error);
+                statusEl.innerHTML = `<div style="color: red; margin-top: 10px;">Error: ${error.message}</div>`;
+            }
+        });
+        
+        document.getElementById('loadCanvas').addEventListener('click', window.loadCanvas);
+        
+        // Load canvas on page load if token is present
+        if (projectTokenInput.value.trim()) {
+            window.loadCanvas();
+        }
+    </script>
+</body>
+</html>

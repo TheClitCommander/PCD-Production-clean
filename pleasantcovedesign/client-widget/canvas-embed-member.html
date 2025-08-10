@@ -1,0 +1,195 @@
+<!-- Pleasant Cove Design - Canvas Viewer Widget for Members -->
+<!-- 
+  IMPORTANT: Before adding to Squarespace:
+  1. Replace YOUR_SERVER_URL with your actual server URL (e.g., https://api.pleasantcovedesign.com)
+  2. Optional: Set projectToken if you want to override automatic project detection
+  3. Make sure your server is running and accessible
+  
+  USAGE:
+  - Add this code to a Code Block in a Member-Only page in Squarespace
+  - The widget will automatically detect the logged-in member and show their project
+  - If you need to test outside of Squarespace, add ?email=test@example.com to the URL
+-->
+<div id="pcd-canvas-viewer-container"></div>
+<script>
+  (function() {
+    // Configuration - IMPORTANT: Replace with your actual values
+    const config = {
+      // REQUIRED: Your server URL where the Pleasant Cove Design backend is running
+      serverUrl: 'YOUR_SERVER_URL', // ← REPLACE THIS with your actual server URL
+      
+      // OPTIONAL: Override the project token (leave empty to auto-detect based on member)
+      projectToken: '', // Only set this if you want to force a specific project
+      
+      // UI Configuration
+      containerSelector: '#pcd-canvas-viewer-container',
+      height: '800px', // You can adjust this if needed
+      
+      // Debug mode - set to true to see detailed logs in the console
+      debug: false
+    };
+    
+    // Create iframe
+    const iframe = document.createElement('iframe');
+    iframe.style.width = '100%';
+    iframe.style.height = config.height;
+    iframe.style.border = 'none';
+    iframe.style.borderRadius = '8px';
+    iframe.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.1)';
+    
+    // Log function that respects debug setting
+    function log(...args) {
+      if (config.debug) {
+        console.log('[PCD Canvas]', ...args);
+      }
+    }
+    
+    // Log error function (always logs)
+    function logError(...args) {
+      console.error('[PCD Canvas]', ...args);
+    }
+    
+    log('Initializing with config:', config);
+    
+    // Validate server URL
+    if (!config.serverUrl || config.serverUrl === 'YOUR_SERVER_URL') {
+      logError('Invalid server URL. Please set the correct serverUrl in the configuration.');
+      showError('Configuration Error', 'Please set the correct server URL in the widget configuration.');
+      return;
+    }
+    
+    // Fetch the canvas viewer HTML
+    log('Fetching canvas viewer from:', `${config.serverUrl}/client-widget/canvas-viewer.html`);
+    fetch(`${config.serverUrl}/client-widget/canvas-viewer.html`)
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`HTTP error ${response.status}: ${response.statusText}`);
+        }
+        log('Canvas viewer fetched successfully');
+        return response.text();
+      })
+      .then(html => {
+        // Replace the server URL placeholder
+        log('Replacing server URL placeholder');
+        let modifiedHtml = html.replace('{{SERVER_URL_PLACEHOLDER}}', config.serverUrl);
+        
+        // Add URL parameters if projectToken is specified
+        if (config.projectToken) {
+          log('Using specified project token:', config.projectToken);
+          
+          // Add debug script to inject the token
+          const injectScript = `
+            <script>
+              // Inject project token from embed configuration
+              window.PCD_INJECTED_TOKEN = "${config.projectToken}";
+              console.log('[PCD Canvas] Using injected project token:', window.PCD_INJECTED_TOKEN);
+              
+              // Add URL parameter for token detection
+              const urlParams = new URLSearchParams(window.location.search);
+              if (!urlParams.has('token')) {
+                urlParams.set('token', "${config.projectToken}");
+                // We don't actually modify the URL, just make it available for the token detection
+              }
+            </script>
+          `;
+          
+          // Insert the script at the beginning of the body
+          modifiedHtml = modifiedHtml.replace('<body>', '<body>' + injectScript);
+        }
+        
+        // Set the iframe source
+        log('Setting iframe content');
+        iframe.srcdoc = modifiedHtml;
+      })
+      .catch(error => {
+        logError('Failed to load canvas viewer:', error);
+        showError('Connection Error', `Failed to load the canvas viewer. Please check that the server URL is correct and the server is running. (${error.message})`);
+      });
+      
+    // Helper function to show error in the container
+    function showError(title, message) {
+      iframe.srcdoc = `<html><body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 20px; text-align: center; color: #1f2937; margin: 0; height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; background-color: #f9fafb;">
+        <div style="max-width: 500px; background-color: white; border-radius: 8px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); padding: 24px; border: 1px solid #e5e7eb;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 16px;">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+          </svg>
+          <h2 style="margin: 0 0 16px 0; color: #ef4444;">${title}</h2>
+          <p style="margin: 0 0 24px 0; color: #4b5563; line-height: 1.5;">${message}</p>
+          <button onclick="window.location.reload()" style="background-color: #3b82f6; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: 500;">Retry</button>
+        </div>
+      </body></html>`;
+    }
+    
+    // Create loading indicator
+    const loadingDiv = document.createElement('div');
+    loadingDiv.style.display = 'flex';
+    loadingDiv.style.flexDirection = 'column';
+    loadingDiv.style.alignItems = 'center';
+    loadingDiv.style.justifyContent = 'center';
+    loadingDiv.style.height = config.height;
+    loadingDiv.style.backgroundColor = '#f9fafb';
+    loadingDiv.style.borderRadius = '8px';
+    loadingDiv.style.border = '1px solid #e5e7eb';
+    
+    const spinner = document.createElement('div');
+    spinner.style.width = '40px';
+    spinner.style.height = '40px';
+    spinner.style.border = '4px solid rgba(59, 130, 246, 0.2)';
+    spinner.style.borderLeftColor = '#3b82f6';
+    spinner.style.borderRadius = '50%';
+    spinner.style.animation = 'pcdSpinnerAnimation 1s linear infinite';
+    
+    const loadingText = document.createElement('div');
+    loadingText.textContent = 'Loading canvas viewer...';
+    loadingText.style.marginTop = '16px';
+    loadingText.style.color = '#6b7280';
+    loadingText.style.fontFamily = 'sans-serif';
+    
+    loadingDiv.appendChild(spinner);
+    loadingDiv.appendChild(loadingText);
+    
+    // Create styles
+    const styleElement = document.createElement('style');
+    styleElement.textContent = `
+      @keyframes pcdSpinnerAnimation {
+        to { transform: rotate(360deg); }
+      }
+      
+      #pcd-canvas-viewer-container {
+        width: 100%;
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+      
+      @media (max-width: 768px) {
+        #pcd-canvas-viewer-container iframe {
+          height: 600px;
+        }
+      }
+      
+      @media (max-width: 480px) {
+        #pcd-canvas-viewer-container iframe {
+          height: 500px;
+        }
+      }
+    `;
+    document.head.appendChild(styleElement);
+    
+    // Add loading indicator and iframe to container
+    const container = document.querySelector(config.containerSelector);
+    if (container) {
+      container.appendChild(loadingDiv);
+      container.appendChild(iframe);
+      
+      // Hide loading indicator when iframe is loaded
+      iframe.onload = () => {
+        loadingDiv.style.display = 'none';
+      };
+    } else {
+      console.error('Canvas viewer container not found:', config.containerSelector);
+    }
+  })();
+</script>
+<!-- End Pleasant Cove Design - Canvas Viewer Widget -->

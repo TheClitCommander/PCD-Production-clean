@@ -1,0 +1,3832 @@
+{
+  "companies": [
+    {
+      "name": "Test User",
+      "email": "test@pleasantcovedesign.com",
+      "phone": "",
+      "industry": "Web Design Client",
+      "tags": [
+        "squarespace-member"
+      ],
+      "id": 102,
+      "createdAt": "2025-07-29T19:44:36.123Z"
+    },
+    {
+      "id": 103,
+      "name": "Test User",
+      "email": "test@example.com",
+      "phone": "",
+      "address": "",
+      "city": "",
+      "state": "",
+      "industry": "Web Design Client",
+      "website": "",
+      "priority": "medium",
+      "tags": [],
+      "notes": "",
+      "createdAt": "2025-07-29T20:15:02.079Z",
+      "updatedAt": "2025-07-29T20:15:02.079Z"
+    },
+    {
+      "id": 104,
+      "name": "Squarespace User",
+      "email": "test@squarespace.com",
+      "phone": "",
+      "address": "",
+      "city": "",
+      "state": "",
+      "industry": "Web Design Client",
+      "website": "",
+      "priority": "medium",
+      "tags": [],
+      "notes": "",
+      "createdAt": "2025-07-29T21:04:57.898Z",
+      "updatedAt": "2025-07-29T21:04:57.898Z"
+    }
+  ],
+  "projects": [
+    {
+      "companyId": 41,
+      "title": "Today Test - website-design",
+      "type": "consultation",
+      "stage": "scheduled",
+      "status": "active",
+      "totalAmount": 0,
+      "paidAmount": 0,
+      "accessToken": "md5e28v6_bun-bboFhA6tKOSMWuVdXA",
+      "id": 42,
+      "createdAt": "2025-07-16T03:15:30.787Z"
+    },
+    {
+      "companyId": 118,
+      "title": "Test Member - Growth Package",
+      "description": "Paid project: Order ORD-20250728050317-B6YZESNB - growth package ($2497)",
+      "status": "active",
+      "stage": "planning",
+      "totalAmount": 2497,
+      "paidAmount": 2497,
+      "paymentStatus": "paid",
+      "id": 98,
+      "createdAt": "2025-07-28T05:05:23.762Z",
+      "accessToken": "6cjx9lshw2lirudo78ad1dbwbvfksnlq"
+    },
+    {
+      "companyId": 47,
+      "title": "Test User - Master Conversation",
+      "type": "consultation",
+      "status": "active",
+      "accessToken": "pcd_47_mdnoyuoh_hxgn1o",
+      "notes": "Master conversation thread - all messages consolidated here",
+      "id": 99,
+      "createdAt": "2025-07-28T22:40:39.377Z"
+    },
+    {
+      "companyId": 102,
+      "title": "Test User - Master Conversation",
+      "type": "consultation",
+      "status": "active",
+      "accessToken": "pcd_102_mdoy4aos_jjh1o6",
+      "notes": "Master conversation thread - all messages consolidated here",
+      "id": 103,
+      "createdAt": "2025-07-29T19:44:36.124Z"
+    },
+    {
+      "id": 104,
+      "companyId": 103,
+      "title": "Test User - Master Conversation",
+      "type": "website",
+      "stage": "planning",
+      "status": "active",
+      "score": 0,
+      "notes": "",
+      "totalAmount": 0,
+      "paidAmount": 0,
+      "paymentStatus": "pending",
+      "accessToken": "pcd_103_mdoz7fls_o20iij",
+      "token": "pcd_103_mdoz7fls_o20iij",
+      "createdAt": "2025-07-29T20:15:02.080Z",
+      "updatedAt": "2025-07-29T20:15:02.080Z"
+    },
+    {
+      "id": 105,
+      "companyId": 104,
+      "title": "Squarespace User - Master Conversation",
+      "type": "website",
+      "stage": "planning",
+      "status": "active",
+      "score": 0,
+      "notes": "",
+      "totalAmount": 0,
+      "paidAmount": 0,
+      "paymentStatus": "pending",
+      "accessToken": "pcd_104_mdp0zn6z_ji961k",
+      "token": "pcd_104_mdp0zn6z_ji961k",
+      "createdAt": "2025-07-29T21:04:57.900Z",
+      "updatedAt": "2025-07-29T21:04:57.900Z"
+    }
+  ],
+  "projectMessages": [
+    {
+      "projectId": 9,
+      "senderType": "client",
+      "senderName": "max powers1.1",
+      "content": "hey",
+      "attachments": [],
+      "id": 11,
+      "createdAt": "2025-06-16T19:36:19.376Z",
+      "readAt": "2025-07-23T03:30:24.861Z"
+    },
+    {
+      "projectId": 9,
+      "senderType": "client",
+      "senderName": "max powers1.1",
+      "content": "sup",
+      "attachments": [],
+      "id": 13,
+      "createdAt": "2025-06-16T19:40:41.568Z",
+      "readAt": "2025-07-30T04:29:49.059Z"
+    },
+    {
+      "projectId": 9,
+      "senderType": "admin",
+      "senderName": "Ben Dickinson",
+      "content": "ntm",
+      "attachments": [],
+      "id": 15,
+      "createdAt": "2025-06-16T19:40:51.467Z",
+      "readAt": "2025-07-23T03:30:24.879Z"
+    },
+    {
+      "projectId": 9,
+      "senderType": "admin",
+      "senderName": "Ben Dickinson",
+      "content": "ntm hbu",
+      "attachments": [],
+      "id": 17,
+      "createdAt": "2025-06-16T19:40:56.697Z",
+      "readAt": "2025-07-23T03:30:24.884Z"
+    },
+    {
+      "projectId": 9,
+      "senderType": "admin",
+      "senderName": "Ben Dickinson",
+      "content": "hey",
+      "attachments": [],
+      "id": 19,
+      "createdAt": "2025-06-16T19:41:02.649Z",
+      "readAt": "2025-07-23T03:30:24.887Z"
+    },
+    {
+      "projectId": 9,
+      "senderType": "client",
+      "senderName": "max powers1.1",
+      "content": "whats up",
+      "attachments": [],
+      "id": 21,
+      "createdAt": "2025-06-16T19:41:06.950Z",
+      "readAt": "2025-07-23T03:30:33.788Z"
+    },
+    {
+      "projectId": 9,
+      "senderType": "admin",
+      "senderName": "Ben Dickinson",
+      "content": "ntm just working on a jib",
+      "attachments": [],
+      "id": 23,
+      "createdAt": "2025-06-16T19:41:18.682Z"
+    },
+    {
+      "projectId": 9,
+      "senderType": "client",
+      "senderName": "max powers1.1",
+      "content": "(File attachment)",
+      "attachments": [
+        "https://pleasantcovedesign-production.up.railway.app/uploads/project-Ae06uIlL-1750103173626-Screenshot_2025-06-10_at_12.47.14___PM.png"
+      ],
+      "id": 25,
+      "createdAt": "2025-06-16T19:46:13.631Z",
+      "readAt": "2025-07-23T03:30:33.798Z"
+    },
+    {
+      "projectId": 9,
+      "senderType": "client",
+      "senderName": "max powers1.1",
+      "content": "(File attachment)",
+      "attachments": [
+        "https://pleasantcovedesign-production.up.railway.app/uploads/project-Ae06uIlL-1750103594420-Screenshot_2025-06-12_at_10.24.19___PM.png"
+      ],
+      "id": 27,
+      "createdAt": "2025-06-16T19:53:14.428Z",
+      "readAt": "2025-07-23T03:30:33.803Z"
+    },
+    {
+      "projectId": 9,
+      "senderType": "client",
+      "senderName": "max powers1.1",
+      "content": "(File attachment)",
+      "attachments": [
+        "https://pleasantcovedesign-production.up.railway.app/uploads/project-Ae06uIlL-1750103899210-ChatGPT_Image_May_27__2025__04_38_15_PM.png"
+      ],
+      "id": 29,
+      "createdAt": "2025-06-16T19:58:19.216Z",
+      "readAt": "2025-07-23T03:30:33.808Z"
+    },
+    {
+      "projectId": 9,
+      "senderType": "client",
+      "senderName": "max powers1.1",
+      "content": "(File attachment)",
+      "attachments": [
+        "https://pleasantcovedesign-production.up.railway.app/uploads/project-Ae06uIlL-1750104155972-Screenshot_2025-06-10_at_12.47.14___PM.png"
+      ],
+      "id": 31,
+      "createdAt": "2025-06-16T20:02:35.978Z",
+      "readAt": "2025-07-23T03:30:33.812Z"
+    },
+    {
+      "projectId": 9,
+      "senderType": "client",
+      "senderName": "max powers1.1",
+      "content": "(File attachment)",
+      "attachments": [
+        "https://pleasantcovedesign-production.up.railway.app/uploads/project-Ae06uIlL-1750104497508-ChatGPT_Image_May_27__2025__04_38_15_PM.png"
+      ],
+      "id": 33,
+      "createdAt": "2025-06-16T20:08:17.516Z",
+      "readAt": "2025-07-23T03:30:33.815Z"
+    },
+    {
+      "projectId": 9,
+      "senderType": "client",
+      "senderName": "max powers1.1",
+      "content": "(File attachment)",
+      "attachments": [
+        "https://pleasantcovedesign-production.up.railway.app/uploads/project-Ae06uIlL-1750104733976-Screenshot_2025-06-12_at_10.24.19___PM.png"
+      ],
+      "id": 35,
+      "createdAt": "2025-06-16T20:12:13.985Z",
+      "readAt": "2025-07-23T03:30:33.821Z"
+    },
+    {
+      "projectId": 9,
+      "senderType": "admin",
+      "senderName": "Ben Dickinson",
+      "content": "hey",
+      "attachments": [],
+      "id": 37,
+      "createdAt": "2025-06-16T20:14:49.669Z"
+    },
+    {
+      "projectId": 9,
+      "senderType": "client",
+      "senderName": "max powers1.1",
+      "content": "yo",
+      "attachments": [],
+      "id": 39,
+      "createdAt": "2025-06-16T20:14:58.027Z",
+      "readAt": "2025-07-23T03:30:33.826Z"
+    },
+    {
+      "projectId": 9,
+      "senderType": "client",
+      "senderName": "max powers1.1",
+      "content": "whats good",
+      "attachments": [],
+      "id": 41,
+      "createdAt": "2025-06-16T20:24:34.767Z",
+      "readAt": "2025-07-23T03:30:33.829Z"
+    },
+    {
+      "projectId": 9,
+      "senderType": "admin",
+      "senderName": "Ben Dickinson",
+      "content": "(File attachment)",
+      "attachments": [
+        "https://pleasantcovedesign-production.up.railway.app/uploads/project-Ae06uIlL-1750105491964-Screenshot_2025-06-10_at_12.47.14___PM.png"
+      ],
+      "id": 43,
+      "createdAt": "2025-06-16T20:24:51.971Z"
+    },
+    {
+      "projectId": 9,
+      "senderType": "client",
+      "senderName": "max powers1.1",
+      "content": "(File attachment)",
+      "attachments": [
+        "https://pleasantcovedesign-production.up.railway.app/uploads/project-Ae06uIlL-1750122666628-ChatGPT_Image_May_27__2025__04_38_15_PM.png"
+      ],
+      "id": 45,
+      "createdAt": "2025-06-17T01:11:06.636Z",
+      "readAt": "2025-07-23T03:30:33.832Z"
+    },
+    {
+      "projectId": 151,
+      "senderType": "client",
+      "senderName": "Ben Dickinson",
+      "content": "hehy",
+      "attachments": [],
+      "id": 54,
+      "createdAt": "2025-06-17T01:32:10.208Z",
+      "readAt": "2025-07-16T02:17:23.660Z"
+    },
+    {
+      "projectId": 151,
+      "senderType": "client",
+      "senderName": "Ben Dickinson",
+      "content": "heuy",
+      "attachments": [],
+      "id": 56,
+      "createdAt": "2025-06-17T01:59:52.431Z",
+      "readAt": "2025-07-23T03:38:54.541Z"
+    },
+    {
+      "projectId": 151,
+      "senderType": "client",
+      "senderName": "Ben Dickinson",
+      "content": "yo",
+      "attachments": [],
+      "id": 58,
+      "createdAt": "2025-06-17T02:17:36.856Z",
+      "readAt": "2025-07-16T02:17:23.671Z"
+    },
+    {
+      "projectId": 151,
+      "senderType": "client",
+      "senderName": "Ben Dickinson",
+      "content": "yo",
+      "attachments": [],
+      "id": 60,
+      "createdAt": "2025-06-17T02:18:11.719Z",
+      "readAt": "2025-07-16T02:17:23.675Z"
+    },
+    {
+      "projectId": 151,
+      "senderType": "client",
+      "senderName": "Ben Dickinson",
+      "content": "sup",
+      "attachments": [],
+      "id": 62,
+      "createdAt": "2025-06-17T02:18:34.474Z",
+      "readAt": "2025-07-28T19:23:49.273Z"
+    },
+    {
+      "projectId": 151,
+      "senderType": "client",
+      "senderName": "Ben Dickinson",
+      "content": "yo",
+      "attachments": [],
+      "id": 76,
+      "createdAt": "2025-06-17T02:46:02.124Z",
+      "readAt": "2025-07-16T02:17:23.682Z"
+    },
+    {
+      "projectId": 151,
+      "senderType": "client",
+      "senderName": "Ben Dickinson",
+      "content": "hey",
+      "attachments": [],
+      "id": 78,
+      "createdAt": "2025-06-17T02:46:11.315Z",
+      "readAt": "2025-07-16T02:17:23.685Z"
+    },
+    {
+      "projectId": 151,
+      "senderType": "client",
+      "senderName": "Ben Dickinson",
+      "content": "yo",
+      "attachments": [],
+      "id": 80,
+      "createdAt": "2025-06-17T03:42:23.929Z",
+      "readAt": "2025-07-16T02:17:23.687Z"
+    },
+    {
+      "projectId": 151,
+      "senderType": "client",
+      "senderName": "API Test User",
+      "content": "Test message from API - should appear in Biz Pro Inbox immediately",
+      "attachments": [],
+      "id": 82,
+      "createdAt": "2025-06-17T03:43:12.139Z",
+      "readAt": "2025-07-16T02:17:23.690Z"
+    },
+    {
+      "projectId": 151,
+      "senderType": "client",
+      "senderName": "Integration Test",
+      "content": "🎉 INTEGRATION TEST: This message should appear INSTANTLY in Biz Pro Inbox via WebSocket!",
+      "attachments": [],
+      "id": 84,
+      "createdAt": "2025-06-17T03:45:26.015Z",
+      "readAt": "2025-07-16T02:17:23.693Z"
+    },
+    {
+      "projectId": 151,
+      "senderType": "client",
+      "senderName": "Ben Dickinson",
+      "content": "yo",
+      "attachments": [],
+      "id": 86,
+      "createdAt": "2025-06-17T04:12:18.429Z",
+      "readAt": "2025-07-30T04:13:05.974Z"
+    },
+    {
+      "projectId": 151,
+      "senderType": "client",
+      "senderName": "Ben Dickinson",
+      "content": "hey",
+      "attachments": [],
+      "id": 88,
+      "createdAt": "2025-06-17T04:14:57.767Z",
+      "readAt": "2025-07-30T04:13:05.984Z"
+    },
+    {
+      "projectId": 151,
+      "senderType": "client",
+      "senderName": "Ben Dickinson",
+      "content": "heduf",
+      "attachments": [],
+      "id": 90,
+      "createdAt": "2025-06-17T04:15:01.932Z",
+      "readAt": "2025-07-30T04:13:05.994Z"
+    },
+    {
+      "projectId": 151,
+      "senderType": "client",
+      "senderName": "Ben Dickinson",
+      "content": "hey",
+      "attachments": [],
+      "id": 92,
+      "createdAt": "2025-06-17T04:15:41.607Z",
+      "readAt": "2025-07-30T04:13:06.003Z"
+    },
+    {
+      "projectId": 151,
+      "senderType": "client",
+      "senderName": "Ben Dickinson",
+      "content": "iuytfbk",
+      "attachments": [],
+      "id": 94,
+      "createdAt": "2025-06-17T04:23:36.394Z",
+      "readAt": "2025-07-30T04:13:06.008Z"
+    },
+    {
+      "projectId": 151,
+      "senderType": "admin",
+      "senderName": "Ben Dickinson",
+      "content": "hey",
+      "attachments": [],
+      "id": 96,
+      "createdAt": "2025-06-17T04:23:46.695Z",
+      "readAt": "2025-07-30T04:13:06.015Z"
+    },
+    {
+      "projectId": 151,
+      "senderType": "client",
+      "senderName": "Ben Dickinson",
+      "content": "yup",
+      "attachments": [],
+      "id": 98,
+      "createdAt": "2025-06-17T04:27:54.245Z",
+      "readAt": "2025-07-16T02:17:23.708Z"
+    },
+    {
+      "projectId": 151,
+      "senderType": "admin",
+      "senderName": "Ben Dickinson",
+      "content": "yup[",
+      "attachments": [],
+      "id": 100,
+      "createdAt": "2025-06-17T04:28:05.419Z",
+      "readAt": "2025-07-30T04:13:05.414Z"
+    },
+    {
+      "projectId": 151,
+      "senderType": "client",
+      "senderName": "Ben Dickinson",
+      "content": "hey",
+      "attachments": [],
+      "id": 102,
+      "createdAt": "2025-06-17T04:37:35.426Z",
+      "readAt": "2025-07-16T02:17:23.710Z"
+    },
+    {
+      "projectId": 151,
+      "senderType": "client",
+      "senderName": "Ben Dickinson",
+      "content": "how are you tonight",
+      "attachments": [],
+      "id": 104,
+      "createdAt": "2025-06-17T04:41:34.211Z",
+      "readAt": "2025-07-30T04:13:02.424Z"
+    },
+    {
+      "projectId": 151,
+      "senderType": "admin",
+      "senderName": "Ben Dickinson",
+      "content": "i am well, thank you",
+      "attachments": [],
+      "id": 106,
+      "createdAt": "2025-06-17T04:41:45.633Z",
+      "readAt": "2025-07-23T03:38:31.370Z"
+    },
+    {
+      "projectId": 151,
+      "senderType": "client",
+      "senderName": "Ben Dickinson",
+      "content": "Test message to verify field mapping fix",
+      "attachments": [],
+      "id": 108,
+      "createdAt": "2025-06-18T00:58:41.279Z",
+      "readAt": "2025-07-16T02:17:23.715Z"
+    },
+    {
+      "projectId": 151,
+      "senderType": "client",
+      "senderName": "Ben Dickinson",
+      "content": "🔥 TESTING FIXED MESSAGE BROADCAST 🔥",
+      "attachments": [],
+      "id": 110,
+      "createdAt": "2025-06-18T01:05:45.352Z",
+      "readAt": "2025-07-16T02:17:23.717Z"
+    },
+    {
+      "projectId": 151,
+      "senderType": "client",
+      "senderName": "Ben Dickinson",
+      "content": "🔥 TESTING FIXED FIELD MAPPING 🔥",
+      "attachments": [],
+      "id": 112,
+      "createdAt": "2025-06-18T01:16:39.396Z",
+      "readAt": "2025-07-16T02:17:23.719Z"
+    },
+    {
+      "projectId": 151,
+      "senderType": "client",
+      "senderName": "Ben Dickinson",
+      "content": "🎯 TESTING FIXED SERVER BROADCAST FORMAT 🎯",
+      "attachments": [],
+      "id": 114,
+      "createdAt": "2025-06-18T01:30:28.820Z",
+      "readAt": "2025-07-16T02:17:23.722Z"
+    },
+    {
+      "projectId": 151,
+      "senderType": "client",
+      "senderName": "Ben Dickinson",
+      "content": "✅ FINAL TEST - ALL FIXES APPLIED ✅",
+      "attachments": [],
+      "id": 116,
+      "createdAt": "2025-06-18T01:31:39.775Z",
+      "readAt": "2025-07-16T02:17:23.724Z"
+    },
+    {
+      "projectId": 151,
+      "senderType": "client",
+      "senderName": "Ben Dickinson",
+      "content": "hey",
+      "attachments": [],
+      "id": 144,
+      "createdAt": "2025-06-19T04:56:16.265Z",
+      "readAt": "2025-07-16T02:17:23.726Z"
+    },
+    {
+      "projectId": 151,
+      "senderType": "admin",
+      "senderName": "Ben Dickinson",
+      "content": "",
+      "attachments": [
+        "https://pleasantcovedesign-production.up.railway.app/uploads/project-mbzull5i-1750308986435-Screenshot_2025-06-18_at_12.08.16___PM.png"
+      ],
+      "id": 146,
+      "createdAt": "2025-06-19T04:56:26.445Z",
+      "readAt": "2025-07-23T03:38:31.370Z"
+    },
+    {
+      "projectId": 151,
+      "senderType": "client",
+      "senderName": "Ben Dickinson",
+      "content": "hwo are you",
+      "attachments": [],
+      "id": 148,
+      "createdAt": "2025-06-19T05:20:43.601Z",
+      "readAt": "2025-07-16T02:17:23.728Z"
+    },
+    {
+      "projectId": 151,
+      "senderType": "client",
+      "senderName": "Test Fixed User",
+      "content": "Testing the businessData fix",
+      "attachments": [],
+      "createdAt": "2025-06-19T23:43:00.814Z",
+      "id": 152,
+      "readAt": "2025-07-16T02:17:23.730Z"
+    },
+    {
+      "projectId": 151,
+      "senderType": "client",
+      "senderName": "Test User",
+      "content": "Test from curl",
+      "attachments": [],
+      "id": 163,
+      "createdAt": "2025-06-20T03:33:03.254Z",
+      "readAt": "2025-07-16T02:17:23.732Z"
+    },
+    {
+      "projectId": 9,
+      "senderType": "client",
+      "senderName": "BEN dickinson",
+      "content": "Test message from curl to see if it appears in admin",
+      "attachments": [],
+      "id": 165,
+      "createdAt": "2025-06-20T04:23:04.155Z",
+      "readAt": "2025-07-23T03:30:33.836Z"
+    },
+    {
+      "projectId": 9,
+      "senderType": "client",
+      "senderName": "TEST USER",
+      "content": "TEST MESSAGE - Can you see this in admin UI?",
+      "attachments": [],
+      "id": 167,
+      "createdAt": "2025-06-20T04:28:05.263Z",
+      "readAt": "2025-07-23T03:30:33.839Z"
+    },
+    {
+      "projectId": 9,
+      "senderType": "admin",
+      "senderName": "Ben Dickinson",
+      "content": "yes ",
+      "attachments": [],
+      "id": 169,
+      "createdAt": "2025-06-20T04:28:10.384Z"
+    },
+    {
+      "projectId": 9,
+      "senderType": "client",
+      "senderName": "Terminal Test User",
+      "content": "TEST FROM TERMINAL - Please check admin UI",
+      "attachments": [],
+      "id": 171,
+      "createdAt": "2025-06-20T04:35:05.916Z",
+      "readAt": "2025-07-23T03:30:33.842Z"
+    },
+    {
+      "projectId": 9,
+      "senderType": "client",
+      "senderName": "System Test",
+      "content": "FINAL TEST - Check admin UI at http://localhost:5173",
+      "attachments": [],
+      "id": 173,
+      "createdAt": "2025-06-20T04:36:20.542Z",
+      "readAt": "2025-07-23T03:30:33.845Z"
+    },
+    {
+      "projectId": 9,
+      "senderType": "admin",
+      "senderName": "Ben Dickinson",
+      "content": "hey",
+      "attachments": [],
+      "id": 175,
+      "createdAt": "2025-06-20T04:44:05.262Z"
+    },
+    {
+      "projectId": 9,
+      "senderType": "client",
+      "senderName": "BEN dickinson",
+      "content": "yo yo",
+      "attachments": [],
+      "id": 177,
+      "createdAt": "2025-06-20T04:45:37.850Z",
+      "readAt": "2025-07-23T03:30:33.849Z"
+    },
+    {
+      "projectId": 9,
+      "senderType": "client",
+      "senderName": "BEN dickinson",
+      "content": "",
+      "attachments": [
+        "https://pleasantcovedesign-production.up.railway.app/uploads/project-Ae06uIlL-1750394753928-Screenshot_2025-06-18_at_12.08.16___PM.png"
+      ],
+      "id": 179,
+      "createdAt": "2025-06-20T04:45:53.935Z",
+      "readAt": "2025-07-23T03:30:33.851Z"
+    },
+    {
+      "projectId": 9,
+      "senderType": "admin",
+      "senderName": "Ben Dickinson",
+      "content": "",
+      "attachments": [
+        "https://pleasantcovedesign-production.up.railway.app/uploads/project-Ae06uIlL-1750394777527-ChatGPT_Image_May_27__2025__04_38_15_PM.png"
+      ],
+      "id": 181,
+      "createdAt": "2025-06-20T04:46:17.533Z"
+    },
+    {
+      "projectId": 9,
+      "senderType": "client",
+      "senderName": "BEN dickinson",
+      "content": "hey",
+      "attachments": [],
+      "id": 183,
+      "createdAt": "2025-06-20T04:49:20.470Z",
+      "readAt": "2025-07-23T03:30:33.856Z"
+    },
+    {
+      "projectId": 9,
+      "senderType": "client",
+      "senderName": "Automated Integration Test",
+      "content": "Test message at 2025-06-20T04:54:09.437Z",
+      "attachments": [],
+      "id": 185,
+      "createdAt": "2025-06-20T04:54:09.449Z",
+      "readAt": "2025-07-23T03:30:33.859Z"
+    },
+    {
+      "projectId": 9,
+      "senderType": "client",
+      "senderName": "Automated Integration Test",
+      "content": "Test message at 2025-06-20T05:02:49.660Z",
+      "attachments": [],
+      "id": 187,
+      "createdAt": "2025-06-20T05:02:49.671Z",
+      "readAt": "2025-07-23T03:30:33.861Z"
+    },
+    {
+      "projectId": 9,
+      "senderType": "client",
+      "senderName": "Automated Integration Test",
+      "content": "Test message at 2025-06-20T05:08:04.000Z",
+      "attachments": [],
+      "id": 189,
+      "createdAt": "2025-06-20T05:08:04.010Z",
+      "readAt": "2025-07-23T03:30:33.864Z"
+    },
+    {
+      "projectId": 9,
+      "senderType": "client",
+      "senderName": "Automated Integration Test",
+      "content": "Test message at 2025-06-20T05:10:10.900Z",
+      "attachments": [],
+      "id": 191,
+      "createdAt": "2025-06-20T05:10:10.910Z",
+      "readAt": "2025-07-23T03:30:33.867Z"
+    },
+    {
+      "projectId": 9,
+      "senderType": "admin",
+      "senderName": "Ben Dickinson",
+      "content": "yo",
+      "attachments": [],
+      "id": 193,
+      "createdAt": "2025-06-20T05:12:28.024Z"
+    },
+    {
+      "projectId": 9,
+      "senderType": "client",
+      "senderName": "BEN dickinson",
+      "content": "hey",
+      "attachments": [],
+      "id": 195,
+      "createdAt": "2025-06-20T05:14:08.611Z",
+      "readAt": "2025-07-23T03:30:33.870Z"
+    },
+    {
+      "projectId": 9,
+      "senderType": "client",
+      "senderName": "BEN dickinson",
+      "content": "sup supsup",
+      "attachments": [],
+      "id": 197,
+      "createdAt": "2025-06-20T05:14:38.896Z",
+      "readAt": "2025-07-23T03:30:33.873Z"
+    },
+    {
+      "projectId": 9,
+      "senderType": "client",
+      "senderName": "Automated Integration Test",
+      "content": "Test message at 2025-06-20T05:20:41.534Z",
+      "attachments": [],
+      "id": 199,
+      "createdAt": "2025-06-20T05:20:41.548Z",
+      "readAt": "2025-07-23T03:30:33.876Z"
+    },
+    {
+      "projectId": 9,
+      "senderType": "client",
+      "senderName": "BEN dickinson",
+      "content": "hey",
+      "attachments": [],
+      "id": 201,
+      "createdAt": "2025-06-20T05:24:38.582Z",
+      "readAt": "2025-07-23T03:30:33.879Z"
+    },
+    {
+      "projectId": 9,
+      "senderType": "client",
+      "senderName": "Automated Integration Test",
+      "content": "Test message at 2025-06-20T05:28:48.674Z",
+      "attachments": [],
+      "id": 203,
+      "createdAt": "2025-06-20T05:28:48.687Z",
+      "readAt": "2025-07-23T03:30:33.881Z"
+    },
+    {
+      "projectId": 9,
+      "senderType": "client",
+      "senderName": "Automated Integration Test",
+      "content": "Test message at 2025-06-20T05:33:11.997Z",
+      "attachments": [],
+      "id": 205,
+      "createdAt": "2025-06-20T05:33:12.008Z",
+      "readAt": "2025-07-23T03:30:33.884Z"
+    },
+    {
+      "projectId": 9,
+      "senderType": "client",
+      "senderName": "Automated Integration Test",
+      "content": "Test message at 2025-06-20T05:44:55.678Z",
+      "attachments": [],
+      "id": 207,
+      "createdAt": "2025-06-20T05:44:55.690Z",
+      "readAt": "2025-07-23T03:30:33.887Z"
+    },
+    {
+      "projectId": 9,
+      "senderType": "client",
+      "senderName": "BEN dickinson",
+      "content": "hey",
+      "attachments": [],
+      "id": 209,
+      "createdAt": "2025-06-20T05:46:08.996Z",
+      "readAt": "2025-07-23T03:30:33.891Z"
+    },
+    {
+      "projectId": 9,
+      "senderType": "admin",
+      "senderName": "Ben Dickinson",
+      "content": "yo",
+      "attachments": [],
+      "id": 211,
+      "createdAt": "2025-06-20T06:01:07.663Z"
+    },
+    {
+      "projectId": 9,
+      "senderType": "client",
+      "senderName": "Automated Integration Test",
+      "content": "Test message at 2025-06-20T06:07:35.528Z",
+      "attachments": [],
+      "id": 213,
+      "createdAt": "2025-06-20T06:07:35.545Z",
+      "readAt": "2025-07-23T03:30:33.893Z"
+    },
+    {
+      "projectId": 9,
+      "senderType": "client",
+      "senderName": "Automated Integration Test",
+      "content": "Test message at 2025-06-20T06:09:44.120Z",
+      "attachments": [],
+      "id": 215,
+      "createdAt": "2025-06-20T06:09:44.131Z",
+      "readAt": "2025-07-23T03:30:33.897Z"
+    },
+    {
+      "projectId": 9,
+      "senderType": "client",
+      "senderName": "Automated Integration Test",
+      "content": "Test message at 2025-06-20T06:12:26.490Z",
+      "attachments": [],
+      "id": 217,
+      "createdAt": "2025-06-20T06:12:26.501Z",
+      "readAt": "2025-07-23T03:30:33.899Z"
+    },
+    {
+      "projectId": 235,
+      "senderType": "admin",
+      "senderName": "Ben",
+      "content": "hey",
+      "attachments": [],
+      "createdAt": "2025-06-20T06:38:20.680Z",
+      "id": 223
+    },
+    {
+      "projectId": 231,
+      "senderType": "admin",
+      "senderName": "Ben",
+      "content": "yo yo",
+      "attachments": [],
+      "createdAt": "2025-06-20T06:39:01.836Z",
+      "id": 226
+    },
+    {
+      "projectId": 235,
+      "senderType": "admin",
+      "senderName": "Ben",
+      "content": "hey",
+      "attachments": [],
+      "createdAt": "2025-06-20T06:44:24.917Z",
+      "id": 228
+    },
+    {
+      "projectId": 235,
+      "senderType": "admin",
+      "senderName": "Ben",
+      "content": "heyyuiop",
+      "attachments": [],
+      "createdAt": "2025-06-20T06:53:27.936Z",
+      "id": 230
+    },
+    {
+      "projectId": 231,
+      "senderType": "admin",
+      "senderName": "Ben",
+      "content": "uuyy",
+      "attachments": [],
+      "createdAt": "2025-06-20T06:54:50.691Z",
+      "id": 232
+    },
+    {
+      "projectId": 235,
+      "senderType": "admin",
+      "senderName": "Ben",
+      "content": "jggj",
+      "attachments": [],
+      "createdAt": "2025-06-20T06:55:55.608Z",
+      "id": 234
+    },
+    {
+      "projectId": 235,
+      "senderType": "admin",
+      "senderName": "Ben",
+      "content": "sup sup\nsup",
+      "attachments": [],
+      "createdAt": "2025-06-20T16:21:07.711Z",
+      "id": 236
+    },
+    {
+      "projectId": 235,
+      "senderType": "admin",
+      "senderName": "Ben",
+      "content": "hey",
+      "attachments": [],
+      "createdAt": "2025-06-20T16:29:37.449Z",
+      "id": 237
+    },
+    {
+      "projectId": 231,
+      "senderType": "admin",
+      "senderName": "Ben",
+      "content": "supsups psudhfoahsas hahaha",
+      "attachments": [],
+      "createdAt": "2025-06-20T16:30:05.231Z",
+      "id": 238
+    },
+    {
+      "projectId": 240,
+      "senderType": "client",
+      "senderName": "Garth",
+      "content": "yo yo",
+      "attachments": [],
+      "createdAt": "2025-06-20T16:35:31.735Z",
+      "id": 241,
+      "readAt": "2025-07-16T02:17:24.435Z"
+    },
+    {
+      "projectId": 240,
+      "senderType": "client",
+      "senderName": "Garth",
+      "content": "how are you",
+      "attachments": [],
+      "createdAt": "2025-06-20T16:35:46.181Z",
+      "id": 242,
+      "readAt": "2025-07-16T02:17:24.442Z"
+    },
+    {
+      "projectId": 240,
+      "senderType": "admin",
+      "senderName": "Ben Dickinson",
+      "content": "hey",
+      "attachments": [],
+      "createdAt": "2025-06-20T16:40:17.581Z",
+      "id": 243
+    },
+    {
+      "projectId": 231,
+      "senderType": "admin",
+      "senderName": "Ben",
+      "content": "the is the newest",
+      "attachments": [],
+      "createdAt": "2025-06-20T16:40:58.294Z",
+      "id": 244
+    },
+    {
+      "projectId": 231,
+      "senderType": "admin",
+      "senderName": "Ben Dickinson",
+      "content": "",
+      "attachments": [
+        "https://pleasantcovedesign-production.up.railway.app/uploads/project-mc4gfz4q-1750438720603-ChatGPT_Image_May_27__2025__04_38_15_PM.png"
+      ],
+      "id": 245,
+      "createdAt": "2025-06-20T16:58:40.611Z"
+    },
+    {
+      "projectId": 231,
+      "senderType": "admin",
+      "senderName": "Ben Dickinson",
+      "content": "",
+      "attachments": [
+        "https://pleasantcovedesign-production.up.railway.app/uploads/project-mc4gfz4q-1750439088176-Screenshot_2025-06-12_at_10.24.19___PM.png"
+      ],
+      "id": 247,
+      "createdAt": "2025-06-20T17:04:48.183Z"
+    },
+    {
+      "projectId": 231,
+      "senderType": "admin",
+      "senderName": "Ben Dickinson",
+      "content": "",
+      "attachments": [
+        "https://pleasantcovedesign-production.up.railway.app/uploads/project-mc4gfz4q-1750439431310-ChatGPT_Image_May_27__2025__04_38_15_PM.png"
+      ],
+      "id": 249,
+      "createdAt": "2025-06-20T17:10:31.319Z"
+    },
+    {
+      "projectId": 231,
+      "senderType": "admin",
+      "senderName": "Ben",
+      "content": "",
+      "attachments": [],
+      "createdAt": "2025-06-20T17:29:00.830Z",
+      "id": 251
+    },
+    {
+      "projectId": 240,
+      "senderType": "client",
+      "senderName": "Garth",
+      "content": "hey",
+      "attachments": [],
+      "createdAt": "2025-06-20T17:41:32.487Z",
+      "id": 252,
+      "readAt": "2025-07-16T02:17:24.447Z"
+    },
+    {
+      "projectId": 240,
+      "senderType": "admin",
+      "senderName": "Ben Dickinson",
+      "content": "",
+      "attachments": [
+        "https://pleasantcovedesign-production.up.railway.app/uploads/project-mc516tr5-1750441319420-ChatGPT_Image_May_27__2025__04_38_15_PM.png"
+      ],
+      "id": 253,
+      "createdAt": "2025-06-20T17:41:59.429Z"
+    },
+    {
+      "projectId": 240,
+      "senderType": "client",
+      "senderName": "Garth",
+      "content": "",
+      "attachments": [
+        "https://pleasantcovedesign-production.up.railway.app/uploads/project-unknown-1750441331289-Screenshot_2025-06-18_at_12.08.16___PM.png"
+      ],
+      "createdAt": "2025-06-20T17:42:11.293Z",
+      "id": 255,
+      "readAt": "2025-07-16T02:17:24.451Z"
+    },
+    {
+      "projectId": 240,
+      "senderType": "client",
+      "senderName": "Garth",
+      "content": "hey",
+      "attachments": [],
+      "createdAt": "2025-06-20T18:25:20.938Z",
+      "id": 256,
+      "readAt": "2025-07-16T02:17:24.453Z"
+    },
+    {
+      "projectId": 231,
+      "senderType": "admin",
+      "senderName": "Ben",
+      "content": "Hey",
+      "attachments": [],
+      "createdAt": "2025-06-20T18:30:46.373Z",
+      "id": 257
+    },
+    {
+      "projectId": 231,
+      "senderType": "admin",
+      "senderName": "Ben",
+      "content": "What’s up",
+      "attachments": [],
+      "createdAt": "2025-06-20T18:30:54.370Z",
+      "id": 258
+    },
+    {
+      "projectId": 231,
+      "senderType": "admin",
+      "senderName": "Ben Dickinson",
+      "content": "how are you",
+      "attachments": [],
+      "createdAt": "2025-06-20T18:31:03.898Z",
+      "id": 259
+    },
+    {
+      "projectId": 240,
+      "senderType": "client",
+      "senderName": "Garth",
+      "content": "hey",
+      "attachments": [],
+      "createdAt": "2025-06-20T18:31:31.247Z",
+      "id": 260,
+      "readAt": "2025-07-16T02:17:24.456Z"
+    },
+    {
+      "projectId": 231,
+      "senderType": "admin",
+      "senderName": "Ben",
+      "content": "Yo yo",
+      "attachments": [],
+      "createdAt": "2025-06-20T18:31:59.803Z",
+      "id": 261
+    },
+    {
+      "projectId": 231,
+      "senderType": "admin",
+      "senderName": "Ben Dickinson",
+      "content": "whats going on",
+      "attachments": [],
+      "createdAt": "2025-06-20T18:32:12.424Z",
+      "id": 262
+    },
+    {
+      "projectId": 240,
+      "senderType": "client",
+      "senderName": "Garth",
+      "content": "how are you jububju",
+      "attachments": [],
+      "createdAt": "2025-06-20T18:32:33.914Z",
+      "id": 263,
+      "readAt": "2025-07-16T02:17:24.459Z"
+    },
+    {
+      "projectId": 240,
+      "senderType": "admin",
+      "senderName": "Ben Dickinson",
+      "content": "fooogdfd",
+      "attachments": [],
+      "createdAt": "2025-06-20T18:32:41.490Z",
+      "id": 264
+    },
+    {
+      "projectId": 231,
+      "senderType": "admin",
+      "senderName": "Ben",
+      "content": "",
+      "attachments": [
+        "https://pleasantcovedesign-production.up.railway.app/uploads/project-unknown-1750444394742-AF81753B-DB70-458A-A7E6-214FAC893BA8.png"
+      ],
+      "createdAt": "2025-06-20T18:33:17.984Z",
+      "id": 265
+    },
+    {
+      "projectId": 231,
+      "senderType": "admin",
+      "senderName": "Ben",
+      "content": "Where is my fonversation",
+      "attachments": [],
+      "createdAt": "2025-06-20T18:39:30.717Z",
+      "id": 266
+    },
+    {
+      "projectId": 231,
+      "senderType": "admin",
+      "senderName": "Ben",
+      "content": "what’re you doing with my stuff",
+      "attachments": [],
+      "createdAt": "2025-06-20T18:39:41.430Z",
+      "id": 267
+    },
+    {
+      "projectId": 231,
+      "senderType": "admin",
+      "senderName": "Ben",
+      "content": "",
+      "attachments": [
+        "https://pleasantcovedesign-production.up.railway.app/uploads/project-unknown-1750444826495-image.jpg"
+      ],
+      "createdAt": "2025-06-20T18:40:29.277Z",
+      "id": 268
+    },
+    {
+      "projectId": 231,
+      "senderType": "admin",
+      "senderName": "Ben Dickinson",
+      "content": "",
+      "attachments": [
+        "https://pleasantcovedesign-production.up.railway.app/uploads/project-mc4gfz4q-1750444852219-ChatGPT_Image_May_27__2025__04_38_15_PM.png"
+      ],
+      "id": 269,
+      "createdAt": "2025-06-20T18:40:52.226Z"
+    },
+    {
+      "projectId": 231,
+      "senderType": "admin",
+      "senderName": "Ben Dickinson",
+      "content": "",
+      "attachments": [
+        "https://pleasantcovedesign-production.up.railway.app/uploads/project-mc4gfz4q-1750445162997-Screenshot_2025-06-12_at_10.24.19___PM.png"
+      ],
+      "id": 271,
+      "createdAt": "2025-06-20T18:46:03.005Z"
+    },
+    {
+      "projectId": 231,
+      "senderType": "admin",
+      "senderName": "Ben Dickinson",
+      "content": "",
+      "attachments": [
+        "https://1ce2-2603-7080-e501-3f6a-59ca-c294-1beb-ddfc.ngrok-free.app/uploads/project-mc4gfz4q-1750445321784-Screenshot_2025-06-12_at_10.24.19___PM.png"
+      ],
+      "id": 273,
+      "createdAt": "2025-06-20T18:48:41.792Z"
+    },
+    {
+      "projectId": 240,
+      "senderType": "client",
+      "senderName": "Garth",
+      "content": "now its showwing a dotted border that shows the name and image could not be displayed and open image, which doesn't work so we are getting closer",
+      "attachments": [],
+      "createdAt": "2025-06-20T18:57:41.804Z",
+      "id": 275,
+      "readAt": "2025-07-16T02:17:24.461Z"
+    },
+    {
+      "projectId": 231,
+      "senderType": "admin",
+      "senderName": "Ben",
+      "content": "",
+      "attachments": [
+        "https://1ce2-2603-7080-e501-3f6a-59ca-c294-1beb-ddfc.ngrok-free.app/uploads/project-unknown-1750446763937-IMG_9102.jpeg"
+      ],
+      "createdAt": "2025-06-20T19:12:48.077Z",
+      "id": 276
+    },
+    {
+      "projectId": 231,
+      "senderType": "admin",
+      "senderName": "Ben Dickinson",
+      "content": "",
+      "attachments": [
+        "https://1ce2-2603-7080-e501-3f6a-59ca-c294-1beb-ddfc.ngrok-free.app/uploads/project-mc4gfz4q-1750446782378-ChatGPT_Image_May_27__2025__04_38_15_PM.png"
+      ],
+      "id": 277,
+      "createdAt": "2025-06-20T19:13:02.383Z"
+    },
+    {
+      "projectId": 231,
+      "senderType": "admin",
+      "senderName": "Ben Dickinson",
+      "content": "",
+      "attachments": [
+        "https://pleasantcovedesign-production.up.railway.app/uploads/project-mc4gfz4q-1750447679024-ChatGPT_Image_May_27__2025__04_38_15_PM.png"
+      ],
+      "id": 279,
+      "createdAt": "2025-06-20T19:27:59.033Z"
+    },
+    {
+      "projectId": 231,
+      "senderType": "admin",
+      "senderName": "Ben Dickinson",
+      "content": "",
+      "attachments": [
+        "http://192.168.1.87:3000/uploads/project-mc4gfz4q-1750447858695-ChatGPT_Image_May_27__2025__04_38_15_PM.png"
+      ],
+      "id": 281,
+      "createdAt": "2025-06-20T19:30:58.704Z"
+    },
+    {
+      "projectId": 231,
+      "senderType": "admin",
+      "senderName": "Ben",
+      "content": "Hey",
+      "attachments": [],
+      "createdAt": "2025-06-20T19:41:10.123Z",
+      "id": 283
+    },
+    {
+      "projectId": 231,
+      "senderType": "admin",
+      "senderName": "Ben Dickinson",
+      "content": "",
+      "attachments": [
+        "https://1ce2-2603-7080-e501-3f6a-59ca-c294-1beb-ddfc.ngrok-free.app/uploads/project-mc4gfz4q-1750448482118-Screenshot_2025-06-12_at_10.24.19___PM.png"
+      ],
+      "id": 284,
+      "createdAt": "2025-06-20T19:41:22.127Z"
+    },
+    {
+      "projectId": 231,
+      "senderType": "admin",
+      "senderName": "Ben Dickinson",
+      "content": "",
+      "attachments": [
+        "https://1ce2-2603-7080-e501-3f6a-59ca-c294-1beb-ddfc.ngrok-free.app/uploads/project-mc4gfz4q-1750448515765-ChatGPT_Image_May_27__2025__04_38_15_PM.png"
+      ],
+      "id": 286,
+      "createdAt": "2025-06-20T19:41:55.774Z"
+    },
+    {
+      "projectId": 231,
+      "senderType": "admin",
+      "senderName": "Ben",
+      "content": "Hey",
+      "attachments": [],
+      "createdAt": "2025-06-20T19:42:07.755Z",
+      "id": 288
+    },
+    {
+      "projectId": 231,
+      "senderType": "admin",
+      "senderName": "Ben Dickinson",
+      "content": "",
+      "attachments": [
+        "https://1ce2-2603-7080-e501-3f6a-59ca-c294-1beb-ddfc.ngrok-free.app/uploads/project-mc4gfz4q-1750448534491-ChatGPT_Image_May_27__2025__04_38_15_PM.png"
+      ],
+      "id": 289,
+      "createdAt": "2025-06-20T19:42:14.497Z"
+    },
+    {
+      "projectId": 231,
+      "senderType": "admin",
+      "senderName": "Ben",
+      "content": "Yo",
+      "attachments": [],
+      "createdAt": "2025-06-20T19:44:36.664Z",
+      "id": 291
+    },
+    {
+      "projectId": 231,
+      "senderType": "admin",
+      "senderName": "Ben Dickinson",
+      "content": "",
+      "attachments": [
+        "https://1ce2-2603-7080-e501-3f6a-59ca-c294-1beb-ddfc.ngrok-free.app/uploads/project-mc4gfz4q-1750448682560-Screenshot_2025-06-12_at_10.24.19___PM.png"
+      ],
+      "id": 292,
+      "createdAt": "2025-06-20T19:44:42.565Z"
+    },
+    {
+      "projectId": 240,
+      "senderType": "client",
+      "senderName": "Garth",
+      "content": "hey",
+      "attachments": [],
+      "createdAt": "2025-06-21T05:58:00.300Z",
+      "id": 294,
+      "readAt": "2025-07-16T02:17:24.463Z"
+    },
+    {
+      "projectId": 240,
+      "senderType": "admin",
+      "senderName": "Ben Dickinson",
+      "content": "",
+      "attachments": [
+        "https://1ce2-2603-7080-e501-3f6a-59ca-c294-1beb-ddfc.ngrok-free.app/uploads/project-mc516tr5-1750485497266-Screenshot_2025-06-18_at_12.08.16___PM.png"
+      ],
+      "id": 295,
+      "createdAt": "2025-06-21T05:58:17.271Z"
+    },
+    {
+      "projectId": 240,
+      "senderType": "admin",
+      "senderName": "Ben Dickinson",
+      "content": "",
+      "attachments": [
+        "https://1ce2-2603-7080-e501-3f6a-59ca-c294-1beb-ddfc.ngrok-free.app/uploads/project-mc516tr5-1750485946548-ChatGPT_Image_May_27__2025__04_38_15_PM.png"
+      ],
+      "id": 297,
+      "createdAt": "2025-06-21T06:05:46.556Z"
+    },
+    {
+      "projectId": 240,
+      "senderType": "client",
+      "senderName": "Garth",
+      "content": "suhhhh",
+      "attachments": [],
+      "createdAt": "2025-06-21T06:11:11.782Z",
+      "id": 299,
+      "readAt": "2025-07-16T02:17:24.466Z"
+    },
+    {
+      "projectId": 240,
+      "senderType": "admin",
+      "senderName": "Ben Dickinson",
+      "content": "",
+      "attachments": [
+        "https://pleasantcovedesign-production.up.railway.app/uploads/project-mc516tr5-1750486282080-Screenshot_2025-06-18_at_12.08.16___PM.png"
+      ],
+      "id": 300,
+      "createdAt": "2025-06-21T06:11:22.088Z"
+    },
+    {
+      "projectId": 240,
+      "senderType": "admin",
+      "senderName": "Ben Dickinson",
+      "content": "",
+      "attachments": [
+        "https://pleasantcovedesign-production.up.railway.app/uploads/project-mc516tr5-1750486454721-ChatGPT_Image_May_27__2025__04_38_15_PM.png"
+      ],
+      "id": 302,
+      "createdAt": "2025-06-21T06:14:14.729Z"
+    },
+    {
+      "projectId": 240,
+      "senderType": "client",
+      "senderName": "Garth",
+      "content": "kjh'",
+      "attachments": [],
+      "createdAt": "2025-06-21T06:14:23.435Z",
+      "id": 304,
+      "readAt": "2025-07-16T02:17:24.467Z"
+    },
+    {
+      "projectId": 240,
+      "senderType": "admin",
+      "senderName": "Ben Dickinson",
+      "content": "",
+      "attachments": [
+        "https://pleasantcovedesign-production.up.railway.app/uploads/project-mc516tr5-1750486472510-ChatGPT_Image_May_27__2025__04_38_15_PM.png"
+      ],
+      "id": 305,
+      "createdAt": "2025-06-21T06:14:32.518Z"
+    },
+    {
+      "projectId": 240,
+      "senderType": "admin",
+      "senderName": "Ben Dickinson",
+      "content": "",
+      "attachments": [
+        "https://1ce2-2603-7080-e501-3f6a-59ca-c294-1beb-ddfc.ngrok-free.app/uploads/project-mc516tr5-1750486740673-Screenshot_2025-06-18_at_12.08.16___PM.png"
+      ],
+      "id": 307,
+      "createdAt": "2025-06-21T06:19:00.679Z"
+    },
+    {
+      "projectId": 240,
+      "senderType": "admin",
+      "senderName": "Ben Dickinson",
+      "content": "",
+      "attachments": [
+        "https://1ce2-2603-7080-e501-3f6a-59ca-c294-1beb-ddfc.ngrok-free.app/uploads/project-mc516tr5-1750646416569-Screenshot_2025-06-18_at_12.08.16___PM.png"
+      ],
+      "id": 309,
+      "createdAt": "2025-06-23T02:40:16.576Z"
+    },
+    {
+      "projectId": 240,
+      "senderType": "admin",
+      "senderName": "Ben Dickinson",
+      "content": "",
+      "attachments": [
+        "https://1ce2-2603-7080-e501-3f6a-59ca-c294-1beb-ddfc.ngrok-free.app/uploads/project-mc516tr5-1750646704215-Screenshot_2025-06-18_at_12.08.16___PM.png"
+      ],
+      "id": 311,
+      "createdAt": "2025-06-23T02:45:04.224Z"
+    },
+    {
+      "projectId": 240,
+      "senderType": "client",
+      "senderName": "Garth",
+      "content": "hey",
+      "attachments": [],
+      "id": 313,
+      "createdAt": "2025-06-23T02:50:01.758Z",
+      "readAt": "2025-07-16T02:17:24.469Z"
+    },
+    {
+      "projectId": 151,
+      "senderType": "client",
+      "senderName": "Manual Member",
+      "content": "yo",
+      "attachments": [],
+      "id": 315,
+      "createdAt": "2025-06-28T12:08:33.062Z",
+      "readAt": "2025-07-16T02:17:23.734Z"
+    },
+    {
+      "projectId": 151,
+      "senderType": "client",
+      "senderName": "Manual Member",
+      "content": "yo",
+      "attachments": [],
+      "id": 317,
+      "createdAt": "2025-06-28T12:08:34.757Z",
+      "readAt": "2025-07-16T02:17:23.735Z"
+    },
+    {
+      "projectId": 151,
+      "senderType": "client",
+      "senderName": "Manual Member",
+      "content": "yo",
+      "attachments": [],
+      "id": 319,
+      "createdAt": "2025-06-28T12:08:37.410Z",
+      "readAt": "2025-07-16T02:17:23.737Z"
+    },
+    {
+      "projectId": 151,
+      "senderType": "admin",
+      "senderName": "Ben Dickinson",
+      "content": "",
+      "attachments": [
+        "https://1ce2-2603-7080-e501-3f6a-59ca-c294-1beb-ddfc.ngrok-free.app/uploads/project-mc410tla-1751116098650-ChatGPT_Image_May_27__2025__04_38_15_PM.png"
+      ],
+      "id": 321,
+      "createdAt": "2025-06-28T13:08:18.660Z",
+      "readAt": "2025-07-23T03:38:31.370Z"
+    },
+    {
+      "projectId": 240,
+      "senderType": "admin",
+      "senderName": "Ben Dickinson",
+      "content": "hey",
+      "attachments": [],
+      "createdAt": "2025-06-30T22:07:33.196Z",
+      "id": 323
+    },
+    {
+      "projectId": 240,
+      "senderType": "admin",
+      "senderName": "Ben Dickinson",
+      "content": "whats up",
+      "attachments": [],
+      "createdAt": "2025-07-01T00:19:10.593Z",
+      "id": 324
+    },
+    {
+      "projectId": 240,
+      "senderType": "admin",
+      "senderName": "Ben Dickinson",
+      "content": "yoyo",
+      "attachments": [],
+      "createdAt": "2025-07-01T00:19:35.771Z",
+      "id": 325
+    },
+    {
+      "projectId": 151,
+      "senderType": "client",
+      "senderName": "Test User",
+      "content": "hey",
+      "attachments": [],
+      "createdAt": "2025-07-01T01:19:26.437Z",
+      "id": 326,
+      "readAt": "2025-07-16T02:17:23.739Z"
+    },
+    {
+      "projectId": 151,
+      "senderType": "admin",
+      "senderName": "Ben Dickinson",
+      "content": "how are you",
+      "attachments": [],
+      "createdAt": "2025-07-01T01:19:55.135Z",
+      "id": 327,
+      "readAt": "2025-07-23T03:38:31.370Z"
+    },
+    {
+      "projectId": 151,
+      "senderType": "admin",
+      "senderName": "Ben Dickinson",
+      "content": "whasfdhoiaafa cunt",
+      "attachments": [],
+      "createdAt": "2025-07-01T01:23:59.649Z",
+      "id": 328,
+      "readAt": "2025-07-23T03:38:31.370Z"
+    },
+    {
+      "projectId": 240,
+      "senderType": "admin",
+      "senderName": "Ben Dickinson",
+      "content": "but but but",
+      "attachments": [],
+      "createdAt": "2025-07-01T01:24:18.069Z",
+      "id": 329
+    },
+    {
+      "projectId": 240,
+      "senderType": "admin",
+      "senderName": "Ben Dickinson",
+      "content": "hey",
+      "attachments": [],
+      "createdAt": "2025-07-01T01:31:26.351Z",
+      "id": 330
+    },
+    {
+      "projectId": 240,
+      "senderType": "admin",
+      "senderName": "Ben Dickinson",
+      "content": "hello",
+      "attachments": [],
+      "createdAt": "2025-07-01T03:10:41.736Z",
+      "id": 331
+    },
+    {
+      "projectId": 151,
+      "senderType": "client",
+      "senderName": "Manual Member",
+      "content": "hey",
+      "attachments": [],
+      "id": 1,
+      "createdAt": "2025-07-15T05:11:09.029Z",
+      "readAt": "2025-07-16T02:17:23.740Z"
+    },
+    {
+      "projectId": 151,
+      "senderType": "client",
+      "senderName": "Manual Member",
+      "content": "hi",
+      "attachments": [],
+      "id": 3,
+      "createdAt": "2025-07-15T05:11:10.974Z",
+      "readAt": "2025-07-16T02:17:23.742Z"
+    },
+    {
+      "projectId": 151,
+      "senderType": "client",
+      "senderName": "Manual Member",
+      "content": "hi",
+      "attachments": [],
+      "id": 5,
+      "createdAt": "2025-07-15T05:11:12.575Z",
+      "readAt": "2025-07-16T02:17:23.744Z"
+    },
+    {
+      "projectId": 151,
+      "senderType": "client",
+      "senderName": "Manual Member",
+      "content": "nope it didint work",
+      "attachments": [],
+      "id": 7,
+      "createdAt": "2025-07-15T05:11:22.892Z",
+      "readAt": "2025-07-16T02:17:23.746Z"
+    },
+    {
+      "projectId": 10,
+      "senderType": "client",
+      "senderName": "Test Member",
+      "content": "hey",
+      "attachments": [],
+      "id": 11,
+      "createdAt": "2025-07-15T05:33:59.153Z"
+    },
+    {
+      "projectId": 151,
+      "senderType": "client",
+      "senderName": "Manual Member",
+      "content": "hey",
+      "attachments": [],
+      "id": 13,
+      "createdAt": "2025-07-15T06:19:21.348Z"
+    },
+    {
+      "projectId": 10,
+      "senderType": "client",
+      "senderName": "Test Member",
+      "content": "hey how are you",
+      "attachments": [],
+      "id": 15,
+      "createdAt": "2025-07-15T22:30:26.533Z"
+    },
+    {
+      "projectId": 10,
+      "senderType": "client",
+      "senderName": "Test Member",
+      "content": "",
+      "attachments": [
+        "http://localhost:3000/uploads/upload-1752618634042-Screenshot_2025-06-18_at_12.08.16___PM.png"
+      ],
+      "id": 17,
+      "createdAt": "2025-07-15T22:30:34.052Z"
+    },
+    {
+      "projectId": 10,
+      "senderType": "client",
+      "senderName": "Test Member",
+      "content": "yo",
+      "attachments": [],
+      "id": 19,
+      "createdAt": "2025-07-15T22:34:21.221Z"
+    },
+    {
+      "projectId": 52,
+      "senderType": "client",
+      "senderName": "Test Communication",
+      "content": "Testing communication features with real phone number",
+      "attachments": [],
+      "createdAt": "2025-07-22T20:44:51.133Z",
+      "id": 53,
+      "readAt": "2025-07-23T03:30:23.283Z"
+    },
+    {
+      "projectId": 55,
+      "senderType": "client",
+      "senderName": "Test Lead Communication",
+      "content": "Testing communication features with different phone number for proper testing",
+      "attachments": [],
+      "createdAt": "2025-07-22T20:51:21.848Z",
+      "id": 56
+    },
+    {
+      "projectId": 58,
+      "senderType": "client",
+      "senderName": "Demo Company",
+      "content": "Test lead from API",
+      "attachments": [],
+      "createdAt": "2025-07-23T01:34:46.256Z",
+      "id": 59,
+      "readAt": "2025-07-23T03:29:03.766Z"
+    },
+    {
+      "projectId": 61,
+      "senderType": "client",
+      "senderName": "Coastal Maine Plumbing",
+      "content": "24/7 emergency plumbing services in Portland area",
+      "attachments": [],
+      "createdAt": "2025-07-23T01:44:55.518Z",
+      "id": 62
+    },
+    {
+      "projectId": 64,
+      "senderType": "client",
+      "senderName": "Pine Tree Landscaping Co",
+      "content": "Full-service landscaping and hardscaping",
+      "attachments": [],
+      "createdAt": "2025-07-23T01:44:55.523Z",
+      "id": 65,
+      "readAt": "2025-07-23T03:28:59.113Z"
+    },
+    {
+      "projectId": 151,
+      "senderType": "client",
+      "senderName": "Manual Member",
+      "content": "hey",
+      "attachments": [],
+      "id": 66,
+      "createdAt": "2025-07-23T03:38:46.685Z",
+      "readAt": "2025-07-23T03:38:55.975Z"
+    },
+    {
+      "projectId": 151,
+      "senderType": "admin",
+      "senderName": "Pleasant Cove Design",
+      "content": "yo",
+      "attachments": [],
+      "createdAt": "2025-07-23T03:39:10.945Z",
+      "id": 68
+    },
+    {
+      "projectId": 151,
+      "senderType": "client",
+      "senderName": "Manual Member",
+      "content": "whats up",
+      "attachments": [],
+      "id": 69,
+      "createdAt": "2025-07-23T03:39:17.703Z",
+      "readAt": "2025-07-23T03:46:44.881Z"
+    },
+    {
+      "projectId": 49,
+      "senderType": "client",
+      "senderName": "Test User",
+      "content": "Test message from curl",
+      "attachments": [],
+      "id": 71,
+      "createdAt": "2025-07-23T03:41:46.882Z",
+      "readAt": "2025-07-23T03:46:55.001Z"
+    },
+    {
+      "projectId": 49,
+      "senderType": "client",
+      "senderName": "Test Business Client",
+      "content": "URGENT: Business critical message test - this message should appear in admin inbox immediately",
+      "attachments": [],
+      "id": 73,
+      "createdAt": "2025-07-23T03:44:46.547Z",
+      "readAt": "2025-07-23T03:46:55.007Z"
+    },
+    {
+      "projectId": 49,
+      "senderType": "client",
+      "senderName": "Business Owner (Squarespace)",
+      "content": "🔥 CRITICAL TEST: Message from Squarespace widget should appear in admin inbox NOW",
+      "attachments": [],
+      "id": 77,
+      "createdAt": "2025-07-23T03:51:23.194Z",
+      "readAt": "2025-07-23T03:53:53.004Z"
+    },
+    {
+      "projectId": 49,
+      "senderType": "client",
+      "senderName": "Squarespace Customer",
+      "content": "🚨 URGENT: Test message sent at Wed Jul 23 00:00:07 EDT 2025 - CHECK ADMIN INBOX NOW!",
+      "attachments": [],
+      "id": 79,
+      "createdAt": "2025-07-23T04:00:07.467Z",
+      "readAt": "2025-07-23T04:03:38.670Z"
+    },
+    {
+      "projectId": 49,
+      "senderType": "client",
+      "senderName": "System Test",
+      "content": "✅ SUCCESS: Admin UI is now loading! Check your inbox - this message should appear immediately!",
+      "attachments": [],
+      "id": 81,
+      "createdAt": "2025-07-23T04:03:50.466Z",
+      "readAt": "2025-07-23T04:03:58.446Z"
+    },
+    {
+      "projectId": 49,
+      "senderType": "client",
+      "senderName": "System Test",
+      "content": "🎯 FINAL TEST: Admin UI is now running in a separate terminal window. This message WILL appear in your inbox!",
+      "attachments": [],
+      "id": 83,
+      "createdAt": "2025-07-23T04:08:40.243Z",
+      "readAt": "2025-07-23T04:08:52.676Z"
+    },
+    {
+      "projectId": 151,
+      "senderType": "admin",
+      "senderName": "Pleasant Cove Design",
+      "content": "yo",
+      "attachments": [],
+      "createdAt": "2025-07-23T04:09:33.727Z",
+      "id": 85
+    },
+    {
+      "projectId": 49,
+      "senderType": "client",
+      "senderName": "Fresh Test User",
+      "content": "🆕 BRAND NEW TEST: This message is UNREAD and should appear immediately!",
+      "attachments": [],
+      "id": 86,
+      "createdAt": "2025-07-23T04:17:12.575Z"
+    },
+    {
+      "projectId": 49,
+      "senderType": "client",
+      "senderName": "Widget Test User",
+      "content": "🔍 DIAGNOSTIC TEST: Widget message should appear in admin UI immediately!",
+      "attachments": [],
+      "id": 88,
+      "createdAt": "2025-07-24T03:55:19.723Z"
+    },
+    {
+      "projectId": 49,
+      "senderType": "client",
+      "senderName": "WebSocket Test",
+      "content": "🔥 REALTIME TEST: This message should appear INSTANTLY in the open admin UI! Timestamp: $(date)",
+      "attachments": [],
+      "id": 90,
+      "createdAt": "2025-07-24T03:56:50.366Z"
+    },
+    {
+      "projectId": 49,
+      "senderType": "client",
+      "senderName": "Console Test",
+      "content": "BROWSER TEST: Check console logs in admin UI!",
+      "attachments": [],
+      "id": 92,
+      "createdAt": "2025-07-24T04:00:31.876Z"
+    },
+    {
+      "projectId": 49,
+      "senderType": "client",
+      "senderName": "Debug Test",
+      "content": "🔥 REAL-TIME DEBUG: This message should appear in admin UI immediately if WebSocket is working!",
+      "attachments": [],
+      "id": 94,
+      "createdAt": "2025-07-24T04:09:16.374Z"
+    },
+    {
+      "projectId": 49,
+      "senderType": "client",
+      "senderName": "System Debug",
+      "content": "🎯 LIVE TEST: Services are running - message should appear in admin inbox!",
+      "attachments": [],
+      "id": 96,
+      "createdAt": "2025-07-24T04:19:37.371Z"
+    },
+    {
+      "projectId": 99,
+      "senderType": "client",
+      "senderName": "Test User",
+      "content": "Test message from curl",
+      "attachments": [],
+      "id": 100,
+      "createdAt": "2025-07-28T22:41:50.492Z"
+    },
+    {
+      "projectId": 103,
+      "senderType": "client",
+      "senderName": "Test Member",
+      "content": "hey",
+      "attachments": [],
+      "id": 104,
+      "createdAt": "2025-07-29T20:59:24.950Z"
+    },
+    {
+      "projectId": 103,
+      "senderType": "admin",
+      "senderName": "Pleasant Cove Design",
+      "content": "sup",
+      "attachments": [],
+      "createdAt": "2025-07-29T21:07:15.498Z",
+      "id": 106
+    },
+    {
+      "projectId": 103,
+      "senderType": "client",
+      "senderName": "Test Member",
+      "content": "",
+      "attachments": [
+        "http://localhost:3000/uploads/upload-1753823244175-ChatGPT_Image_May_27__2025__04_38_15_PM.png"
+      ],
+      "id": 107,
+      "createdAt": "2025-07-29T21:07:24.184Z",
+      "readAt": "2025-07-29T21:08:01.308Z"
+    },
+    {
+      "projectId": 105,
+      "senderType": "client",
+      "senderName": "test",
+      "content": "Test message from API",
+      "attachments": [],
+      "createdAt": "2025-07-29T21:17:16.936Z",
+      "id": 109,
+      "readAt": "2025-07-30T04:09:02.049Z"
+    }
+  ],
+  "aiChatMessages": [
+    {
+      "sessionId": "test123",
+      "direction": "inbound",
+      "messageType": "user",
+      "content": "Who did we message last and what companies are we working with?",
+      "context": {
+        "sessionId": "test123"
+      },
+      "id": 21,
+      "timestamp": "2025-07-23T01:06:37.096Z"
+    },
+    {
+      "sessionId": "test123",
+      "direction": "outbound",
+      "messageType": "ai",
+      "content": "Hello! As an AI, I don't have feelings, but I'm functioning as expected and ready to assist you. What can I do for you today?",
+      "context": {
+        "sessionId": "test123"
+      },
+      "id": 20,
+      "timestamp": "2025-07-23T01:06:11.822Z"
+    },
+    {
+      "sessionId": "test123",
+      "direction": "inbound",
+      "messageType": "user",
+      "content": "Hello Minerva, how are you today?",
+      "context": {
+        "sessionId": "test123"
+      },
+      "id": 19,
+      "timestamp": "2025-07-23T01:06:09.273Z"
+    },
+    {
+      "sessionId": "debug",
+      "direction": "inbound",
+      "messageType": "user",
+      "content": "Test",
+      "context": {
+        "sessionId": "debug"
+      },
+      "id": 18,
+      "timestamp": "2025-07-23T01:05:48.038Z"
+    },
+    {
+      "sessionId": "test123",
+      "direction": "inbound",
+      "messageType": "user",
+      "content": "Hello Minerva!",
+      "context": {
+        "sessionId": "test123"
+      },
+      "id": 17,
+      "timestamp": "2025-07-23T01:05:20.365Z"
+    },
+    {
+      "sessionId": "test123",
+      "direction": "inbound",
+      "messageType": "user",
+      "content": "Hello Minerva, how are you?",
+      "context": {
+        "sessionId": "test123"
+      },
+      "id": 16,
+      "timestamp": "2025-07-23T01:02:46.135Z"
+    },
+    {
+      "sessionId": "test123",
+      "direction": "inbound",
+      "messageType": "user",
+      "content": "Hello, who did we message last?",
+      "context": {
+        "sessionId": "test123"
+      },
+      "id": 15,
+      "timestamp": "2025-07-23T01:01:56.312Z"
+    },
+    {
+      "sessionId": "session_1753232249256_mgs3yd",
+      "direction": "inbound",
+      "messageType": "user",
+      "content": "okay so what do you know about pleasant cove design?",
+      "context": {
+        "sessionId": "session_1753232249256_mgs3yd",
+        "timestamp": "2025-07-23T00:57:56.160Z"
+      },
+      "id": 14,
+      "timestamp": "2025-07-23T00:57:56.165Z"
+    },
+    {
+      "sessionId": "session_1753232249256_mgs3yd",
+      "direction": "outbound",
+      "messageType": "ai",
+      "content": "Hi there! I hope you're having a good day. I'm here to help with anything you need for Pleasant Cove Design. What can I help you with?\n\n(Since this is an open-ended greeting, I'm waiting for your specific request rather than making assumptions or listing capabilities.)",
+      "context": {
+        "sessionId": "session_1753232249256_mgs3yd",
+        "timestamp": "2025-07-23T00:57:33.809Z"
+      },
+      "id": 13,
+      "timestamp": "2025-07-23T00:57:35.969Z"
+    },
+    {
+      "sessionId": "session_1753232249256_mgs3yd",
+      "direction": "inbound",
+      "messageType": "user",
+      "content": "hey",
+      "context": {
+        "sessionId": "session_1753232249256_mgs3yd",
+        "timestamp": "2025-07-23T00:57:33.809Z"
+      },
+      "id": 12,
+      "timestamp": "2025-07-23T00:57:33.814Z"
+    },
+    {
+      "sessionId": "session_1753228006946_3rgdf8",
+      "direction": "inbound",
+      "messageType": "user",
+      "content": "what did we talk about with them",
+      "context": {
+        "sessionId": "session_1753228006946_3rgdf8",
+        "timestamp": "2025-07-22T23:47:04.933Z"
+      },
+      "id": 11,
+      "timestamp": "2025-07-22T23:47:04.942Z"
+    },
+    {
+      "sessionId": "session_1753228006946_3rgdf8",
+      "direction": "inbound",
+      "messageType": "user",
+      "content": "who did we message last",
+      "context": {
+        "sessionId": "session_1753228006946_3rgdf8",
+        "timestamp": "2025-07-22T23:46:54.089Z"
+      },
+      "id": 10,
+      "timestamp": "2025-07-22T23:46:54.093Z"
+    },
+    {
+      "sessionId": "session_1753227438307_objtzq",
+      "direction": "inbound",
+      "messageType": "user",
+      "content": "still doesnt seem like you are speaking normal and it seems you are very limited in you ability.",
+      "context": {
+        "sessionId": "session_1753227438307_objtzq",
+        "timestamp": "2025-07-22T23:37:50.115Z"
+      },
+      "id": 9,
+      "timestamp": "2025-07-22T23:37:50.118Z"
+    },
+    {
+      "sessionId": "session_1753227438307_objtzq",
+      "direction": "inbound",
+      "messageType": "user",
+      "content": "you fixed yet",
+      "context": {
+        "sessionId": "session_1753227438307_objtzq",
+        "timestamp": "2025-07-22T23:37:22.437Z"
+      },
+      "id": 8,
+      "timestamp": "2025-07-22T23:37:22.441Z"
+    },
+    {
+      "sessionId": "test123",
+      "direction": "inbound",
+      "messageType": "user",
+      "content": "Send a follow-up SMS to Test Lead Communication",
+      "context": {
+        "sessionId": "test123"
+      },
+      "id": 7,
+      "timestamp": "2025-07-22T23:36:55.512Z"
+    },
+    {
+      "sessionId": "session_1753226798063_g7j8jq",
+      "direction": "inbound",
+      "messageType": "user",
+      "content": "do you have access to the inbox?",
+      "context": {
+        "timestamp": "2025-07-22T23:26:38.061Z",
+        "sessionId": "session_1753226798063_g7j8jq"
+      },
+      "id": 6,
+      "timestamp": "2025-07-22T23:26:38.063Z"
+    },
+    {
+      "sessionId": "session_1753226779159_sdi9j",
+      "direction": "inbound",
+      "messageType": "user",
+      "content": "what can you do",
+      "context": {
+        "timestamp": "2025-07-22T23:26:19.155Z",
+        "sessionId": "session_1753226779159_sdi9j"
+      },
+      "id": 5,
+      "timestamp": "2025-07-22T23:26:19.159Z"
+    },
+    {
+      "sessionId": "session_1753226771903_01v3bl",
+      "direction": "inbound",
+      "messageType": "user",
+      "content": "hey",
+      "context": {
+        "timestamp": "2025-07-22T23:26:11.901Z",
+        "sessionId": "session_1753226771903_01v3bl"
+      },
+      "id": 4,
+      "timestamp": "2025-07-22T23:26:11.903Z"
+    },
+    {
+      "sessionId": "session_1753226752339_0pbnjh",
+      "direction": "inbound",
+      "messageType": "user",
+      "content": "Show me recent leads",
+      "context": {
+        "sessionId": "session_1753226752339_0pbnjh"
+      },
+      "id": 3,
+      "timestamp": "2025-07-22T23:25:52.339Z"
+    },
+    {
+      "sessionId": "session_1753226740596_pzsvzo",
+      "direction": "inbound",
+      "messageType": "user",
+      "content": "Generate a storefront demo for Test Coffee Shop",
+      "context": {
+        "sessionId": "session_1753226740596_pzsvzo"
+      },
+      "id": 2,
+      "timestamp": "2025-07-22T23:25:40.596Z"
+    },
+    {
+      "sessionId": "session_1753226688012_wwcy3m",
+      "direction": "inbound",
+      "messageType": "user",
+      "content": "hello",
+      "context": {
+        "sessionId": "session_1753226688012_wwcy3m"
+      },
+      "id": 1,
+      "timestamp": "2025-07-22T23:24:48.012Z"
+    },
+    {
+      "sessionId": "test123",
+      "direction": "outbound",
+      "messageType": "ai",
+      "content": "The last message was from you, asking \"Who did we message last and what companies are we working with?\". It would be helpful if you could specify which message, that isn't one of our current conversation, you are referring to. For instance, is there a particular team or client discussion in mind?",
+      "functionName": "getLastMessages",
+      "functionArgs": {
+        "limit": 1
+      },
+      "functionResult": {
+        "messages": [
+          {
+            "direction": "inbound",
+            "content": "Who did we message last and what companies are we working with?",
+            "timestamp": "2025-07-23T01:06:37.096Z",
+            "type": "user"
+          }
+        ],
+        "summary": "Found 1 recent messages."
+      },
+      "context": {
+        "sessionId": "test123"
+      },
+      "id": 22,
+      "timestamp": "2025-07-23T01:06:42.505Z"
+    },
+    {
+      "sessionId": "session_1753232828486_wb0hw3",
+      "direction": "inbound",
+      "messageType": "user",
+      "content": "hey",
+      "context": {
+        "sessionId": "session_1753232828486_wb0hw3",
+        "timestamp": "2025-07-23T01:07:11.237Z"
+      },
+      "id": 23,
+      "timestamp": "2025-07-23T01:07:11.241Z"
+    },
+    {
+      "sessionId": "session_1753232828486_wb0hw3",
+      "direction": "outbound",
+      "messageType": "ai",
+      "content": "Hello! How can I assist you today?",
+      "context": {
+        "sessionId": "session_1753232828486_wb0hw3",
+        "timestamp": "2025-07-23T01:07:11.237Z"
+      },
+      "id": 24,
+      "timestamp": "2025-07-23T01:07:12.431Z"
+    },
+    {
+      "sessionId": "session_1753232828486_wb0hw3",
+      "direction": "inbound",
+      "messageType": "user",
+      "content": "im not sure what seems like the most important thing to attend to",
+      "context": {
+        "sessionId": "session_1753232828486_wb0hw3",
+        "timestamp": "2025-07-23T01:08:32.130Z"
+      },
+      "id": 25,
+      "timestamp": "2025-07-23T01:08:32.136Z"
+    },
+    {
+      "sessionId": "session_1753232828486_wb0hw3",
+      "direction": "outbound",
+      "messageType": "ai",
+      "content": "Not a problem, Ben. Let's see what tasks are currently at hand. Since we have various areas to consider, we might want to proceed in this order:\n\n1. Check the upcoming appointments to see if there's anything you need to prepare for.\n2. Get a list of the latest conversations or messages received, which might need attention or responses.\n3. Pull up a list of the most recent leads contacted, to ensure no one is being overlooked.\n4. Get any business statistics to check the overall performance and learn if there are any critical areas to work on.\n\nWould this approach seem helpful, or there's a particular area you want me to look into first?",
+      "context": {
+        "sessionId": "session_1753232828486_wb0hw3",
+        "timestamp": "2025-07-23T01:08:32.130Z"
+      },
+      "id": 26,
+      "timestamp": "2025-07-23T01:08:37.234Z"
+    },
+    {
+      "sessionId": "session_1753232828486_wb0hw3",
+      "direction": "inbound",
+      "messageType": "user",
+      "content": "do you have the ability to recognize things on the UI, and debug them like buttons that dont work or anything like that",
+      "context": {
+        "sessionId": "session_1753232828486_wb0hw3",
+        "timestamp": "2025-07-23T01:09:47.489Z"
+      },
+      "id": 27,
+      "timestamp": "2025-07-23T01:09:47.492Z"
+    },
+    {
+      "sessionId": "session_1753232828486_wb0hw3",
+      "direction": "outbound",
+      "messageType": "ai",
+      "content": "While I do have a range of capabilities, recognizing or debugging UI elements like malfunctioning buttons in real-time is not within my current function set. My abilities are primarily focused on providing information, executing tasks related to business operations, scheduling, and data analysis, rather than direct interaction with or manipulation of the interface elements. However, if there's a specific issue you're encountering, I'd suggest logging it for the development team to evaluate and rectify the problem.",
+      "context": {
+        "sessionId": "session_1753232828486_wb0hw3",
+        "timestamp": "2025-07-23T01:09:47.489Z"
+      },
+      "id": 28,
+      "timestamp": "2025-07-23T01:09:52.051Z"
+    },
+    {
+      "sessionId": "test_demo",
+      "direction": "inbound",
+      "messageType": "user",
+      "content": "Generate a demo for Acme Plumbing",
+      "context": {
+        "sessionId": "test_demo"
+      },
+      "id": 29,
+      "timestamp": "2025-07-23T01:25:36.122Z"
+    },
+    {
+      "sessionId": "demo_1753234418",
+      "direction": "inbound",
+      "messageType": "user",
+      "content": "Show me recent leads",
+      "context": {
+        "sessionId": "demo_1753234418"
+      },
+      "id": 30,
+      "timestamp": "2025-07-23T01:33:38.704Z"
+    },
+    {
+      "sessionId": "demo_1753234418",
+      "direction": "outbound",
+      "messageType": "ai",
+      "content": "Here are the most recent leads we've got:\n\n1. **Test Lead Communication**\n   - Contacted on 2025-07-22\n   - Email: [hidden]\n   - Phone: [hidden]\n\n2. **Test Communication**\n   - Contacted on 2025-07-22\n   - Email: [hidden]\n   - Phone: [hidden]\n\n3. **Superior Widget**\n   - Contacted on 2025-07-16\n   - Email: [hidden]\n   - Phone: [hidden]\n\n4. **Working Test**\n   - Contacted on 2025-07-16\n   - Email: [hidden]\n   - Phone: [hidden]\n\n5. **Demo Client**\n   - Contacted on 2025-07-16\n   - Email: [hidden]\n   - Phone: [hidden]\n\nRemember, I won't share personal contact details unless explicitly requested by an authenticated user. Please let me know if you need more details about these leads.",
+      "functionName": "getRecentLeads",
+      "functionArgs": {
+        "limit": 5
+      },
+      "functionResult": {
+        "leads": [
+          {
+            "id": 54,
+            "name": "Test Lead Communication",
+            "email": "testlead@pleasantcove.local",
+            "phone": "207-380-7441",
+            "createdAt": "2025-07-22T20:51:21.846Z"
+          },
+          {
+            "id": 51,
+            "name": "Test Communication",
+            "email": "test@pleasantcove.local",
+            "phone": "207-380-5680",
+            "createdAt": "2025-07-22T20:44:51.131Z"
+          },
+          {
+            "id": 36,
+            "name": "Superior Widget",
+            "email": "superior@example.com",
+            "phone": "(555) 987-6543",
+            "createdAt": "2025-07-16T02:56:56.528Z"
+          },
+          {
+            "id": 29,
+            "name": "Working Test",
+            "email": "working@example.com",
+            "phone": "(555) 999-0000",
+            "createdAt": "2025-07-16T02:41:35.455Z"
+          },
+          {
+            "id": 26,
+            "name": "Demo Client",
+            "email": "demo@example.com",
+            "phone": "(555) 123-4567",
+            "createdAt": "2025-07-16T02:34:27.129Z"
+          }
+        ],
+        "total": 12
+      },
+      "context": {
+        "sessionId": "demo_1753234418"
+      },
+      "id": 31,
+      "timestamp": "2025-07-23T01:33:49.246Z"
+    },
+    {
+      "sessionId": "demo_1753234431",
+      "direction": "inbound",
+      "messageType": "user",
+      "content": "Search for plumbing companies",
+      "context": {
+        "sessionId": "demo_1753234431"
+      },
+      "id": 32,
+      "timestamp": "2025-07-23T01:33:51.260Z"
+    },
+    {
+      "sessionId": "demo_1753234431",
+      "direction": "outbound",
+      "messageType": "ai",
+      "content": "I'm sorry, but I wasn't able to find any plumbing companies matching your search. Could you provide more specifics? For example, a location or a particular service that you are interested in could help narrow down the search.",
+      "functionName": "searchCompanies",
+      "functionArgs": {
+        "query": "plumbing",
+        "limit": 10
+      },
+      "functionResult": {
+        "results": [],
+        "found": 0
+      },
+      "context": {
+        "sessionId": "demo_1753234431"
+      },
+      "id": 33,
+      "timestamp": "2025-07-23T01:33:56.516Z"
+    },
+    {
+      "sessionId": "demo_1753234438",
+      "direction": "inbound",
+      "messageType": "user",
+      "content": "Generate a demo for Acme Plumbing",
+      "context": {
+        "sessionId": "demo_1753234438"
+      },
+      "id": 34,
+      "timestamp": "2025-07-23T01:33:58.528Z"
+    },
+    {
+      "sessionId": "demo_1753234443",
+      "direction": "inbound",
+      "messageType": "user",
+      "content": "Create a new lead for Seaside Dental with email info@seasidedental.com",
+      "context": {
+        "sessionId": "demo_1753234443"
+      },
+      "id": 35,
+      "timestamp": "2025-07-23T01:34:03.654Z"
+    },
+    {
+      "sessionId": "proof_1753235095",
+      "direction": "inbound",
+      "messageType": "user",
+      "content": "Show me all the plumbing companies we have",
+      "context": {
+        "sessionId": "proof_1753235095"
+      },
+      "id": 36,
+      "timestamp": "2025-07-23T01:44:55.531Z"
+    },
+    {
+      "sessionId": "proof_1753235095",
+      "direction": "outbound",
+      "messageType": "ai",
+      "content": "We have one plumbing company in our database: \"Coastal Maine Plumbing\". You can reach them at (207)555-0123 or service@coastalmaineplumbing.com. Do you need additional information on them or another one?",
+      "functionName": "searchCompanies",
+      "functionArgs": {
+        "query": "plumbing"
+      },
+      "functionResult": {
+        "results": [
+          {
+            "id": 60,
+            "name": "Coastal Maine Plumbing",
+            "email": "service@coastalmaineplumbing.com",
+            "phone": "(207) 555-0123"
+          }
+        ],
+        "found": 1
+      },
+      "context": {
+        "sessionId": "proof_1753235095"
+      },
+      "id": 37,
+      "timestamp": "2025-07-23T01:45:00.683Z"
+    },
+    {
+      "sessionId": "proof_1753235101",
+      "direction": "inbound",
+      "messageType": "user",
+      "content": "What landscaping companies do we have?",
+      "context": {
+        "sessionId": "proof_1753235101"
+      },
+      "id": 38,
+      "timestamp": "2025-07-23T01:45:01.695Z"
+    },
+    {
+      "sessionId": "proof_1753235101",
+      "direction": "outbound",
+      "messageType": "ai",
+      "content": "We have one landscaping company in our database: Pine Tree Landscaping Co. They can be reached at (207) 555-0456 or info@pinetreelandscaping.me. Is there something specific you want to do with this information?",
+      "functionName": "searchCompanies",
+      "functionArgs": {
+        "query": "landscaping",
+        "limit": 10
+      },
+      "functionResult": {
+        "results": [
+          {
+            "id": 63,
+            "name": "Pine Tree Landscaping Co",
+            "email": "info@pinetreelandscaping.me",
+            "phone": "(207) 555-0456"
+          }
+        ],
+        "found": 1
+      },
+      "context": {
+        "sessionId": "proof_1753235101"
+      },
+      "id": 39,
+      "timestamp": "2025-07-23T01:45:06.725Z"
+    },
+    {
+      "sessionId": "proof_1753235107",
+      "direction": "inbound",
+      "messageType": "user",
+      "content": "Generate a demo for Coastal Maine Plumbing",
+      "context": {
+        "sessionId": "proof_1753235107"
+      },
+      "id": 40,
+      "timestamp": "2025-07-23T01:45:07.738Z"
+    },
+    {
+      "sessionId": "session_1753235162003_okyw8",
+      "direction": "inbound",
+      "messageType": "user",
+      "content": "can you show me a demo that you have made already that isn't the plumming company",
+      "context": {
+        "sessionId": "session_1753235162003_okyw8",
+        "timestamp": "2025-07-23T01:46:18.548Z"
+      },
+      "id": 41,
+      "timestamp": "2025-07-23T01:46:18.552Z"
+    },
+    {
+      "sessionId": "session_1753235162003_okyw8",
+      "direction": "inbound",
+      "messageType": "user",
+      "content": "yeah just a mockup i can view sounds good",
+      "context": {
+        "sessionId": "session_1753235162003_okyw8",
+        "timestamp": "2025-07-23T01:46:44.466Z"
+      },
+      "id": 42,
+      "timestamp": "2025-07-23T01:46:44.472Z"
+    },
+    {
+      "sessionId": "session_1753235162003_okyw8",
+      "direction": "inbound",
+      "messageType": "user",
+      "content": "yes",
+      "context": {
+        "sessionId": "session_1753235162003_okyw8",
+        "timestamp": "2025-07-23T01:46:49.541Z"
+      },
+      "id": 43,
+      "timestamp": "2025-07-23T01:46:49.546Z"
+    },
+    {
+      "sessionId": "session_1753235162003_okyw8",
+      "direction": "outbound",
+      "messageType": "ai",
+      "content": "Hi there! It seems like you've agreed to something, but I need a bit more context to provide the right assistance. Could you please provide me with more details?",
+      "context": {
+        "sessionId": "session_1753235162003_okyw8",
+        "timestamp": "2025-07-23T01:46:49.541Z"
+      },
+      "id": 44,
+      "timestamp": "2025-07-23T01:46:51.586Z"
+    },
+    {
+      "sessionId": "session_1753235162003_okyw8",
+      "direction": "inbound",
+      "messageType": "user",
+      "content": "i asked you to make a demo mock up i could veiw that wasnt a plumming company and you said a dental company",
+      "context": {
+        "sessionId": "session_1753235162003_okyw8",
+        "timestamp": "2025-07-23T01:47:22.724Z"
+      },
+      "id": 45,
+      "timestamp": "2025-07-23T01:47:22.727Z"
+    },
+    {
+      "sessionId": "session_1753235162003_okyw8",
+      "direction": "outbound",
+      "messageType": "ai",
+      "content": "I apologize, Ben, but there seems to be an error with the demo generation for a dental company. I will try to resolve this issue as quickly as possible. Let's try another industry, perhaps a landscaping or architecture firm? Would that be acceptable to you?",
+      "functionName": "generateDemo",
+      "functionArgs": {
+        "companyName": "Pleasant Cove Dental",
+        "industry": "dental",
+        "confirmGeneration": true
+      },
+      "functionResult": {
+        "error": "Failed to generate demo",
+        "details": "Demo generation failed: 400"
+      },
+      "context": {
+        "sessionId": "session_1753235162003_okyw8",
+        "timestamp": "2025-07-23T01:47:22.724Z"
+      },
+      "id": 46,
+      "timestamp": "2025-07-23T01:47:28.245Z"
+    },
+    {
+      "sessionId": "demo_test",
+      "direction": "inbound",
+      "messageType": "user",
+      "content": "Generate a demo for Harbor Dental Practice in the dental industry",
+      "context": {
+        "sessionId": "demo_test"
+      },
+      "id": 47,
+      "timestamp": "2025-07-23T01:56:40.325Z"
+    },
+    {
+      "sessionId": "demo_test",
+      "direction": "outbound",
+      "messageType": "ai",
+      "content": "I'm sorry, but there seems to be an issue with generating the demo for Harbor Dental Practice. It appears to be a technical error. The team will look into this immediately. Let's try again in a bit. Is there anything else I can assist you with in the meantime?",
+      "functionName": "generateDemo",
+      "functionArgs": {
+        "companyName": "Harbor Dental Practice",
+        "industry": "dental",
+        "confirmGeneration": true
+      },
+      "functionResult": {
+        "error": "Failed to generate demo",
+        "details": "Demo generation failed: 401"
+      },
+      "context": {
+        "sessionId": "demo_test"
+      },
+      "id": 48,
+      "timestamp": "2025-07-23T01:56:45.946Z"
+    },
+    {
+      "sessionId": "demo_test_2",
+      "direction": "inbound",
+      "messageType": "user",
+      "content": "Generate a demo for Harbor Dental Practice in the dental industry",
+      "context": {
+        "sessionId": "demo_test_2"
+      },
+      "id": 49,
+      "timestamp": "2025-07-23T01:58:40.474Z"
+    },
+    {
+      "sessionId": "demo_test_2",
+      "direction": "inbound",
+      "messageType": "user",
+      "content": "yes",
+      "context": {
+        "sessionId": "demo_test_2",
+        "confirmationId": "confirm_1753235922561"
+      },
+      "id": 50,
+      "timestamp": "2025-07-23T01:58:51.873Z"
+    },
+    {
+      "sessionId": "demo_test_2",
+      "direction": "outbound",
+      "messageType": "ai",
+      "content": "Apologies for the confusion, but could you please provide more context or detail for your request? Your last input was \"yes\", but I'm not sure what you're agreeing to or confirming. Let's make sure we're on the same page.",
+      "context": {
+        "sessionId": "demo_test_2",
+        "confirmationId": "confirm_1753235922561"
+      },
+      "id": 51,
+      "timestamp": "2025-07-23T01:58:54.434Z"
+    },
+    {
+      "sessionId": "direct_test",
+      "direction": "inbound",
+      "messageType": "user",
+      "content": "Generate a demo for Seaside Auto Repair in the auto industry and confirm the generation",
+      "context": {
+        "sessionId": "direct_test"
+      },
+      "id": 52,
+      "timestamp": "2025-07-23T01:59:03.763Z"
+    },
+    {
+      "sessionId": "test_fix",
+      "direction": "inbound",
+      "messageType": "user",
+      "content": "Generate a demo for Ocean View Restaurant in the restaurant industry",
+      "context": {
+        "sessionId": "test_fix"
+      },
+      "id": 53,
+      "timestamp": "2025-07-23T02:09:28.278Z"
+    },
+    {
+      "sessionId": "session_1753637110148_wn8q7",
+      "direction": "inbound",
+      "messageType": "user",
+      "content": "how you doing",
+      "context": {
+        "sessionId": "session_1753637110148_wn8q7",
+        "timestamp": "2025-07-27T17:25:14.440Z"
+      },
+      "id": 54,
+      "timestamp": "2025-07-27T17:25:14.449Z"
+    },
+    {
+      "sessionId": "session_1753637110148_wn8q7",
+      "direction": "outbound",
+      "messageType": "ai",
+      "content": "I'm an artificial intelligence and don't have feelings, but I'm functioning as expected. How can I assist you today?",
+      "context": {
+        "sessionId": "session_1753637110148_wn8q7",
+        "timestamp": "2025-07-27T17:25:14.440Z"
+      },
+      "id": 55,
+      "timestamp": "2025-07-27T17:25:16.770Z"
+    },
+    {
+      "sessionId": "session_1753637110148_wn8q7",
+      "direction": "inbound",
+      "messageType": "user",
+      "content": "what do you know about the leads",
+      "context": {
+        "sessionId": "session_1753637110148_wn8q7",
+        "timestamp": "2025-07-27T18:09:27.828Z"
+      },
+      "id": 56,
+      "timestamp": "2025-07-27T18:09:27.851Z"
+    },
+    {
+      "sessionId": "session_1753637110148_wn8q7",
+      "direction": "outbound",
+      "messageType": "ai",
+      "content": "Here are the latest leads:\n\n1. **Health Check**\n   Email: health-check@test.com\n   Created At: July 23, 2025\n\n2. **Pine Tree Landscaping Co**\n   Email: info@pinetreelandscaping.me\n   Phone: (207) 555-0456\n   Created At: July 23, 2025\n\n3. **Coastal Maine Plumbing**\n   Email: service@coastalmaineplumbing.com\n   Phone: (207) 555-0123\n   Created At: July 23, 2025\n\n4. **Demo Company**\n   Email: test@demo.com\n   Phone: 555-1234\n   Created At: July 23, 2025\n\n5. **Test Lead Communication**\n   Email: testlead@pleasantcove.local\n   Phone: 207-380-7441\n   Created At: July 22, 2025\n\nPlease let me know if you need specific information about any of these leads or if there are other actions you'd like to perform regarding these leads.",
+      "functionName": "getRecentLeads",
+      "functionArgs": {
+        "limit": 10
+      },
+      "functionResult": {
+        "leads": [
+          {
+            "id": 75,
+            "name": "Health Check",
+            "email": "health-check@test.com",
+            "phone": "",
+            "createdAt": "2025-07-23T03:49:32.267Z"
+          },
+          {
+            "id": 63,
+            "name": "Pine Tree Landscaping Co",
+            "email": "info@pinetreelandscaping.me",
+            "phone": "(207) 555-0456",
+            "createdAt": "2025-07-23T01:44:55.521Z"
+          },
+          {
+            "id": 60,
+            "name": "Coastal Maine Plumbing",
+            "email": "service@coastalmaineplumbing.com",
+            "phone": "(207) 555-0123",
+            "createdAt": "2025-07-23T01:44:55.512Z"
+          },
+          {
+            "id": 57,
+            "name": "Demo Company",
+            "email": "test@demo.com",
+            "phone": "555-1234",
+            "createdAt": "2025-07-23T01:34:46.254Z"
+          },
+          {
+            "id": 54,
+            "name": "Test Lead Communication",
+            "email": "testlead@pleasantcove.local",
+            "phone": "207-380-7441",
+            "createdAt": "2025-07-22T20:51:21.846Z"
+          },
+          {
+            "id": 51,
+            "name": "Test Communication",
+            "email": "test@pleasantcove.local",
+            "phone": "207-380-5680",
+            "createdAt": "2025-07-22T20:44:51.131Z"
+          },
+          {
+            "id": 36,
+            "name": "Superior Widget",
+            "email": "superior@example.com",
+            "phone": "(555) 987-6543",
+            "createdAt": "2025-07-16T02:56:56.528Z"
+          },
+          {
+            "id": 29,
+            "name": "Working Test",
+            "email": "working@example.com",
+            "phone": "(555) 999-0000",
+            "createdAt": "2025-07-16T02:41:35.455Z"
+          },
+          {
+            "id": 26,
+            "name": "Demo Client",
+            "email": "demo@example.com",
+            "phone": "(555) 123-4567",
+            "createdAt": "2025-07-16T02:34:27.129Z"
+          },
+          {
+            "id": 21,
+            "name": "Test Client",
+            "email": "test@example.com",
+            "phone": "(555) 123-4567",
+            "createdAt": "2025-07-16T02:28:46.859Z"
+          }
+        ],
+        "total": 16
+      },
+      "context": {
+        "sessionId": "session_1753637110148_wn8q7",
+        "timestamp": "2025-07-27T18:09:27.828Z"
+      },
+      "id": 57,
+      "timestamp": "2025-07-27T18:09:39.150Z"
+    },
+    {
+      "sessionId": "session_1753637110148_wn8q7",
+      "direction": "inbound",
+      "messageType": "user",
+      "content": "what information do you have about 1",
+      "context": {
+        "sessionId": "session_1753637110148_wn8q7",
+        "timestamp": "2025-07-27T18:09:57.215Z"
+      },
+      "id": 58,
+      "timestamp": "2025-07-27T18:09:57.220Z"
+    },
+    {
+      "sessionId": "session_1753637110148_wn8q7",
+      "direction": "outbound",
+      "messageType": "ai",
+      "content": "I'm assuming that you're asking about details associated with a certain lead or project ID \"1\". Could you please specify whether it's a lead or a project that you're asking about?",
+      "context": {
+        "sessionId": "session_1753637110148_wn8q7",
+        "timestamp": "2025-07-27T18:09:57.215Z"
+      },
+      "id": 59,
+      "timestamp": "2025-07-27T18:09:59.231Z"
+    },
+    {
+      "sessionId": "session_1753637110148_wn8q7",
+      "direction": "inbound",
+      "messageType": "user",
+      "content": "all the information about the lead",
+      "context": {
+        "sessionId": "session_1753637110148_wn8q7",
+        "timestamp": "2025-07-27T18:10:23.076Z"
+      },
+      "id": 60,
+      "timestamp": "2025-07-27T18:10:23.080Z"
+    },
+    {
+      "sessionId": "session_1753637110148_wn8q7",
+      "direction": "outbound",
+      "messageType": "ai",
+      "content": "It seems like you want detailed information about a particular lead. Could you please provide me with their ID or name?",
+      "context": {
+        "sessionId": "session_1753637110148_wn8q7",
+        "timestamp": "2025-07-27T18:10:23.076Z"
+      },
+      "id": 61,
+      "timestamp": "2025-07-27T18:10:24.827Z"
+    },
+    {
+      "sessionId": "session_1753637110148_wn8q7",
+      "direction": "inbound",
+      "messageType": "user",
+      "content": "1",
+      "context": {
+        "sessionId": "session_1753637110148_wn8q7",
+        "timestamp": "2025-07-27T18:10:36.773Z"
+      },
+      "id": 62,
+      "timestamp": "2025-07-27T18:10:36.781Z"
+    },
+    {
+      "sessionId": "session_1753637110148_wn8q7",
+      "direction": "outbound",
+      "messageType": "ai",
+      "content": "I see you've just entered \"1\". I need a little more context to understand how I can help. Are you referring to a lead or project ID, or does this number refer to something else, like a monetary value or a number of leads? Could you please provide more details?",
+      "context": {
+        "sessionId": "session_1753637110148_wn8q7",
+        "timestamp": "2025-07-27T18:10:36.773Z"
+      },
+      "id": 63,
+      "timestamp": "2025-07-27T18:10:40.323Z"
+    },
+    {
+      "sessionId": "session_1753848839526_i4ua4r",
+      "direction": "inbound",
+      "messageType": "user",
+      "content": "Who did we message last and what did they say?",
+      "context": {
+        "sessionId": "session_1753848839526_i4ua4r",
+        "timestamp": "2025-07-30T04:14:04.509Z"
+      },
+      "id": 64,
+      "timestamp": "2025-07-30T04:14:04.513Z"
+    },
+    {
+      "sessionId": "session_1753848839526_i4ua4r",
+      "direction": "inbound",
+      "messageType": "user",
+      "content": "why u say tha",
+      "context": {
+        "sessionId": "session_1753848839526_i4ua4r",
+        "timestamp": "2025-07-30T04:14:25.114Z"
+      },
+      "id": 65,
+      "timestamp": "2025-07-30T04:14:25.118Z"
+    }
+  ],
+  "projectFiles": [],
+  "orders": [
+    {
+      "id": "ORD-20250726184445-DHVRL74N",
+      "companyId": 118,
+      "status": "draft",
+      "package": "standard",
+      "customItems": [
+        {
+          "name": "Extra Logo Design",
+          "description": "Additional logo variations",
+          "price": 500,
+          "quantity": 1
+        }
+      ],
+      "subtotal": 500,
+      "tax": 0,
+      "total": 500,
+      "notes": "Testing complete email flow - Rush delivery needed for Q1 launch",
+      "invoiceStatus": "draft",
+      "paymentStatus": "pending",
+      "createdAt": "2025-07-26T18:44:45.711Z",
+      "updatedAt": "2025-07-26T18:44:45.711Z"
+    },
+    {
+      "id": "ORD-20250726185316-GWYDQ70L",
+      "companyId": 118,
+      "status": "draft",
+      "package": "growth",
+      "customItems": [
+        {
+          "name": "Extra Logo Design",
+          "description": "Additional logo variations",
+          "price": 500,
+          "quantity": 1
+        }
+      ],
+      "subtotal": 2997,
+      "tax": 0,
+      "total": 2997,
+      "notes": "Testing FIXED package validation - should now map standard -> growth",
+      "invoiceStatus": "draft",
+      "paymentStatus": "pending",
+      "createdAt": "2025-07-26T18:53:16.533Z",
+      "updatedAt": "2025-07-26T18:53:16.533Z"
+    },
+    {
+      "id": "ORD-20250727174016-409PSKBN",
+      "companyId": 118,
+      "status": "draft",
+      "package": "starter",
+      "customItems": [],
+      "subtotal": 997,
+      "tax": 0,
+      "total": 997,
+      "notes": "Testing with LIVE Stripe keys - should create payment link!",
+      "invoiceStatus": "draft",
+      "paymentStatus": "pending",
+      "createdAt": "2025-07-27T17:40:16.327Z",
+      "updatedAt": "2025-07-27T17:40:16.327Z"
+    },
+    {
+      "id": "ORD-20250727233838-2WZHOKY2",
+      "companyId": 118,
+      "status": "draft",
+      "package": "starter",
+      "customItems": [
+        {
+          "name": "Logo Design",
+          "description": "Professional logo creation",
+          "price": 500,
+          "quantity": 1
+        }
+      ],
+      "subtotal": 1497,
+      "tax": 0,
+      "total": 1497,
+      "notes": "Full transaction simulation test",
+      "invoiceStatus": "draft",
+      "paymentStatus": "pending",
+      "createdAt": "2025-07-27T23:38:38.539Z",
+      "updatedAt": "2025-07-27T23:38:38.539Z"
+    },
+    {
+      "id": "ORD-20250728003844-MWE3R5BZ",
+      "companyId": 118,
+      "status": "draft",
+      "package": "starter",
+      "customItems": [
+        {
+          "name": "Logo Design",
+          "description": "Professional logo creation",
+          "price": 500,
+          "quantity": 1
+        }
+      ],
+      "subtotal": 1497,
+      "tax": 0,
+      "total": 1497,
+      "notes": "Full transaction simulation test",
+      "invoiceStatus": "draft",
+      "paymentStatus": "pending",
+      "createdAt": "2025-07-28T00:38:44.848Z",
+      "updatedAt": "2025-07-28T00:38:44.848Z"
+    },
+    {
+      "id": "ORD-20250728010541-19OH988C",
+      "companyId": 118,
+      "status": "draft",
+      "package": "starter",
+      "customItems": [
+        {
+          "name": "Logo Design",
+          "description": "Professional logo creation",
+          "price": 500,
+          "quantity": 1
+        }
+      ],
+      "subtotal": 1497,
+      "tax": 0,
+      "total": 1497,
+      "notes": "Full transaction simulation test",
+      "invoiceStatus": "draft",
+      "paymentStatus": "pending",
+      "createdAt": "2025-07-28T01:05:41.386Z",
+      "updatedAt": "2025-07-28T01:05:41.386Z"
+    },
+    {
+      "id": "ORD-20250728010817-V0JF4KQY",
+      "companyId": 118,
+      "status": "draft",
+      "package": "starter",
+      "customItems": [
+        {
+          "name": "Logo Design",
+          "description": "Professional logo creation",
+          "price": 500,
+          "quantity": 1
+        }
+      ],
+      "subtotal": 1497,
+      "tax": 0,
+      "total": 1497,
+      "notes": "Full transaction simulation test",
+      "invoiceStatus": "draft",
+      "paymentStatus": "pending",
+      "createdAt": "2025-07-28T01:08:17.737Z",
+      "updatedAt": "2025-07-28T01:08:18.815Z",
+      "stripePaymentLinkUrl": "https://buy.stripe.com/test_cNi5kDdjn0FMb69e969AA00"
+    },
+    {
+      "id": "ORD-20250728010916-VGG2WA3C",
+      "companyId": 118,
+      "status": "draft",
+      "package": "starter",
+      "customItems": [
+        {
+          "name": "Logo Design",
+          "description": "Professional logo creation",
+          "price": 500,
+          "quantity": 1
+        }
+      ],
+      "subtotal": 1497,
+      "tax": 0,
+      "total": 1497,
+      "notes": "Full transaction simulation test",
+      "invoiceStatus": "draft",
+      "paymentStatus": "pending",
+      "createdAt": "2025-07-28T01:09:16.570Z",
+      "updatedAt": "2025-07-28T01:09:17.410Z",
+      "stripePaymentLinkUrl": "https://buy.stripe.com/test_fZucN5a7bfAG7TX2qo9AA01"
+    },
+    {
+      "id": "ORD-20250728011018-3QMJMVX9",
+      "companyId": 118,
+      "status": "draft",
+      "package": "growth",
+      "customItems": [],
+      "subtotal": 2497,
+      "tax": 0,
+      "total": 2497,
+      "notes": "",
+      "invoiceStatus": "draft",
+      "paymentStatus": "pending",
+      "createdAt": "2025-07-28T01:10:18.945Z",
+      "updatedAt": "2025-07-28T01:10:19.740Z",
+      "stripePaymentLinkUrl": "https://buy.stripe.com/test_28E28r6UZ606eilfda9AA02"
+    },
+    {
+      "id": "ORD-20250728013729-XG1T3BWB",
+      "companyId": 118,
+      "status": "draft",
+      "package": "growth",
+      "customItems": [],
+      "subtotal": 2497,
+      "tax": 0,
+      "total": 2497,
+      "notes": "",
+      "invoiceStatus": "draft",
+      "paymentStatus": "pending",
+      "createdAt": "2025-07-28T01:37:29.356Z",
+      "updatedAt": "2025-07-28T01:37:30.283Z",
+      "stripePaymentLinkUrl": "https://buy.stripe.com/test_fZu00j0wB6064HL2qo9AA03"
+    },
+    {
+      "id": "ORD-20250728021125-K2I6BPUY",
+      "companyId": 118,
+      "status": "draft",
+      "package": "growth",
+      "customItems": [],
+      "subtotal": 2497,
+      "tax": 0,
+      "total": 2497,
+      "notes": "",
+      "invoiceStatus": "draft",
+      "paymentStatus": "pending",
+      "createdAt": "2025-07-28T02:11:25.360Z",
+      "updatedAt": "2025-07-28T02:11:26.354Z",
+      "stripePaymentLinkUrl": "https://buy.stripe.com/test_bJe5kD9371JQdehghe9AA04"
+    },
+    {
+      "id": "ORD-20250728031418-DO8VY3F1",
+      "companyId": 118,
+      "status": "draft",
+      "package": "growth",
+      "customItems": [],
+      "subtotal": 2497,
+      "tax": 0,
+      "total": 2497,
+      "notes": "",
+      "invoiceStatus": "draft",
+      "paymentStatus": "pending",
+      "createdAt": "2025-07-28T03:14:18.407Z",
+      "updatedAt": "2025-07-28T03:14:19.338Z",
+      "stripePaymentLinkUrl": "https://buy.stripe.com/test_bJedR93INdsyb696GE9AA05"
+    },
+    {
+      "id": "ORD-20250728033254-5RUXTI40",
+      "companyId": 118,
+      "status": "draft",
+      "package": "growth",
+      "customItems": [],
+      "subtotal": 2497,
+      "tax": 0,
+      "total": 2497,
+      "notes": "",
+      "invoiceStatus": "draft",
+      "paymentStatus": "pending",
+      "createdAt": "2025-07-28T03:32:54.018Z",
+      "updatedAt": "2025-07-28T03:32:54.981Z",
+      "stripePaymentLinkUrl": "https://buy.stripe.com/test_3cI6oHbbfcoueil8OM9AA06"
+    },
+    {
+      "id": "ORD-20250728033754-HXF221PC",
+      "companyId": 118,
+      "status": "draft",
+      "package": "growth",
+      "customItems": [],
+      "subtotal": 2497,
+      "tax": 0,
+      "total": 2497,
+      "notes": "",
+      "invoiceStatus": "draft",
+      "paymentStatus": "pending",
+      "createdAt": "2025-07-28T03:37:54.895Z",
+      "updatedAt": "2025-07-28T03:37:55.881Z",
+      "stripePaymentLinkUrl": "https://buy.stripe.com/test_cNi8wPcfjgEKgqt7KI9AA07"
+    },
+    {
+      "id": "ORD-20250728035454-PHYNG25M",
+      "companyId": 118,
+      "status": "draft",
+      "package": "growth",
+      "customItems": [],
+      "subtotal": 2497,
+      "tax": 0,
+      "total": 2497,
+      "notes": "",
+      "invoiceStatus": "draft",
+      "paymentStatus": "pending",
+      "createdAt": "2025-07-28T03:54:54.634Z",
+      "updatedAt": "2025-07-28T03:54:55.598Z",
+      "stripePaymentLinkUrl": "https://buy.stripe.com/test_6oUfZhcfj606b699SQ9AA08"
+    },
+    {
+      "id": "ORD-20250728041307-NE9H470P",
+      "companyId": 118,
+      "status": "draft",
+      "package": "growth",
+      "customItems": [],
+      "subtotal": 2497,
+      "tax": 0,
+      "total": 2497,
+      "notes": "",
+      "invoiceStatus": "draft",
+      "paymentStatus": "pending",
+      "createdAt": "2025-07-28T04:13:07.563Z",
+      "updatedAt": "2025-07-28T04:13:08.510Z",
+      "stripePaymentLinkUrl": "https://buy.stripe.com/test_fZu14n3INcoudeh1mk9AA09"
+    },
+    {
+      "id": "ORD-20250728042309-FE7W0HHR",
+      "companyId": 118,
+      "status": "draft",
+      "package": "growth",
+      "customItems": [],
+      "subtotal": 2497,
+      "tax": 0,
+      "total": 2497,
+      "notes": "",
+      "invoiceStatus": "draft",
+      "paymentStatus": "pending",
+      "createdAt": "2025-07-28T04:23:09.010Z",
+      "updatedAt": "2025-07-28T04:23:09.912Z",
+      "stripePaymentLinkUrl": "https://buy.stripe.com/test_fZueVda7b4W23DH2qo9AA0a"
+    },
+    {
+      "id": "ORD-20250728042928-R3622WIH",
+      "companyId": 118,
+      "status": "draft",
+      "package": "growth",
+      "customItems": [],
+      "subtotal": 2497,
+      "tax": 0,
+      "total": 2497,
+      "notes": "",
+      "invoiceStatus": "draft",
+      "paymentStatus": "pending",
+      "createdAt": "2025-07-28T04:29:28.063Z",
+      "updatedAt": "2025-07-28T04:29:28.946Z",
+      "stripePaymentLinkUrl": "https://buy.stripe.com/test_8x29AT4MRgEK2zDaWU9AA0b"
+    },
+    {
+      "id": "ORD-20250728050317-B6YZESNB",
+      "companyId": 118,
+      "status": "in_progress",
+      "package": "growth",
+      "customItems": [],
+      "subtotal": 2497,
+      "tax": 0,
+      "total": 2497,
+      "notes": "",
+      "invoiceStatus": "paid",
+      "paymentStatus": "paid",
+      "createdAt": "2025-07-28T05:03:17.727Z",
+      "updatedAt": "2025-07-28T05:05:23.763Z",
+      "stripePaymentLinkUrl": "https://buy.stripe.com/test_6oU5kD3IN74aeil6GE9AA0c",
+      "paymentDate": "2025-07-28T05:05:23.741Z",
+      "paymentMethod": "stripe",
+      "stripePaymentIntentId": "pi_3RpjFTFLlXhB2kAE07XfPihL"
+    }
+  ],
+  "businesses": [
+    {
+      "name": "Fresh Test",
+      "phone": "No phone provided",
+      "email": "fresh@test.com",
+      "address": "To be enriched",
+      "city": "To be enriched",
+      "state": "To be enriched",
+      "businessType": "unknown",
+      "stage": "scraped",
+      "notes": "Squarespace Lead (Score: 60)\nMessage: No message\nAuto-classified: unknown",
+      "website": "",
+      "score": 60,
+      "priority": "medium",
+      "id": 1,
+      "createdAt": "2025-06-16T19:34:03.318Z"
+    },
+    {
+      "name": "Ben Dickinson",
+      "phone": "No phone provided",
+      "email": "ben04537@gmail.com",
+      "address": "To be enriched",
+      "city": "To be enriched",
+      "state": "To be enriched",
+      "businessType": "unknown",
+      "stage": "scraped",
+      "notes": "Squarespace Lead (Score: 60)\nMessage: No message\nAuto-classified: unknown",
+      "website": "",
+      "score": 60,
+      "priority": "medium",
+      "id": 5,
+      "createdAt": "2025-06-16T19:35:37.469Z"
+    },
+    {
+      "name": "max powers1.1",
+      "phone": "No phone provided",
+      "email": "harborsuits@gmail.com",
+      "address": "To be enriched",
+      "city": "To be enriched",
+      "state": "To be enriched",
+      "businessType": "unknown",
+      "stage": "scraped",
+      "notes": "Squarespace Lead (Score: 60)\nMessage: No message\nAuto-classified: unknown",
+      "website": "",
+      "score": 60,
+      "priority": "medium",
+      "id": 7,
+      "createdAt": "2025-06-16T19:36:16.711Z"
+    },
+    {
+      "name": "Test User",
+      "phone": "No phone provided",
+      "email": "test@example.com",
+      "address": "To be enriched",
+      "city": "To be enriched",
+      "state": "To be enriched",
+      "businessType": "unknown",
+      "stage": "scraped",
+      "notes": "Squarespace Lead (Score: 60)\nMessage: No message\nAuto-classified: unknown",
+      "website": "",
+      "score": 60,
+      "priority": "medium",
+      "id": 47,
+      "createdAt": "2025-06-17T01:31:25.521Z"
+    },
+    {
+      "name": "Ben Dickinson",
+      "phone": "No phone provided",
+      "email": "ben04537@gmail.com",
+      "address": "To be enriched",
+      "city": "To be enriched",
+      "state": "To be enriched",
+      "businessType": "unknown",
+      "stage": "scraped",
+      "notes": "Squarespace Lead (Score: 60)\nMessage: No message\nAuto-classified: unknown",
+      "website": "",
+      "score": 60,
+      "priority": "medium",
+      "id": 51,
+      "createdAt": "2025-06-17T01:32:07.636Z"
+    },
+    {
+      "name": "Member Account 1",
+      "phone": "No phone provided",
+      "email": "member1@test.com",
+      "address": "To be enriched",
+      "city": "To be enriched",
+      "state": "To be enriched",
+      "businessType": "unknown",
+      "stage": "scraped",
+      "notes": "Squarespace Lead (Score: 60)\nMessage: No message\nAuto-classified: unknown",
+      "website": "",
+      "score": 60,
+      "priority": "medium",
+      "id": 64,
+      "createdAt": "2025-06-17T02:34:09.482Z"
+    },
+    {
+      "name": "Member Account 2",
+      "phone": "No phone provided",
+      "email": "member2@test.com",
+      "address": "To be enriched",
+      "city": "To be enriched",
+      "state": "To be enriched",
+      "businessType": "unknown",
+      "stage": "scraped",
+      "notes": "Squarespace Lead (Score: 60)\nMessage: No message\nAuto-classified: unknown",
+      "website": "",
+      "score": 60,
+      "priority": "medium",
+      "id": 68,
+      "createdAt": "2025-06-17T02:34:16.563Z"
+    },
+    {
+      "name": "Member Account 3",
+      "phone": "No phone provided",
+      "email": "member3@test.com",
+      "address": "To be enriched",
+      "city": "To be enriched",
+      "state": "To be enriched",
+      "businessType": "unknown",
+      "stage": "scraped",
+      "notes": "Squarespace Lead (Score: 60)\nMessage: No message\nAuto-classified: unknown",
+      "website": "",
+      "score": 60,
+      "priority": "medium",
+      "id": 72,
+      "createdAt": "2025-06-17T02:34:16.574Z"
+    },
+    {
+      "name": "Test Member",
+      "phone": "No phone provided",
+      "email": "test-member@example.com",
+      "address": "To be enriched",
+      "city": "To be enriched",
+      "state": "To be enriched",
+      "businessType": "unknown",
+      "stage": "scraped",
+      "notes": "Squarespace Lead (Score: 60)\nMessage: Testing member conversation fix\nAuto-classified: unknown",
+      "website": "",
+      "score": 60,
+      "priority": "medium",
+      "id": 118,
+      "createdAt": "2025-06-18T16:33:05.267Z"
+    }
+  ],
+  "activities": [
+    {
+      "type": "client_message",
+      "description": "New message from Manual Member: hey",
+      "companyId": 1,
+      "projectId": 151,
+      "id": 2,
+      "createdAt": "2025-07-15T05:11:09.030Z"
+    },
+    {
+      "type": "client_message",
+      "description": "New message from Manual Member: hi",
+      "companyId": 1,
+      "projectId": 151,
+      "id": 4,
+      "createdAt": "2025-07-15T05:11:10.979Z"
+    },
+    {
+      "type": "client_message",
+      "description": "New message from Manual Member: hi",
+      "companyId": 1,
+      "projectId": 151,
+      "id": 6,
+      "createdAt": "2025-07-15T05:11:12.579Z"
+    },
+    {
+      "type": "client_message",
+      "description": "New message from Manual Member: nope it didint work",
+      "companyId": 1,
+      "projectId": 151,
+      "id": 8,
+      "createdAt": "2025-07-15T05:11:22.895Z"
+    },
+    {
+      "type": "client_message",
+      "description": "New message from Test Member: hey",
+      "companyId": 9,
+      "projectId": 10,
+      "id": 12,
+      "createdAt": "2025-07-15T05:33:59.156Z"
+    },
+    {
+      "type": "client_message",
+      "description": "New message from Manual Member: hey",
+      "companyId": 1,
+      "projectId": 151,
+      "id": 14,
+      "createdAt": "2025-07-15T06:19:21.353Z"
+    },
+    {
+      "type": "client_message",
+      "description": "New message from Test Member: hey how are you",
+      "companyId": 9,
+      "projectId": 10,
+      "id": 16,
+      "createdAt": "2025-07-15T22:30:26.536Z"
+    },
+    {
+      "type": "client_message",
+      "description": "New message from Test Member: files shared (1 files)",
+      "companyId": 9,
+      "projectId": 10,
+      "id": 18,
+      "createdAt": "2025-07-15T22:30:34.054Z"
+    },
+    {
+      "type": "client_message",
+      "description": "New message from Test Member: yo",
+      "companyId": 9,
+      "projectId": 10,
+      "id": 20,
+      "createdAt": "2025-07-15T22:34:21.224Z"
+    },
+    {
+      "type": "appointment_cancelled",
+      "description": "Appointment deleted: Appointment",
+      "id": 32,
+      "createdAt": "2025-07-16T02:46:01.688Z"
+    },
+    {
+      "type": "appointment_cancelled",
+      "description": "Appointment deleted: Appointment",
+      "id": 33,
+      "createdAt": "2025-07-16T02:46:10.873Z"
+    },
+    {
+      "type": "appointment_cancelled",
+      "description": "Appointment deleted: Appointment",
+      "id": 34,
+      "createdAt": "2025-07-16T02:46:26.546Z"
+    },
+    {
+      "type": "appointment_cancelled",
+      "description": "Appointment deleted: Appointment",
+      "id": 35,
+      "createdAt": "2025-07-16T02:47:07.456Z"
+    },
+    {
+      "type": "appointment_cancelled",
+      "description": "Appointment deleted: Appointment",
+      "id": 48,
+      "createdAt": "2025-07-22T07:17:17.640Z"
+    },
+    {
+      "type": "client_message",
+      "description": "New message from Manual Member: hey",
+      "companyId": 1,
+      "projectId": 151,
+      "id": 67,
+      "createdAt": "2025-07-23T03:38:46.690Z"
+    },
+    {
+      "type": "client_message",
+      "description": "New message from Manual Member: whats up",
+      "companyId": 1,
+      "projectId": 151,
+      "id": 70,
+      "createdAt": "2025-07-23T03:39:17.710Z"
+    },
+    {
+      "type": "client_message",
+      "description": "New message from Test User: Test message from curl",
+      "companyId": 21,
+      "projectId": 49,
+      "id": 72,
+      "createdAt": "2025-07-23T03:41:46.904Z"
+    },
+    {
+      "type": "client_message",
+      "description": "New message from Test Business Client: URGENT: Business critical message test - this mess...",
+      "companyId": 21,
+      "projectId": 49,
+      "id": 74,
+      "createdAt": "2025-07-23T03:44:46.549Z"
+    },
+    {
+      "type": "client_message",
+      "description": "New message from Business Owner (Squarespace): 🔥 CRITICAL TEST: Message from Squarespace widget ...",
+      "companyId": 21,
+      "projectId": 49,
+      "id": 78,
+      "createdAt": "2025-07-23T03:51:23.196Z"
+    },
+    {
+      "type": "client_message",
+      "description": "New message from Squarespace Customer: 🚨 URGENT: Test message sent at Wed Jul 23 00:00:0...",
+      "companyId": 21,
+      "projectId": 49,
+      "id": 80,
+      "createdAt": "2025-07-23T04:00:07.470Z"
+    },
+    {
+      "type": "client_message",
+      "description": "New message from System Test: ✅ SUCCESS: Admin UI is now loading! Check your inb...",
+      "companyId": 21,
+      "projectId": 49,
+      "id": 82,
+      "createdAt": "2025-07-23T04:03:50.469Z"
+    },
+    {
+      "type": "client_message",
+      "description": "New message from System Test: 🎯 FINAL TEST: Admin UI is now running in a separa...",
+      "companyId": 21,
+      "projectId": 49,
+      "id": 84,
+      "createdAt": "2025-07-23T04:08:40.247Z"
+    },
+    {
+      "type": "client_message",
+      "description": "New message from Fresh Test User: 🆕 BRAND NEW TEST: This message is UNREAD and shou...",
+      "companyId": 21,
+      "projectId": 49,
+      "id": 87,
+      "createdAt": "2025-07-23T04:17:12.578Z"
+    },
+    {
+      "type": "client_message",
+      "description": "New message from Widget Test User: 🔍 DIAGNOSTIC TEST: Widget message should appear i...",
+      "companyId": 21,
+      "projectId": 49,
+      "id": 89,
+      "createdAt": "2025-07-24T03:55:19.727Z"
+    },
+    {
+      "type": "client_message",
+      "description": "New message from WebSocket Test: 🔥 REALTIME TEST: This message should appear INSTA...",
+      "companyId": 21,
+      "projectId": 49,
+      "id": 91,
+      "createdAt": "2025-07-24T03:56:50.369Z"
+    },
+    {
+      "type": "client_message",
+      "description": "New message from Console Test: BROWSER TEST: Check console logs in admin UI!",
+      "companyId": 21,
+      "projectId": 49,
+      "id": 93,
+      "createdAt": "2025-07-24T04:00:31.879Z"
+    },
+    {
+      "type": "client_message",
+      "description": "New message from Debug Test: 🔥 REAL-TIME DEBUG: This message should appear in ...",
+      "companyId": 21,
+      "projectId": 49,
+      "id": 95,
+      "createdAt": "2025-07-24T04:09:16.377Z"
+    },
+    {
+      "type": "client_message",
+      "description": "New message from System Debug: 🎯 LIVE TEST: Services are running - message shoul...",
+      "companyId": 21,
+      "projectId": 49,
+      "id": 97,
+      "createdAt": "2025-07-24T04:19:37.375Z"
+    },
+    {
+      "type": "client_message",
+      "description": "New message from Test User: Test message from curl",
+      "companyId": 47,
+      "projectId": 99,
+      "id": 101,
+      "createdAt": "2025-07-28T22:41:50.498Z"
+    },
+    {
+      "type": "client_message",
+      "description": "New message from Test Member: hey",
+      "companyId": 102,
+      "projectId": 103,
+      "id": 105,
+      "createdAt": "2025-07-29T20:59:24.954Z"
+    },
+    {
+      "type": "client_message",
+      "description": "New message from Test Member: files shared (1 files)",
+      "companyId": 102,
+      "projectId": 103,
+      "id": 108,
+      "createdAt": "2025-07-29T21:07:24.188Z"
+    },
+    {
+      "companyId": 103,
+      "projectId": 104,
+      "type": "appointment_scheduled",
+      "description": "Consultation appointment scheduled for 1/20/2025 at 10:00 - Services: Website Design, Budget: 1000-3000",
+      "id": 111,
+      "createdAt": "2025-08-01T03:23:33.906Z"
+    }
+  ],
+  "campaigns": [],
+  "templates": [],
+  "appointments": [
+    {
+      "companyId": 1,
+      "projectId": 39,
+      "firstName": "Ben",
+      "lastName": "Dickinson",
+      "email": "ben04537@gmail.com",
+      "phone": "12073805680",
+      "businessName": "The Way Lobster Should Be",
+      "services": "website, seo",
+      "projectDescription": "kjhvjkbl;kjhbl",
+      "budget": "5k-10k",
+      "timeline": "1-month",
+      "appointmentDate": "2025-07-17",
+      "appointmentTime": "8:30 AM",
+      "additionalNotes": "",
+      "status": "pending",
+      "id": 40,
+      "createdAt": "2025-07-16T03:06:38.224Z"
+    },
+    {
+      "companyId": 41,
+      "projectId": 42,
+      "firstName": "Today",
+      "lastName": "Test",
+      "email": "today@example.com",
+      "phone": "(555) 111-2222",
+      "businessName": "",
+      "services": "website-design",
+      "projectDescription": "Testing todays appointment visibility",
+      "budget": "$2,000 - $5,000",
+      "timeline": "1 month",
+      "appointmentDate": "2025-07-16",
+      "appointmentTime": "9:00 AM",
+      "additionalNotes": "",
+      "status": "pending",
+      "id": 43,
+      "createdAt": "2025-07-16T03:15:30.788Z"
+    },
+    {
+      "companyId": 1,
+      "projectId": 44,
+      "firstName": "Ben",
+      "lastName": "Dickinson",
+      "email": "ben04537@gmail.com",
+      "phone": "12073805680",
+      "businessName": "The Way Lobster Should Be",
+      "services": "website, redesign",
+      "projectDescription": "lkijhgvhjklkj",
+      "budget": "5k-10k",
+      "timeline": "2-3-months",
+      "appointmentDate": "2025-07-19",
+      "appointmentTime": "8:30 AM",
+      "additionalNotes": "",
+      "status": "pending",
+      "id": 45,
+      "createdAt": "2025-07-16T03:16:42.697Z"
+    },
+    {
+      "companyId": 1,
+      "projectId": 46,
+      "firstName": "Ben",
+      "lastName": "Dickinson",
+      "email": "ben04537@gmail.com",
+      "phone": "12073805680",
+      "businessName": "The Way Lobster Should Be",
+      "services": "website, redesign",
+      "projectDescription": ",mnbvjhghjojhjoijh",
+      "budget": "under-5k",
+      "timeline": "1-month",
+      "appointmentDate": "2025-07-24",
+      "appointmentTime": "9:00 AM",
+      "additionalNotes": "",
+      "status": "pending",
+      "id": 47,
+      "createdAt": "2025-07-22T02:56:08.429Z"
+    },
+    {
+      "companyId": 21,
+      "projectId": 49,
+      "firstName": "Test",
+      "lastName": "User",
+      "email": "test@example.com",
+      "phone": "555-123-4567",
+      "businessName": "Test Business",
+      "services": "Website Consultation",
+      "projectDescription": "Test Zoom meeting creation",
+      "budget": "$1,000-$5,000",
+      "timeline": "1-2 weeks",
+      "appointmentDate": "2024-01-25",
+      "appointmentTime": "14:00",
+      "meetingType": "zoom",
+      "additionalNotes": "Testing Zoom integration",
+      "status": "pending",
+      "id": 50,
+      "createdAt": "2025-07-22T20:32:25.165Z"
+    },
+    {
+      "companyId": 103,
+      "projectId": 104,
+      "projectToken": "pcd_103_mdoz7fls_o20iij",
+      "datetime": "2025-01-20T15:00:00.000Z",
+      "status": "scheduled",
+      "notes": "Initial Consultation Appointment\n\nServices Requested: Website Design\nBudget: 1000-3000\nTimeline: 1-2 weeks\nMeeting Type: Zoom Video Call\n\nProject Description:\nundefined\n\n\n\nContact Information:\n- Name: Test User\n- Email: test@example.com\n- Phone: undefined\n- Business: Test Business\n\nBooked via: undefined",
+      "serviceType": "Website Design",
+      "duration": 30,
+      "isAutoScheduled": true,
+      "meetingType": "video",
+      "firstName": "Test",
+      "lastName": "User",
+      "email": "test@example.com",
+      "id": 110,
+      "createdAt": "2025-08-01T03:23:33.877Z"
+    }
+  ],
+  "progressEntries": [],
+  "canvasData": {
+    "99": {
+      "elements": [
+        {
+          "id": "test1",
+          "type": "text",
+          "content": "Hello World",
+          "position": {
+            "x": 100,
+            "y": 100
+          },
+          "size": {
+            "width": 200,
+            "height": 50
+          },
+          "style": {
+            "color": "black",
+            "fontSize": 16
+          }
+        }
+      ],
+      "selectedElement": null,
+      "gridSize": 20,
+      "snapToGrid": true,
+      "zoom": 1,
+      "viewMode": "design",
+      "version": 1,
+      "collaborators": [],
+      "updatedAt": "2025-08-06T04:23:21.626Z"
+    }
+  },
+  "canvasVersions": {},
+  "counters": {
+    "companies": 0,
+    "projects": 0,
+    "projectMessages": 0,
+    "projectFiles": 0,
+    "businesses": 0,
+    "activities": 0,
+    "campaigns": 0,
+    "templates": 0,
+    "appointments": 0,
+    "progressEntries": 0,
+    "orders": 18
+  },
+  "nextId": 112
+}

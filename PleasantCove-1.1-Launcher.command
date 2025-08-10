@@ -1,7 +1,13 @@
 #!/bin/bash
 
 # Pleasant Cove Design v1.1 Launcher - Production Mode
-cd "/Users/bendickinson/Desktop/pleasantcovedesign/pleasantcovedesign"
+# This script starts the Admin UI and connects to Railway production backend
+
+# Get the directory of this script
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+
+# Set the project root
+PROJECT_ROOT="$SCRIPT_DIR"
 
 # Colors for output
 GREEN='\033[0;32m'
@@ -10,62 +16,57 @@ RED='\033[0;31m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-echo -e "${BLUE}🚀 Pleasant Cove Design v1.1 Launcher - Production Mode${NC}"
-echo -e "${BLUE}===============================================${NC}"
+echo -e "${BLUE}🚀 Pleasant Cove Design v1.1 - Starting Your Day${NC}"
+echo -e "${BLUE}======================================================${NC}"
 
-# Kill any existing local processes
-echo -e "${YELLOW}🔧 Cleaning up existing local processes...${NC}"
+# Kill any existing local UI processes
+echo -e "${YELLOW}🔧 Cleaning up any old processes...${NC}"
 pkill -f "vite" 2>/dev/null || true
 lsof -ti:5173 | xargs kill -9 2>/dev/null || true
 
 # Wait for cleanup
-sleep 2
+sleep 1
 
-# Test Railway backend connection
-echo -e "${YELLOW}🔗 Testing Railway backend connection...${NC}"
-if curl -s https://pcd-production-clean-production.up.railway.app/api/health > /dev/null 2>&1; then
-    echo -e "${GREEN}✅ Railway backend is online!${NC}"
-else
-    echo -e "${RED}❌ Cannot connect to Railway backend${NC}"
-    echo -e "${RED}Please check Railway deployment status${NC}"
-    exit 1
-fi
-
-# Start ONLY the React Admin UI (connects to Railway backend)
-echo -e "${YELLOW}🚀 Starting Admin UI (connecting to Railway backend)...${NC}"
-cd admin-ui
+# Start the Admin UI
+echo -e "${YELLOW}🚀 Starting Admin UI...${NC}"
+cd "$PROJECT_ROOT/pleasantcovedesign/admin-ui"
 npm run dev &
 UI_PID=$!
 
-# Wait for frontend to start
-echo -e "${YELLOW}⏳ Waiting for Admin UI to initialize...${NC}"
-sleep 8
+# Wait for UI to start
+echo -e "${YELLOW}⏳ Waiting for Admin UI to start...${NC}"
+UI_READY=0
+for i in {1..30}; do
+  if curl -sf http://localhost:5173 > /dev/null; then
+    UI_READY=1
+    break
+  fi
+  sleep 1
+done
 
-# Test if Admin UI is running
-if curl -s http://localhost:5173 > /dev/null 2>&1; then
-    echo -e "${GREEN}✅ Pleasant Cove Design v1.1 is running successfully!${NC}"
-    echo -e "${GREEN}📍 Admin UI: http://localhost:5173${NC}"
-    echo -e "${GREEN}🔗 Backend API: https://pcd-production-clean-production.up.railway.app/api${NC}"
-    echo -e "${GREEN}🎯 Webhook URL: https://pcd-production-clean-production.up.railway.app/api/new-lead${NC}"
+if [[ $UI_READY -eq 1 ]]; then
+    echo -e "${GREEN}✅ Pleasant Cove Design Admin UI is ready!${NC}"
     echo ""
-    echo -e "${BLUE}📋 Quick Access:${NC}"
-    echo -e "${BLUE}• Dashboard: http://localhost:5173/dashboard${NC}"
-    echo -e "${BLUE}• Inbox: http://localhost:5173/inbox${NC}"
+    echo -e "${GREEN}📊 Your Admin Dashboard is starting...${NC}"
+    echo -e "${GREEN}📬 Messages and appointments from Railway production${NC}"
+    echo -e "${GREEN}🌐 Backend running 24/7 on Railway${NC}"
     echo ""
     
-    # Open the Admin Inbox automatically
-    echo -e "${YELLOW}🌐 Opening Admin Inbox...${NC}"
-    open http://localhost:5173/inbox
+    # Open Admin UI - it will automatically connect to production Railway
+    echo -e "${YELLOW}🌐 Opening your Admin Dashboard...${NC}"
+    sleep 1
+    open "http://localhost:5173/inbox"
     
-    echo -e "${GREEN}🎉 System is ready!${NC}"
-    echo -e "${YELLOW}💡 Press Ctrl+C in terminal to stop the UI${NC}"
-    echo -e "${BLUE}ℹ️  Backend running on Railway (always available)${NC}"
+    echo ""
+    echo -e "${GREEN}🎉 Ready for your day!${NC}"
+    echo -e "${YELLOW}💡 This window will stay open to keep the UI running${NC}"
+    echo -e "${YELLOW}💡 Press Ctrl+C when you're done for the day${NC}"
     
-    # Keep the script running so user can see the output
+    # Keep the script running so UI stays up
     wait $UI_PID
 else
-    echo -e "${RED}❌ Failed to start Pleasant Cove Design v1.1${NC}"
+    echo -e "${RED}❌ Failed to start Admin UI${NC}"
     echo -e "${RED}Please check for errors above and try again${NC}"
     kill $UI_PID 2>/dev/null || true
     exit 1
-fi 
+fi

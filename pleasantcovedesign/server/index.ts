@@ -7,6 +7,8 @@ import fs from "fs";
 import { registerRoutes } from "./routes";
 import { storage } from './storage';
 import { Server } from 'socket.io';
+import { registerTeamRoutes } from './routes/team-routes';
+import { registerDemoRoutes } from './routes/demo-routes';
 
 // Load environment variables FIRST before importing anything else
 dotenv.config({ path: resolve(process.cwd(), '.env') });
@@ -20,6 +22,8 @@ import { createR2Storage } from './storage/r2-storage';
 import { requestLogger, errorHandler, performanceMonitor } from './middleware/logging';
 import { createCorsMiddleware } from './middleware/cors';
 import demoRoutes from './demo-routes';
+import { sendEmail } from './email-service';
+import { sendSMS, smsProviderStatus } from './sms-service';
 
 // Node.js compatible __dirname alternative - avoid conflicts
 const __main_dirname = path.dirname(__filename);
@@ -140,6 +144,58 @@ io.on('connection', (socket) => {
     });
   });
   
+  // Handle canvas-related events
+  socket.on('canvas:view', async (projectToken: string) => {
+    try {
+      // Validate project token
+      if (!projectToken) {
+        socket.emit('canvas:error', { message: 'Invalid project token' });
+        return;
+      }
+      
+      // Get project by token
+      const project = await storage.getProjectByToken(projectToken);
+      
+      if (!project) {
+        socket.emit('canvas:error', { message: 'Project not found' });
+        return;
+      }
+      
+      // Join canvas room
+      const canvasRoom = `canvas:${projectToken}`;
+      socket.join(canvasRoom);
+      
+      console.log(`🎨 Socket ${socket.id} viewing canvas for project ${projectToken}`);
+      
+      // Get canvas data
+      const canvasData = await storage.getCanvasData(project.id);
+      
+      // Create a client-safe version of the canvas data
+      const clientCanvasData = canvasData ? {
+        ...canvasData,
+        viewMode: 'preview', // Force preview mode for clients
+        selectedElement: null, // Clear any selected element
+        readOnly: true // Force read-only mode
+      } : {
+        elements: [],
+        selectedElement: null,
+        gridSize: 20,
+        snapToGrid: true,
+        zoom: 1,
+        viewMode: 'preview',
+        version: 1,
+        collaborators: [],
+        readOnly: true
+      };
+      
+      // Send canvas data to client
+      socket.emit('canvas:data', clientCanvasData);
+    } catch (error) {
+      console.error('Error in canvas:view handler:', error);
+      socket.emit('canvas:error', { message: 'Server error' });
+    }
+  });
+  
   socket.on('disconnect', (reason) => {
     console.log('🔌 Socket disconnected:', socket.id, 'reason:', reason);
     
@@ -183,9 +239,24 @@ app.use((req, res, next) => {
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 // Serve static files from React build (if they exist)
+// Expecting the admin-ui build to be copied to `server/dist/client`
 const buildPath = path.join(__main_dirname, '../dist/client');
 if (fs.existsSync(buildPath)) {
-  app.use(express.static(buildPath));
+  console.log('📁 Serving admin UI from:', buildPath);
+  app.use(
+    express.static(buildPath, {
+      setHeaders: (res, filePath) => {
+        const isHtml = filePath.endsWith('.html');
+        if (isHtml) {
+          // Ensure SPA shell is always fresh
+          res.setHeader('Cache-Control', 'no-cache');
+        } else {
+          // Long-cache hashed assets
+          res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+        }
+      },
+    })
+  );
 }
 
 // Serve client widget files
@@ -407,14 +478,54 @@ async function startServer() {
       console.log('⚠️  Added fallback health route');
     }
     
-    // Register demo serving routes
+    // Register team routes
+    console.log('🔧 Registering team routes...');
+    try {
+      registerTeamRoutes(app);
+      console.log('✅ Team routes registered successfully');
+    } catch (teamError) {
+      console.error('⚠️  Team routes failed:', teamError);
+    }
+    
+    // Register demo routes (including stats)
     console.log('🔧 Registering demo routes...');
     try {
-      app.use('/api', demoRoutes);
+      registerDemoRoutes(app);
       console.log('✅ Demo routes registered successfully');
-    } catch (demoError) {
-      console.error('⚠️  Demo routes failed:', demoError);
+    } catch (demoRoutesError) {
+      console.error('⚠️  Demo routes failed:', demoRoutesError);
     }
+    
+    // Register legacy demo serving routes (for HTML files)
+    console.log('🔧 Registering demo HTML serving routes...');
+    try {
+      app.use('/api', demoRoutes);
+      console.log('✅ Demo HTML serving routes registered successfully');
+    } catch (demoError) {
+      console.error('⚠️  Demo HTML serving routes failed:', demoError);
+    }
+    
+    // Provider test routes (email/SMS) for quick verification
+    app.get('/api/providers/status', (req, res) => {
+      res.json({
+        sendgrid: { hasKey: !!process.env.SENDGRID_API_KEY, fromEmail: process.env.FROM_EMAIL, fromName: process.env.FROM_NAME },
+        twilio: smsProviderStatus(),
+      });
+    });
+    
+    app.post('/api/providers/test-email', async (req, res) => {
+      const { to, subject, text } = req.body || {};
+      if (!to || !subject || !text) return res.status(400).json({ error: 'to, subject, text required' });
+      const ok = await sendEmail({ to, subject, text });
+      return res.json({ success: ok });
+    });
+    
+    app.post('/api/providers/test-sms', async (req, res) => {
+      const { to, body } = req.body || {};
+      if (!to || !body) return res.status(400).json({ error: 'to, body required' });
+      const result = await sendSMS({ to, body });
+      return res.json(result);
+    });
     
     // Error handling middleware (must be last)
     app.use(errorHandler);

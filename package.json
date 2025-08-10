@@ -1,13 +1,24 @@
 {
   "name": "pleasant-cove-design-production",
   "version": "1.0.0",
-  "description": "Pleasant Cove Design - Production Server",
+  "description": "Pleasant Cove Design - Complete Development Environment",
   "main": "pleasantcovedesign/server/dist/index.js",
   "scripts": {
     "start": "node pleasantcovedesign/server/dist/index.js",
-    "build": "cd pleasantcovedesign/server && npm install && npm run build"
+    "build": "cd pleasantcovedesign/server && npm ci || npm install && npm run build",
+    "build:prod": "bash scripts/build-prod.sh",
+    "install:all": "cd pleasantcovedesign/server && npm ci || npm install && cd ../admin-ui && npm ci || npm install",
+    "dev": "concurrently \"npm run dev:server\" \"npm run dev:ui\" \"npm run dev:widget\"",
+    "dev:server": "cd pleasantcovedesign/server && npm run dev",
+    "dev:ui": "cd pleasantcovedesign/admin-ui && npm run dev",
+    "dev:widget": "cd pleasantcovedesign/client-widget && npx serve -s . -l 8080",
+    "stop": "pkill -f 'npm run dev' || true"
   },
   "engines": {
-    "node": "18"
+    "node": ">=18 <23"
+  },
+  "devDependencies": {
+    "concurrently": "^7.6.0",
+    "serve": "^14.2.0"
   }
 }

@@ -75,13 +75,10 @@ const AppointmentsPanel: React.FC = () => {
 
   const formatAppointmentDate = (datetime: string | Date): string => {
     const date = new Date(datetime);
-    const now = new Date();
-
-    const isTomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1).toDateString() === date.toDateString();
-    const dayName = date.toLocaleDateString('en-US', { weekday: 'long' });
+    const dateString = date.toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: 'numeric' });
     const timeString = date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
 
-    return isTomorrow ? `Tomorrow ${timeString}` : `${dayName} ${timeString}`;
+    return `${dateString} ${timeString}`;
   }
 
   // Parse structured appointment data from notes

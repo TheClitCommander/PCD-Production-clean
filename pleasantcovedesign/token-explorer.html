@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Token Explorer</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f8f9fa;
+        }
+        h1, h2 {
+            color: #333;
+        }
+        .card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        .token-item {
+            background: #f1f8ff;
+            border-left: 4px solid #0366d6;
+            padding: 10px;
+            margin: 10px 0;
+        }
+        .token-key {
+            font-weight: bold;
+            color: #0366d6;
+        }
+        .token-value {
+            font-family: monospace;
+            color: #24292e;
+            word-break: break-all;
+        }
+        .small {
+            font-size: 0.8em;
+            color: #666;
+        }
+        button {
+            background: #0366d6;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 8px 12px;
+            cursor: pointer;
+            margin-right: 5px;
+            margin-bottom: 5px;
+        }
+        button:hover {
+            background: #0257ba;
+        }
+        button.danger {
+            background: #d73a49;
+        }
+        button.danger:hover {
+            background: #b92534;
+        }
+        pre {
+            background: #f6f8fa;
+            border-radius: 6px;
+            padding: 15px;
+            overflow-x: auto;
+            max-height: 300px;
+        }
+        .debug-info {
+            background: #fff3cd;
+            border: 1px solid #ffeeba;
+            border-radius: 4px;
+            padding: 10px;
+            margin: 10px 0;
+        }
+        #messageContainer {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        details {
+            margin-bottom: 15px;
+        }
+        summary {
+            cursor: pointer;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Project Token Explorer</h1>
+    <p>This utility helps you understand what's happening with your Pleasant Cove Design project tokens.</p>
+
+    <div class="card">
+        <h2>Your Current Tokens</h2>
+        <div id="tokenList">Loading tokens...</div>
+    </div>
+
+    <div class="card">
+        <h2>Conversation Fixer</h2>
+        <p>If you're experiencing issues with messages not appearing in the admin UI:</p>
+        
+        <div class="actions">
+            <button onclick="checkAdminToken()">Check Admin Token</button>
+            <button onclick="consolidateTokens()">Consolidate Tokens</button>
+            <button class="danger" onclick="clearAllTokens()">Clear All Tokens</button>
+        </div>
+    </div>
+
+    <details>
+        <summary>Debug Options</summary>
+        <div class="card">
+            <h2>Advanced Debugging</h2>
+            <div class="actions">
+                <button onclick="fetchConversations()">Fetch Admin Conversations</button>
+                <button onclick="checkBackendConnection()">Check Backend Connection</button>
+                <button onclick="showAllStorage()">Show All LocalStorage</button>
+            </div>
+            <pre id="debugOutput">Debug information will appear here...</pre>
+        </div>
+    </details>
+
+    <div id="messageContainer"></div>
+
+    <script>
+        // Get the URL of the backend
+        function getBackendUrl() {
+            // Try development mode first
+            const debugMode = localStorage.getItem('pcd_debug_mode') === 'true';
+            if (debugMode) {
+                return 'http://localhost:3000';
+            }
+            
+            // Check for stored backend URL
+            const storedUrl = localStorage.getItem('pcd_backend_url');
+            if (storedUrl) {
+                return storedUrl;
+            }
+            
+            // Check for URL parameter
+            const urlParams = new URLSearchParams(window.location.search);
+            const paramUrl = urlParams.get('backend_url') || urlParams.get('api_url');
+            if (paramUrl) {
+                return paramUrl;
+            }
+            
+            // Default to production
+            return 'https://pcd-production-clean-production-e6f3.up.railway.app';
+        }
+        
+        // Display tokens from localStorage
+        function displayTokens() {
+            const tokenList = document.getElementById('tokenList');
+            tokenList.innerHTML = '';
+            
+            // Find all project tokens
+            const tokens = [];
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key.startsWith('pcd_')) {
+                    tokens.push({ key, value: localStorage.getItem(key) });
+                }
+            }
+            
+            if (tokens.length === 0) {
+                tokenList.innerHTML = '<p>No tokens found in localStorage.</p>';
+                return;
+            }
+            
+            // Sort tokens by key
+            tokens.sort((a, b) => {
+                if (a.key === 'pcd_project_token') return -1; // Main token first
+                if (b.key === 'pcd_project_token') return 1;
+                return a.key.localeCompare(b.key);
+            });
+            
+            // Display tokens
+            tokens.forEach(token => {
+                const tokenDiv = document.createElement('div');
+                tokenDiv.className = 'token-item';
+                
+                const isMainToken = token.key === 'pcd_project_token';
+                const displayValue = token.value.length > 12 
+                    ? token.value.substring(0, 8) + '...' + token.value.substring(token.value.length - 4)
+                    : token.value;
+                
+                tokenDiv.innerHTML = `
+                    <div class="token-key">${token.key} ${isMainToken ? '(Primary)' : ''}</div>
+                    <div class="token-value">${displayValue}</div>
+                    <div class="small">
+                        <button onclick="copyToClipboard('${token.value}')">Copy Full Token</button>
+                        <button class="danger" onclick="removeToken('${token.key}')">Remove</button>
+                    </div>
+                `;
+                tokenList.appendChild(tokenDiv);
+            });
+            
+            // Show the backend URL
+            const backendUrlDiv = document.createElement('div');
+            backendUrlDiv.className = 'debug-info';
+            backendUrlDiv.innerHTML = `
+                <strong>Backend URL:</strong> ${getBackendUrl()}
+                <br>
+                <small>(Set by ${localStorage.getItem('pcd_debug_mode') === 'true' ? 'debug mode' : 
+                         localStorage.getItem('pcd_backend_url') ? 'localStorage' : 
+                         new URLSearchParams(window.location.search).get('backend_url') ? 'URL parameter' : 
+                         'default'})</small>
+            `;
+            tokenList.appendChild(backendUrlDiv);
+        }
+        
+        // Copy text to clipboard
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                showMessage('Token copied to clipboard!', 'success');
+            }).catch(err => {
+                showMessage('Failed to copy token: ' + err, 'error');
+            });
+        }
+        
+        // Remove a token
+        function removeToken(key) {
+            if (confirm(`Are you sure you want to remove ${key}?`)) {
+                localStorage.removeItem(key);
+                displayTokens();
+                showMessage(`Removed ${key}`, 'success');
+            }
+        }
+        
+        // Clear all tokens
+        function clearAllTokens() {
+            if (confirm('Are you sure you want to clear ALL tokens? This will reset your conversations.')) {
+                for (let i = localStorage.length - 1; i >= 0; i--) {
+                    const key = localStorage.key(i);
+                    if (key.startsWith('pcd_')) {
+                        localStorage.removeItem(key);
+                    }
+                }
+                displayTokens();
+                showMessage('All tokens cleared. You may need to refresh any open messaging widgets.', 'success');
+            }
+        }
+        
+        // Consolidate tokens
+        function consolidateTokens() {
+            // Find all email-specific tokens
+            const emailTokens = {};
+            const mainToken = localStorage.getItem('pcd_project_token');
+            const mainEmail = localStorage.getItem('pcd_user_email');
+            
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key.startsWith('pcd_member_token_')) {
+                    const email = key.replace('pcd_member_token_', '');
+                    emailTokens[email] = localStorage.getItem(key);
+                }
+            }
+            
+            // If we have a main token, use it as the primary
+            if (mainToken && mainEmail) {
+                const normalizedEmail = normalizeEmail(mainEmail);
+                localStorage.setItem(`pcd_member_token_${normalizedEmail}`, mainToken);
+                showMessage(`Consolidated tokens using ${mainEmail} as primary`, 'success');
+            } else if (Object.keys(emailTokens).length > 0) {
+                // Use the first email token as primary
+                const firstEmail = Object.keys(emailTokens)[0];
+                const firstToken = emailTokens[firstEmail];
+                
+                localStorage.setItem('pcd_project_token', firstToken);
+                localStorage.setItem('pcd_user_email', denormalizeEmail(firstEmail));
+                
+                showMessage(`Set ${denormalizeEmail(firstEmail)} as primary with token ${firstToken.substring(0, 8)}...`, 'success');
+            } else {
+                showMessage('No tokens to consolidate', 'error');
+            }
+            
+            displayTokens();
+        }
+        
+        // Check admin token
+        function checkAdminToken() {
+            const adminToken = localStorage.getItem('pcd_last_admin_project');
+            const userToken = localStorage.getItem('pcd_project_token');
+            
+            if (adminToken) {
+                document.getElementById('debugOutput').textContent = `Admin token: ${adminToken}\nUser token: ${userToken || 'Not set'}`;
+                
+                if (userToken && adminToken === userToken) {
+                    showMessage('✅ Admin token matches user token. Conversations should appear correctly.', 'success');
+                } else if (userToken) {
+                    showMessage('⚠️ Admin token does not match user token. This may cause conversations to appear in different threads.', 'error');
+                } else {
+                    showMessage('⚠️ No user token found. Try using the messaging widget first.', 'error');
+                }
+            } else {
+                showMessage('⚠️ No admin token found. Try opening the admin inbox first.', 'error');
+            }
+        }
+        
+        // Helper to normalize email addresses (same as widget)
+        function normalizeEmail(email) {
+            if (!email) return 'anonymous';
+            return email.trim().toLowerCase().replace(/[^a-z0-9]/g, '_');
+        }
+        
+        // Helper to denormalize email (for display purposes)
+        function denormalizeEmail(normalized) {
+            if (normalized === 'anonymous') return 'anonymous@example.com';
+            return normalized.replace(/_/g, '.') + '@example.com';
+        }
+        
+        // Fetch conversations from admin
+        async function fetchConversations() {
+            const debugOutput = document.getElementById('debugOutput');
+            debugOutput.textContent = 'Fetching conversations...';
+            
+            try {
+                const backendUrl = getBackendUrl();
+                const response = await fetch(`${backendUrl}/api/admin/inbox`, {
+                    headers: {
+                        'Authorization': 'Bearer admin',
+                        'ngrok-skip-browser-warning': 'true'
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error ${response.status}`);
+                }
+                
+                const data = await response.json();
+                debugOutput.textContent = JSON.stringify(data, null, 2);
+                showMessage(`Found ${data.projectMessages?.length || 0} conversations`, 'success');
+            } catch (error) {
+                debugOutput.textContent = `Error: ${error.message}`;
+                showMessage(`Failed to fetch conversations: ${error.message}`, 'error');
+            }
+        }
+        
+        // Check backend connection
+        async function checkBackendConnection() {
+            const debugOutput = document.getElementById('debugOutput');
+            debugOutput.textContent = 'Checking backend connection...';
+            
+            try {
+                const backendUrl = getBackendUrl();
+                const response = await fetch(`${backendUrl}/api/health`, {
+                    headers: {
+                        'ngrok-skip-browser-warning': 'true'
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error ${response.status}`);
+                }
+                
+                const data = await response.json();
+                debugOutput.textContent = JSON.stringify(data, null, 2);
+                showMessage(`Backend is online: ${backendUrl}`, 'success');
+            } catch (error) {
+                debugOutput.textContent = `Error: ${error.message}`;
+                showMessage(`Backend connection failed: ${error.message}`, 'error');
+            }
+        }
+        
+        // Show all localStorage
+        function showAllStorage() {
+            const debugOutput = document.getElementById('debugOutput');
+            const storage = {};
+            
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                storage[key] = localStorage.getItem(key);
+            }
+            
+            debugOutput.textContent = JSON.stringify(storage, null, 2);
+        }
+        
+        // Show message
+        function showMessage(message, type) {
+            const messageContainer = document.getElementById('messageContainer');
+            messageContainer.textContent = message;
+            messageContainer.className = type;
+            
+            // Auto-hide after 5 seconds
+            setTimeout(() => {
+                messageContainer.textContent = '';
+                messageContainer.className = '';
+            }, 5000);
+        }
+        
+        // Initialize
+        displayTokens();
+    </script>
+</body>
+</html>

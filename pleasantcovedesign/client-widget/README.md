@@ -1,191 +1,55 @@
-# 🏖️ Pleasant Cove Design - Squarespace Member Portal Widgets
+# Pleasant Cove Design - Client Widget
 
-## 📦 What's Included
+This directory contains client-facing widgets that can be embedded in Squarespace or other websites.
 
-This package contains everything you need to integrate appointment booking and messaging functionality into your Squarespace member area, connecting seamlessly with your Pleasant Cove Design backend.
+## Canvas Viewer Widget
 
-### 📁 Files Overview
+The Canvas Viewer Widget allows clients to view their project's canvas and communicate with the design team in real-time.
 
-```
-squarespace-widgets/
-├── appointment-booking.html    # Appointment booking widget
-├── messaging-widget.html      # Real-time messaging widget  
-├── meeting-access.html        # Client meeting access portal
-├── demo.html                  # Interactive demo page
-├── SETUP_GUIDE.md            # Complete integration guide
-└── README.md                 # This file
-```
+### Files
 
----
+- `canvas-viewer.html` - The main widget HTML file
+- `canvas-embed-member.html` - The embed code for Squarespace member areas
+- `debug-canvas.html` - A debugging tool for the canvas viewer
+- `SQUARESPACE_SETUP.md` - Detailed setup instructions
 
-## 🎯 Quick Demo
+### Features
 
-To see the widgets in action:
+- **Canvas Viewing**: Clients can view their project's design canvas in real-time
+- **Messaging**: Built-in messaging system for client-designer communication
+- **Member Authentication**: Automatically detects Squarespace members
+- **Project Isolation**: Each client only sees their own project
+- **Responsive Design**: Works on desktop and mobile devices
 
-1. **Start your Pleasant Cove backend**: `npm run dev`
-2. **Open the demo**: Visit `squarespace-widgets/demo.html` in your browser
-3. **Try the features**:
-   - Book a consultation appointment
-   - Send messages with file attachments
-   - See real-time updates
+### Integration Options
 
----
+1. **Member Area Integration** (Recommended)
+   - Add the embed code to a Member-Only page in Squarespace
+   - The widget automatically detects the logged-in member and shows their project
 
-## ✨ Features
+2. **Direct Link Integration**
+   - Use the embed code with a specific project token
+   - Share the link directly with clients
 
-### 📅 Appointment Booking Widget
-- **Date & time selection** with availability checking
-- **Client information capture** (name, email, phone, project details)
-- **Real-time validation** and error handling
-- **Automatic sync** with your admin dashboard
-- **Mobile responsive** design
-- **Professional styling** that matches your brand
+3. **Manual Token Configuration**
+   - Set a specific project token in the embed code
+   - Useful for testing or when automatic detection isn't working
 
-### 💬 Messaging Widget
-- **Real-time messaging** with 3-second polling
-- **File attachments** (images, PDFs, documents)
-- **Message history** with timestamps
-- **Connection status** indicator
-- **Auto-scroll** to new messages
-- **Professional chat interface**
+### Testing
 
-### 🎥 Meeting Access Portal
-- **View all appointments** with meeting details
-- **One-click Zoom join** for video meetings
-- **Meeting credentials** display (ID, password)
-- **Meeting type indicators** (Zoom, phone, FaceTime)
-- **Copy-to-clipboard** for meeting IDs
-- **Mobile responsive** design
+Use the `debug-canvas.html` file for local testing:
 
----
+1. Start the server: `cd server && npm run dev`
+2. Open `http://localhost:3000/client-widget/debug-canvas.html`
+3. Use the debug panel to check for errors and test functionality
 
-## 🚀 Integration Overview
+### Troubleshooting
 
-### How It Works:
+If you encounter issues:
 
-1. **Client visits** your Squarespace member area
-2. **Widgets load** and connect to your Pleasant Cove backend
-3. **Actions sync** automatically with your admin dashboard:
-   - Appointments → Schedule page
-   - Messages → Project Messaging page
-4. **You manage everything** from your existing admin interface
+1. Check the browser console for errors
+2. Verify the server URL is correct and the server is running
+3. Make sure CORS is properly configured for your domain
+4. Try adding `?email=test@example.com` to the URL for testing
 
-### What You Get:
-
-✅ **No hosting responsibility** - widgets run in Squarespace
-✅ **Complete control** - all data in your admin dashboard  
-✅ **Professional experience** - branded, mobile-responsive design
-✅ **Real-time communication** - instant message delivery
-✅ **File sharing** - images, PDFs, documents
-✅ **Automated workflows** - appointments auto-create leads
-
----
-
-## 🛠️ Next Steps
-
-1. **Review the demo**: Open `demo.html` to see the widgets working
-2. **Read the setup guide**: Follow `SETUP_GUIDE.md` for integration
-3. **Test the connection**: Ensure your backend is running
-4. **Customize styling**: Match your brand colors and fonts
-5. **Deploy to Squarespace**: Follow the integration steps
-
----
-
-## 📋 Setup Checklist
-
-Before integrating with Squarespace:
-
-- [ ] Pleasant Cove backend is running and accessible
-- [ ] You have Squarespace Business Plan or higher
-- [ ] You have admin access to your Squarespace site
-- [ ] You've tested the widgets with the demo page
-- [ ] You understand the member authentication flow
-
----
-
-## 🎨 Customization
-
-The widgets are designed to be easily customizable:
-
-### Brand Colors
-Update the CSS variables in the widget headers:
-```css
---primary-color: #your-brand-color;
---secondary-color: #your-secondary-color;
-```
-
-### Fonts
-Change the font family:
-```css
-font-family: 'Your-Brand-Font', sans-serif;
-```
-
-### Layout
-Adjust spacing, sizes, and mobile breakpoints as needed.
-
----
-
-## 🔧 Technical Details
-
-### Backend Requirements
-- Pleasant Cove Design backend running on port 5174 (or your custom URL)
-- CORS configured to allow Squarespace domain
-- Project messaging and appointment endpoints active
-
-### Browser Support
-- Chrome, Firefox, Safari, Edge (modern versions)
-- Mobile browsers (iOS Safari, Chrome Mobile)
-- Internet Explorer 11+ (with polyfills)
-
-### Security Features
-- Input validation and sanitization
-- XSS protection
-- File upload restrictions (type, size)
-- Connection status monitoring
-
----
-
-## 🆘 Troubleshooting
-
-### Common Issues:
-
-**Widgets not loading?**
-- Check that your backend is running
-- Verify CORS settings include your domain
-- Check browser console for errors
-
-**Appointments not appearing?**
-- Verify webhook URL is correct
-- Check backend logs for errors
-- Test endpoint with Postman
-
-**Messages not sending?**
-- Check project token is set correctly
-- Verify API endpoints are accessible
-- Check network requests in browser dev tools
-
-### Debug Mode:
-Add this to enable detailed logging:
-```javascript
-window.DEBUG_MODE = true;
-```
-
----
-
-## 📞 Support
-
-For setup assistance:
-
-1. **Check the demo** works with your backend running
-2. **Review browser console** for error messages  
-3. **Test API endpoints** individually
-4. **Follow the setup guide** step by step
-5. **Check Squarespace documentation** for code injection
-
----
-
-## 🎉 Ready to Launch?
-
-Once you've tested the demo and reviewed the setup guide, you're ready to create a professional member portal that integrates seamlessly with your Pleasant Cove Design workflow!
-
-**Next**: Open `SETUP_GUIDE.md` for detailed integration instructions. 
+For detailed setup instructions, see [SQUARESPACE_SETUP.md](./SQUARESPACE_SETUP.md).

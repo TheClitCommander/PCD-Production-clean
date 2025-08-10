@@ -1,5 +1,5 @@
 import React from 'react'
-import { NavLink, Outlet } from 'react-router-dom'
+import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import { Home, Users, TrendingUp, Calendar, Settings, Inbox, MessageCircle, Building2, Megaphone, UserCheck, Globe, FileText } from 'lucide-react'
 import { clsx } from 'clsx'
 
@@ -17,7 +17,7 @@ const navigation: NavItem[] = [
   { path: '/outreach', label: 'Outreach', icon: Megaphone },
   { path: '/schedule', label: 'Appointments', icon: Calendar },
   { path: '/clients', label: 'Clients', icon: Building2 },
-  { path: '/progress', label: 'Progress', icon: TrendingUp },
+  { path: '/workspace', label: 'Project Workspace', icon: TrendingUp },
   { path: '/interactions', label: 'Interactions', icon: MessageCircle },
   { path: '/business/1/inbox', label: 'Biz Pro Inbox', icon: Inbox },
   { path: '/demos', label: 'Demo Gallery', icon: Globe },
@@ -26,6 +26,9 @@ const navigation: NavItem[] = [
 ]
 
 const Layout: React.FC = () => {
+  const location = useLocation()
+  const isInboxPage = location.pathname.includes('/inbox')
+  
   return (
     <div className="min-h-screen bg-background">
       {/* Header with logo and tabs */}
@@ -65,8 +68,8 @@ const Layout: React.FC = () => {
         </div>
       </div>
 
-      {/* Main content */}
-      <main className="px-6 py-8">
+      {/* Main content - Full width for inbox, regular padding for other pages */}
+      <main className={isInboxPage ? '' : 'px-6 py-8'}>
         <Outlet />
       </main>
     </div>

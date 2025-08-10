@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>API Configuration - Pleasant Cove Design</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 20px;
+      background-color: #f5f5f7;
+      color: #333;
+      line-height: 1.6;
+    }
+    .card {
+      background-color: white;
+      border-radius: 12px;
+      padding: 30px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      margin-bottom: 20px;
+    }
+    h1 {
+      color: #0066cc;
+      margin-top: 0;
+    }
+    button {
+      background-color: #0066cc;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 500;
+      transition: background-color 0.2s;
+    }
+    button:hover {
+      background-color: #0055aa;
+    }
+    .success {
+      color: #34c759;
+      font-weight: 600;
+    }
+    .warning {
+      color: #ff9500;
+      font-weight: 600;
+    }
+    .error {
+      color: #ff3b30;
+      font-weight: 600;
+    }
+    .status {
+      display: none;
+      margin-top: 20px;
+    }
+    .pill {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 500;
+      margin-right: 8px;
+    }
+    .pill-prod {
+      background-color: #FF9500;
+      color: white;
+    }
+    .pill-local {
+      background-color: #5AC8FA;
+      color: white;
+    }
+    .footer {
+      margin-top: 40px;
+      font-size: 14px;
+      color: #666;
+      text-align: center;
+    }
+    .spinner {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(0, 102, 204, 0.3);
+      border-radius: 50%;
+      border-top-color: #0066cc;
+      animation: spin 1s ease-in-out infinite;
+      margin-right: 10px;
+      vertical-align: middle;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Pleasant Cove Design API Configuration</h1>
+    
+    <p>This page configures your Admin UI to connect to the <strong>production backend</strong> on Railway. 
+    This ensures you can see all conversations and appointments sent from production widgets (including Squarespace).</p>
+    
+    <p>Current configuration: 
+      <span id="current-status">Checking...</span>
+    </p>
+    
+    <button id="set-prod-btn" onclick="setProductionAPI()">
+      Connect to Production API
+    </button>
+    
+    <button id="set-local-btn" onclick="setLocalAPI()" style="background-color: #8e8e93; margin-left: 10px;">
+      Switch to Local API
+    </button>
+    
+    <div id="status-message" class="status"></div>
+  </div>
+  
+  <div class="card">
+    <h3>Troubleshooting</h3>
+    <p>If messages still don't appear in the inbox:</p>
+    <ul>
+      <li>Try a hard refresh (Cmd+Shift+R or Ctrl+F5)</li>
+      <li>Check the browser console for errors</li>
+      <li>Open the Network tab in DevTools to verify requests are going to the right server</li>
+      <li>Test with a new message from the production widget</li>
+    </ul>
+  </div>
+  
+  <div class="footer">
+    Pleasant Cove Design Admin System &copy; 2025
+  </div>
+
+  <script>
+    // Get current configuration
+    function checkCurrentConfig() {
+      const apiUrl = localStorage.getItem('pcd_admin_api_url');
+      const wsUrl = localStorage.getItem('pcd_admin_ws_url');
+      const statusEl = document.getElementById('current-status');
+      
+      if (apiUrl && apiUrl.includes('railway.app')) {
+        statusEl.innerHTML = '<span class="pill pill-prod">PRODUCTION</span> Connected to Railway backend';
+        document.getElementById('set-prod-btn').disabled = true;
+        document.getElementById('set-local-btn').disabled = false;
+      } else if (apiUrl && apiUrl.includes('localhost')) {
+        statusEl.innerHTML = '<span class="pill pill-local">LOCAL</span> Connected to localhost backend';
+        document.getElementById('set-prod-btn').disabled = false;
+        document.getElementById('set-local-btn').disabled = true;
+      } else {
+        statusEl.innerHTML = 'Using default configuration';
+        document.getElementById('set-prod-btn').disabled = false;
+        document.getElementById('set-local-btn').disabled = false;
+      }
+    }
+    
+    // Set production API
+    function setProductionAPI() {
+      const statusEl = document.getElementById('status-message');
+      statusEl.style.display = 'block';
+      statusEl.className = 'status';
+      statusEl.innerHTML = '<div class="spinner"></div> Configuring production API...';
+      
+      try {
+        localStorage.setItem('pcd_admin_api_url', 'https://pcd-production-clean-production-e6f3.up.railway.app');
+        localStorage.setItem('pcd_admin_ws_url', 'https://pcd-production-clean-production-e6f3.up.railway.app');
+        localStorage.removeItem('pcd_debug_mode');
+        
+        statusEl.className = 'status success';
+        statusEl.textContent = '✓ Success! Redirecting to inbox...';
+        
+        setTimeout(() => {
+          window.location.href = '/inbox';
+        }, 1500);
+      } catch (e) {
+        statusEl.className = 'status error';
+        statusEl.textContent = '✗ Error: ' + e.message;
+      }
+    }
+    
+    // Set local API
+    function setLocalAPI() {
+      const statusEl = document.getElementById('status-message');
+      statusEl.style.display = 'block';
+      statusEl.className = 'status';
+      statusEl.innerHTML = '<div class="spinner"></div> Configuring local API...';
+      
+      try {
+        localStorage.setItem('pcd_admin_api_url', 'http://localhost:3000');
+        localStorage.setItem('pcd_admin_ws_url', 'http://localhost:3000');
+        localStorage.setItem('pcd_debug_mode', 'true');
+        
+        statusEl.className = 'status success';
+        statusEl.textContent = '✓ Success! Redirecting to inbox...';
+        
+        setTimeout(() => {
+          window.location.href = '/inbox';
+        }, 1500);
+      } catch (e) {
+        statusEl.className = 'status error';
+        statusEl.textContent = '✗ Error: ' + e.message;
+      }
+    }
+    
+    // Initialize
+    checkCurrentConfig();
+  </script>
+</body>
+</html>

@@ -73,7 +73,7 @@ const ClientPortal: React.FC = () => {
       
       // Try to fetch real project data using token
       try {
-        const response = await api.get(`/client/project/${projectToken}`)
+        const response = await api.get(`/public/project/${projectToken}`)
         setProject(response.data.project)
         setClientInfo(response.data.client)
       } catch (error: any) {
@@ -218,7 +218,7 @@ const ClientPortal: React.FC = () => {
     
     setSendingMessage(true)
     try {
-      const response = await api.post(`/client/project/${projectToken}/messages`, {
+      const response = await api.post(`/public/project/${projectToken}/messages`, {
         content: newMessage.trim()
       })
       

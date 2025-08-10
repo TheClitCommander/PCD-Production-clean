@@ -192,4 +192,23 @@ CREATE INDEX IF NOT EXISTS idx_activities_project_id ON activities(project_id);
 CREATE INDEX IF NOT EXISTS idx_appointments_company_id ON appointments(company_id);
 CREATE INDEX IF NOT EXISTS idx_appointments_project_id ON appointments(project_id);
 CREATE INDEX IF NOT EXISTS idx_orders_company_id ON orders(company_id);
-CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(status); 
+CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(status);
+
+-- Canvas data tables
+CREATE TABLE IF NOT EXISTS canvas_data (
+    project_id INTEGER PRIMARY KEY REFERENCES projects(id) ON DELETE CASCADE,
+    data JSONB NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS canvas_versions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    project_id INTEGER REFERENCES projects(id) ON DELETE CASCADE,
+    version INTEGER NOT NULL,
+    description TEXT,
+    data JSONB NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_canvas_versions_project_id ON canvas_versions(project_id);

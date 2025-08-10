@@ -14,7 +14,7 @@ import Team from './pages/Team'
 import DemoGallery from './pages/DemoGallery'
 import ClientPortal from './pages/ClientPortal'
 import Interactions from './pages/Interactions'
-import Progress from './pages/Progress'
+import ProjectWorkspace from './pages/ProjectWorkspace'
 import Schedule from './pages/Schedule'
 import Settings from './pages/Settings'
 import ClientProfile from './pages/ClientProfile'
@@ -64,14 +64,15 @@ const App: React.FC = () => {
             <Route path="demos" element={<DemoGallery />} />
             <Route path="team" element={<Team />} />
             <Route path="interactions" element={<Interactions />} />
-            <Route path="progress" element={<Progress />} />
+            <Route path="workspace" element={<ProjectWorkspace />} />
+            <Route path="workspace/:projectToken" element={<ProjectWorkspace />} />
             <Route path="schedule" element={<Schedule />} />
             <Route path="book-appointment" element={<BookAppointment />} />
             <Route path="settings" element={<Settings />} />
           </Route>
           
           {/* Client Portal - Accessible without main layout */}
-          <Route path="/client/:projectToken" element={<ClientPortal />} />
+          <Route path="/client/project/:projectToken" element={<ClientPortal />} />
           
           {/* Fallback redirect */}
           <Route path="*" element={<Navigate to="/dashboard" replace />} />

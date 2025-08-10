@@ -229,7 +229,7 @@ const Outreach: React.FC = () => {
             <TrendingUp className="h-8 w-8 text-green-600" />
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Response Rate</p>
-              <p className="text-2xl font-bold text-gray-900">{stats.responseRate.toFixed(1)}%</p>
+              <p className="text-2xl font-bold text-gray-900">{isNaN(stats.responseRate) ? '0.0' : stats.responseRate.toFixed(1)}%</p>
             </div>
           </div>
         </div>
@@ -239,7 +239,7 @@ const Outreach: React.FC = () => {
             <TrendingUp className="h-8 w-8 text-blue-600" />
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Conversion Rate</p>
-              <p className="text-2xl font-bold text-gray-900">{stats.conversionRate.toFixed(1)}%</p>
+              <p className="text-2xl font-bold text-gray-900">{isNaN(stats.conversionRate) ? '0.0' : stats.conversionRate.toFixed(1)}%</p>
             </div>
           </div>
         </div>

@@ -1,6 +1,7 @@
 // @ts-nocheck
 import { Pool } from 'pg';
 import type { Business, NewBusiness, Activity, NewActivity, Company, NewCompany, Project, NewProject, ProjectMessage, ProjectFile, AIChatMessage } from "../shared/schema";
+import type { TeamAgent } from "./storage";
 
 export class PostgreSQLStorage {
   private pool: Pool;
@@ -807,6 +808,11 @@ export class PostgreSQLStorage {
     return result.rows.map(row => this.mapOrder(row));
   }
 
+  // Compatibility alias for routes expecting getOrdersByCompanyId
+  async getOrdersByCompanyId(companyId: string | number): Promise<Order[]> {
+    return this.getOrdersByCompany(String(companyId));
+  }
+
   private mapOrder(row: any): Order {
     return {
       id: row.id,
@@ -918,5 +924,200 @@ export class PostgreSQLStorage {
       createdAt: row.created_at,
       updatedAt: row.updated_at
     };
+  }
+
+  // Canvas data storage methods
+  async getCanvasData(projectId: number): Promise<any | null> {
+    try {
+      const result = await this.pool.query(
+        'SELECT data FROM canvas_data WHERE project_id = $1',
+        [projectId]
+      );
+      
+      if (result.rows.length === 0) {
+        return null;
+      }
+      
+      return result.rows[0].data;
+    } catch (error) {
+      console.error(`Failed to get canvas data for project ${projectId}:`, error);
+      return null;
+    }
+  }
+  
+  async saveCanvasData(projectId: number, canvasData: any): Promise<boolean> {
+    try {
+      // Use upsert (insert or update)
+      await this.pool.query(
+        `INSERT INTO canvas_data (project_id, data, updated_at)
+         VALUES ($1, $2, NOW())
+         ON CONFLICT (project_id) 
+         DO UPDATE SET data = $2, updated_at = NOW()`,
+        [projectId, canvasData]
+      );
+      
+      return true;
+    } catch (error) {
+      console.error(`Failed to save canvas data for project ${projectId}:`, error);
+      return false;
+    }
+  }
+  
+  async getCanvasVersions(projectId: number): Promise<any[]> {
+    try {
+      const result = await this.pool.query(
+        'SELECT id, version, description, created_at, data FROM canvas_versions WHERE project_id = $1 ORDER BY created_at DESC',
+        [projectId]
+      );
+      
+      return result.rows.map(row => ({
+        id: row.id,
+        version: row.version,
+        description: row.description,
+        createdAt: row.created_at,
+        data: row.data
+      }));
+    } catch (error) {
+      console.error(`Failed to get canvas versions for project ${projectId}:`, error);
+      return [];
+    }
+  }
+  
+  async saveCanvasVersion(projectId: number, versionData: any): Promise<string> {
+    try {
+      const result = await this.pool.query(
+        `INSERT INTO canvas_versions (project_id, version, description, data, created_at)
+         VALUES ($1, $2, $3, $4, NOW())
+         RETURNING id`,
+        [projectId, versionData.version, versionData.description, versionData.canvasData]
+      );
+      
+      return result.rows[0].id;
+    } catch (error) {
+      console.error(`Failed to save canvas version for project ${projectId}:`, error);
+      return '';
+    }
+  }
+  
+  async getCanvasVersion(projectId: number, versionId: string): Promise<any | null> {
+    try {
+      const result = await this.pool.query(
+        'SELECT id, version, description, created_at, data FROM canvas_versions WHERE project_id = $1 AND id = $2',
+        [projectId, versionId]
+      );
+      
+      if (result.rows.length === 0) {
+        return null;
+      }
+      
+      const row = result.rows[0];
+      return {
+        id: row.id,
+        version: row.version,
+        description: row.description,
+        createdAt: row.created_at,
+        data: row.data
+      };
+    } catch (error) {
+      console.error(`Failed to get canvas version ${versionId} for project ${projectId}:`, error);
+      return null;
+    }
+  }
+
+  // Team agent operations (using in-memory storage for now)
+  private teamAgents: TeamAgent[] = [];
+
+  async getTeamAgents(): Promise<TeamAgent[]> {
+    return this.teamAgents;
+  }
+
+  async getTeamAgentById(id: number): Promise<TeamAgent | null> {
+    return this.teamAgents.find(agent => agent.id === id) || null;
+  }
+
+  async createTeamAgent(data: Omit<TeamAgent, 'id'>): Promise<TeamAgent> {
+    const newId = this.teamAgents.length > 0 
+      ? Math.max(...this.teamAgents.map(a => a.id)) + 1 
+      : 1;
+    
+    const newAgent: TeamAgent = {
+      ...data,
+      id: newId
+    };
+    
+    this.teamAgents.push(newAgent);
+    return newAgent;
+  }
+
+  async updateTeamAgent(id: number, data: Partial<TeamAgent>): Promise<TeamAgent | null> {
+    const index = this.teamAgents.findIndex(agent => agent.id === id);
+    if (index === -1) return null;
+    
+    this.teamAgents[index] = {
+      ...this.teamAgents[index],
+      ...data
+    };
+    
+    return this.teamAgents[index];
+  }
+
+  async deleteTeamAgent(id: number): Promise<boolean> {
+    const initialLength = this.teamAgents.length;
+    this.teamAgents = this.teamAgents.filter(agent => agent.id !== id);
+    return this.teamAgents.length < initialLength;
+  }
+
+  // Demo operations (using in-memory storage for now)
+  private demos: any[] = [];
+
+  async getDemos(): Promise<any[]> {
+    return this.demos;
+  }
+
+  async getDemoById(id: number): Promise<any | null> {
+    return this.demos.find(demo => demo.id === id) || null;
+  }
+
+  async getDemoStats(): Promise<any> {
+    const totalDemos = this.demos.length;
+    const totalViews = this.demos.reduce((sum, demo) => sum + (demo.views || 0), 0);
+    const averageViewsPerDemo = totalDemos > 0 ? totalViews / totalDemos : 0;
+    
+    let topPerformingDemo = '';
+    if (totalDemos > 0) {
+      const topDemo = this.demos.reduce((max, demo) => 
+        (demo.views || 0) > (max.views || 0) ? demo : max, this.demos[0]);
+      topPerformingDemo = topDemo.companyName || '';
+    }
+    
+    return {
+      totalDemos,
+      totalViews,
+      averageViewsPerDemo,
+      topPerformingDemo,
+      recentActivity: []
+    };
+  }
+
+  async generateDemo(data: any): Promise<any> {
+    const newId = this.demos.length > 0 
+      ? Math.max(...this.demos.map(d => d.id)) + 1 
+      : 1;
+    
+    const newDemo = {
+      id: newId,
+      companyName: data.businessName,
+      businessType: data.businessType,
+      demoUrl: `/demos/${data.businessName.toLowerCase().replace(/\s+/g, '_')}_${Date.now()}.html`,
+      previewImage: `https://placehold.co/600x400/e8f4ff/0a2540?text=${encodeURIComponent(data.businessName)}`,
+      views: 0,
+      createdAt: new Date().toISOString(),
+      status: "active",
+      template: data.template || "default",
+      customizations: data.customizations || ["responsive"]
+    };
+    
+    this.demos.push(newDemo);
+    return newDemo;
   }
 } 

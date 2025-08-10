@@ -5,6 +5,21 @@ import { PostgreSQLStorage } from "./postgres-storage";
 import type { Business, NewBusiness, Activity, NewActivity, Company, NewCompany, Project, NewProject, ProjectMessage, ProjectFile, AIChatMessage, Order, Proposal, NewProposal } from "../shared/schema";
 import { eq } from "drizzle-orm";
 
+// Team agent interface
+export interface TeamAgent {
+  id: number;
+  name: string;
+  email: string;
+  skills: string[];
+  hourlyRate: number;
+  hoursWorked: number;
+  assignedProjects: number[];
+  rating: number;
+  joinedDate: string;
+  status: 'active' | 'inactive' | 'busy';
+  profileImage?: string;
+}
+
 // Global memory storage for proposals (development mode)
 declare global {
   var memoryProposals: Proposal[] | undefined;
@@ -21,6 +36,7 @@ const campaignsTable = { tableName: 'campaigns' };
 const templatesTable = { tableName: 'templates' };
 const appointmentsTable = { tableName: 'appointments' };
 const progressEntriesTable = { tableName: 'progress_entries' };
+const teamAgentsTable = { tableName: 'team_agents' };
 
 import { memoryDb } from './db';
 
@@ -31,10 +47,9 @@ export class Storage {
   }
 
   // Orders operations
+  // Compatibility shim for in-memory mode; delegate to memoryDb
   async getOrdersByCompanyId(companyId: number): Promise<Order[]> {
-    // Mock implementation - return empty array for now
-    // In a real implementation, this would query the database
-    return [];
+    return await memoryDb.getOrdersByCompanyId(String(companyId));
   }
   // Business operations (legacy compatibility)
   async createBusiness(data: any): Promise<Business> {
@@ -132,7 +147,7 @@ export class Storage {
     type?: string;
     companyId?: number;
   }): Promise<Project[]> {
-    let results: any[] = db.select().from(projectsTable).orderBy({});
+    let results: any[] = memoryDb.select('projects');
     
     if (filters) {
       if (filters.status) {
@@ -153,7 +168,7 @@ export class Storage {
   }
 
   async getProjectById(id: number): Promise<Project | null> {
-    const projects: any[] = db.select().from(projectsTable).where({ id });
+    const projects: any[] = memoryDb.select('projects', { id });
     return (projects[0] as Project) || null;
   }
 
@@ -589,6 +604,40 @@ export class Storage {
 
     const { company, ...project } = projectData;
     
+    // Check if company exists to prevent "Cannot read properties of undefined (reading 'name')" error
+    if (!company) {
+      console.error(`Company not found for project with token ${accessToken}`);
+      
+      // Create a fallback company object for projects with missing companies
+      const fallbackCompany: Company = {
+        id: project.companyId,
+        name: "Client",
+        email: "client@example.com",
+        phone: "",
+        address: "",
+        city: "",
+        state: "",
+        zip: "",
+        country: "",
+        notes: "Auto-generated fallback company",
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      
+      // Get all related data
+      const messages = await this.getProjectMessages(project.id!);
+      const files = await this.getProjectFiles(project.id!);
+      const activities = await this.getActivitiesByProject(project.id!);
+
+      return {
+        project,
+        company: fallbackCompany,
+        messages,
+        files,
+        activities: activities || []
+      };
+    }
+    
     // Get all related data
     const messages = await this.getProjectMessages(project.id!);
     const files = await this.getProjectFiles(project.id!);
@@ -779,6 +828,194 @@ export class Storage {
     
     global.memoryProposals.splice(index, 1);
     return true;
+  }
+
+  // Canvas data storage methods
+  async getCanvasData(projectId: number): Promise<any | null> {
+    try {
+      return memoryDb.getCanvasData(projectId);
+    } catch (error) {
+      console.error(`Failed to get canvas data for project ${projectId}:`, error);
+      return null;
+    }
+  }
+
+  async saveCanvasData(projectId: number, canvasData: any): Promise<boolean> {
+    try {
+      await memoryDb.saveCanvasData(projectId, canvasData);
+      return true;
+    } catch (error) {
+      console.error(`Failed to save canvas data for project ${projectId}:`, error);
+      return false;
+    }
+  }
+
+  async getCanvasVersions(projectId: number): Promise<any[]> {
+    try {
+      return memoryDb.getCanvasVersions(projectId) || [];
+    } catch (error) {
+      console.error(`Failed to get canvas versions for project ${projectId}:`, error);
+      return [];
+    }
+  }
+
+  async saveCanvasVersion(projectId: number, versionData: any): Promise<string> {
+    try {
+      const versionId = `version-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      await memoryDb.saveCanvasVersion(projectId, {
+        ...versionData,
+        id: versionId
+      });
+      return versionId;
+    } catch (error) {
+      console.error(`Failed to save canvas version for project ${projectId}:`, error);
+      throw error;
+    }
+  }
+
+  async getCanvasVersion(projectId: number, versionId: string): Promise<any | null> {
+    try {
+      return memoryDb.getCanvasVersion(projectId, versionId);
+    } catch (error) {
+      console.error(`Failed to get canvas version ${versionId} for project ${projectId}:`, error);
+      return null;
+    }
+  }
+
+  // Team agent operations
+  async getTeamAgents(): Promise<TeamAgent[]> {
+    // In-memory implementation
+    if (!memoryDb.teamAgents) {
+      memoryDb.teamAgents = [];
+    }
+    return memoryDb.teamAgents;
+  }
+
+  async getTeamAgentById(id: number): Promise<TeamAgent | null> {
+    // In-memory implementation
+    if (!memoryDb.teamAgents) {
+      memoryDb.teamAgents = [];
+    }
+    return memoryDb.teamAgents.find(agent => agent.id === id) || null;
+  }
+
+  async createTeamAgent(data: Omit<TeamAgent, 'id'>): Promise<TeamAgent> {
+    // In-memory implementation
+    if (!memoryDb.teamAgents) {
+      memoryDb.teamAgents = [];
+    }
+    
+    const newId = memoryDb.teamAgents.length > 0 
+      ? Math.max(...memoryDb.teamAgents.map(a => a.id)) + 1 
+      : 1;
+    
+    const newAgent: TeamAgent = {
+      ...data,
+      id: newId
+    };
+    
+    memoryDb.teamAgents.push(newAgent);
+    return newAgent;
+  }
+
+  async updateTeamAgent(id: number, data: Partial<TeamAgent>): Promise<TeamAgent | null> {
+    // In-memory implementation
+    if (!memoryDb.teamAgents) {
+      memoryDb.teamAgents = [];
+    }
+    
+    const index = memoryDb.teamAgents.findIndex(agent => agent.id === id);
+    if (index === -1) return null;
+    
+    memoryDb.teamAgents[index] = {
+      ...memoryDb.teamAgents[index],
+      ...data
+    };
+    
+    return memoryDb.teamAgents[index];
+  }
+
+  async deleteTeamAgent(id: number): Promise<boolean> {
+    // In-memory implementation
+    if (!memoryDb.teamAgents) {
+      memoryDb.teamAgents = [];
+      return false;
+    }
+    
+    const initialLength = memoryDb.teamAgents.length;
+    memoryDb.teamAgents = memoryDb.teamAgents.filter(agent => agent.id !== id);
+    
+    return memoryDb.teamAgents.length < initialLength;
+  }
+
+  // Demo operations
+  async getDemos(): Promise<any[]> {
+    // In-memory implementation
+    if (!memoryDb.demos) {
+      memoryDb.demos = [];
+    }
+    return memoryDb.demos;
+  }
+
+  async getDemoById(id: number): Promise<any | null> {
+    // In-memory implementation
+    if (!memoryDb.demos) {
+      memoryDb.demos = [];
+    }
+    return memoryDb.demos.find(demo => demo.id === id) || null;
+  }
+
+  async getDemoStats(): Promise<any> {
+    // In-memory implementation
+    if (!memoryDb.demos) {
+      memoryDb.demos = [];
+    }
+    
+    const totalDemos = memoryDb.demos.length;
+    const totalViews = memoryDb.demos.reduce((sum, demo) => sum + (demo.views || 0), 0);
+    const averageViewsPerDemo = totalDemos > 0 ? totalViews / totalDemos : 0;
+    
+    let topPerformingDemo = '';
+    if (totalDemos > 0) {
+      const topDemo = memoryDb.demos.reduce((max, demo) => 
+        (demo.views || 0) > (max.views || 0) ? demo : max, memoryDb.demos[0]);
+      topPerformingDemo = topDemo.companyName || '';
+    }
+    
+    return {
+      totalDemos,
+      totalViews,
+      averageViewsPerDemo,
+      topPerformingDemo,
+      recentActivity: []
+    };
+  }
+
+  async generateDemo(data: any): Promise<any> {
+    // In-memory implementation
+    if (!memoryDb.demos) {
+      memoryDb.demos = [];
+    }
+    
+    const newId = memoryDb.demos.length > 0 
+      ? Math.max(...memoryDb.demos.map(d => d.id)) + 1 
+      : 1;
+    
+    const newDemo = {
+      id: newId,
+      companyName: data.businessName,
+      businessType: data.businessType,
+      demoUrl: `/demos/${data.businessName.toLowerCase().replace(/\s+/g, '_')}_${Date.now()}.html`,
+      previewImage: `https://placehold.co/600x400/e8f4ff/0a2540?text=${encodeURIComponent(data.businessName)}`,
+      views: 0,
+      createdAt: new Date().toISOString(),
+      status: "active",
+      template: data.template || "default",
+      customizations: data.customizations || ["responsive"]
+    };
+    
+    memoryDb.demos.push(newDemo);
+    return newDemo;
   }
 }
 

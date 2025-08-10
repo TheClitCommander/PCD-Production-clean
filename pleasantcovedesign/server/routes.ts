@@ -1226,7 +1226,7 @@ export async function registerRoutes(app: Express, io: any) {
         },
         messages: projectSummary.messages,
         files: projectSummary.files,
-        activities: projectSummary.activities.filter(a => a.type !== 'admin_note') // Hide admin-only activities
+        activities: projectSummary.activities ? projectSummary.activities.filter(a => a.type !== 'admin_note') : [] // Hide admin-only activities
       });
     } catch (error) {
       console.error("Failed to fetch project summary:", error);
@@ -2358,6 +2358,171 @@ export async function registerRoutes(app: Express, io: any) {
     return features[packageType as keyof typeof features]?.join('\n      ') || '• Custom website package';
   }
 
+  // Canvas API endpoints for project workspace
+  app.get('/api/projects/:projectId/canvas', requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const { projectId } = req.params;
+      
+      // Get canvas data for the project
+      const canvasData = await storage.getCanvasData(parseInt(projectId));
+      
+      if (!canvasData) {
+        // Return empty canvas state if none exists
+        return res.json({
+          elements: [],
+          selectedElement: null,
+          gridSize: 20,
+          snapToGrid: true,
+          zoom: 1,
+          viewMode: 'design',
+          version: 1,
+          collaborators: []
+        });
+      }
+      
+      res.json(canvasData);
+    } catch (error) {
+      console.error('Error fetching canvas data:', error);
+      res.status(500).json({ error: 'Failed to fetch canvas data' });
+    }
+  });
+  
+  // Public Canvas API endpoint for client viewing
+  app.get('/api/public/project/:token/canvas', async (req: Request, res: Response) => {
+    try {
+      const { token } = req.params;
+      
+      // Validate token format to prevent injection attacks
+      if (!validateTokenFormat(token)) {
+        return res.status(400).json({ error: 'Invalid project token format' });
+      }
+      
+      // Get project by token
+      const project = await storage.getProjectByToken(token);
+      
+      if (!project) {
+        return res.status(404).json({ error: 'Project not found' });
+      }
+      
+      // Get canvas data for the project
+      const canvasData = await storage.getCanvasData(project.id);
+      
+      if (!canvasData) {
+        // Return empty canvas state if none exists
+        return res.json({
+          elements: [],
+          selectedElement: null,
+          gridSize: 20,
+          snapToGrid: true,
+          zoom: 1,
+          viewMode: 'preview', // Force preview mode for clients
+          version: 1,
+          collaborators: []
+        });
+      }
+      
+      // Create a client-safe version of the canvas data
+      const clientCanvasData = {
+        ...canvasData,
+        viewMode: 'preview', // Force preview mode for clients
+        selectedElement: null, // Clear any selected element
+        readOnly: true // Force read-only mode
+      };
+      
+      res.json(clientCanvasData);
+    } catch (error) {
+      console.error('Error fetching public canvas data:', error);
+      res.status(500).json({ error: 'Failed to fetch canvas data' });
+    }
+  });
+
+  app.post('/api/projects/:projectId/canvas', requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const { projectId } = req.params;
+      const canvasData = req.body;
+      
+      // Save canvas data for the project
+      await storage.saveCanvasData(parseInt(projectId), canvasData);
+      
+      // Get project token for broadcasting updates
+      const project = await storage.getProjectById(parseInt(projectId));
+      if (project && project.accessToken) {
+        // Create a client-safe version of the canvas data
+        const clientCanvasData = {
+          ...canvasData,
+          viewMode: 'preview', // Force preview mode for clients
+          selectedElement: null, // Clear any selected element
+          readOnly: true // Force read-only mode
+        };
+        
+        // Broadcast canvas update to all clients viewing this project's canvas
+        io.to(`canvas:${project.accessToken}`).emit('canvas:update', clientCanvasData);
+        console.log(`🎨 Broadcasting canvas update for project ${projectId} to room canvas:${project.accessToken}`);
+      }
+      
+      res.json({ success: true, message: 'Canvas data saved successfully' });
+    } catch (error) {
+      console.error('Error saving canvas data:', error);
+      res.status(500).json({ error: 'Failed to save canvas data' });
+    }
+  });
+
+  app.post('/api/projects/:projectId/canvas/versions', requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const { projectId } = req.params;
+      const { version, description, canvasData } = req.body;
+      
+      // Save canvas version
+      const versionId = await storage.saveCanvasVersion(parseInt(projectId), {
+        version,
+        description,
+        canvasData,
+        timestamp: new Date().toISOString()
+      });
+      
+      res.json({ 
+        success: true, 
+        versionId,
+        message: `Canvas version ${version} saved successfully` 
+      });
+    } catch (error) {
+      console.error('Error saving canvas version:', error);
+      res.status(500).json({ error: 'Failed to save canvas version' });
+    }
+  });
+
+  app.get('/api/projects/:projectId/canvas/versions', requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const { projectId } = req.params;
+      
+      // Get canvas versions for the project
+      const versions = await storage.getCanvasVersions(parseInt(projectId));
+      
+      res.json(versions || []);
+    } catch (error) {
+      console.error('Error fetching canvas versions:', error);
+      res.status(500).json({ error: 'Failed to fetch canvas versions' });
+    }
+  });
+
+  app.get('/api/projects/:projectId/canvas/versions/:versionId', requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const { projectId, versionId } = req.params;
+      
+      // Get specific canvas version
+      const version = await storage.getCanvasVersion(parseInt(projectId), versionId);
+      
+      if (!version) {
+        return res.status(404).json({ error: 'Canvas version not found' });
+      }
+      
+      res.json(version);
+    } catch (error) {
+      console.error('Error fetching canvas version:', error);
+      res.status(500).json({ error: 'Failed to fetch canvas version' });
+    }
+  });
+
   // Generate Upwork Brief endpoint
   app.post('/api/generate-upwork-brief', async (req: Request, res: Response) => {
     try {
@@ -2786,9 +2951,12 @@ ${meetingNotes.special_instructions}
         companyId: companyId ? parseInt(companyId as string) : undefined
       };
       
+      console.log('🔧 [GET_PROJECTS] Filters:', filters);
       const projects = await storage.getProjects(filters);
+      console.log('🔧 [GET_PROJECTS] Found projects:', projects.length);
       res.json(projects);
     } catch (error) {
+      console.error('❌ [GET_PROJECTS] Error:', error);
       res.status(500).json({ error: "Failed to fetch projects" });
     }
   });
@@ -4982,10 +5150,14 @@ ${meetingNotes.special_instructions}
   // PUBLIC CLIENT PORTAL ROUTES (Token-based)
   // ===================
 
-  // Redirect backend dashboard to React UI (Biz Pro Inbox)
-  app.get("/", (req: Request, res: Response) => {
-    console.log('🔄 Backend root accessed - redirecting to React UI (Biz Pro Inbox)');
-    res.redirect('http://localhost:5173');
+  // Redirect to Vite dev server only during development. In production, let the
+  // static middleware and SPA fallback serve the built UI.
+  app.get("/", (req: Request, res: Response, next: Function) => {
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('🔄 Dev mode: redirecting root to React UI at http://localhost:5173');
+      return res.redirect('http://localhost:5173');
+    }
+    return next();
   });
 
   // Helper function to create properly timezone-aware appointment datetime

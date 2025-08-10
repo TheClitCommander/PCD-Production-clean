@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pleasant Cove Design - Widget Configuration</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+      max-width: 900px;
+      margin: 40px auto;
+      padding: 20px;
+      background-color: #f5f5f7;
+      color: #333;
+      line-height: 1.6;
+    }
+    .card {
+      background-color: white;
+      border-radius: 12px;
+      padding: 30px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      margin-bottom: 20px;
+    }
+    h1 {
+      color: #0066cc;
+      margin-top: 0;
+    }
+    h2 {
+      color: #0066cc;
+      border-bottom: 1px solid #e0e0e0;
+      padding-bottom: 10px;
+      margin-top: 30px;
+    }
+    code {
+      background-color: #f0f0f0;
+      padding: 3px 6px;
+      border-radius: 4px;
+      font-family: Menlo, Monaco, 'Courier New', monospace;
+      font-size: 0.9em;
+    }
+    pre {
+      background-color: #f0f0f0;
+      padding: 15px;
+      border-radius: 6px;
+      overflow-x: auto;
+      font-family: Menlo, Monaco, 'Courier New', monospace;
+      font-size: 0.9em;
+    }
+    button {
+      background-color: #0066cc;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 500;
+      transition: background-color 0.2s;
+    }
+    button:hover {
+      background-color: #0055aa;
+    }
+    .success {
+      color: #34c759;
+      font-weight: 600;
+    }
+    .warning {
+      color: #ff9500;
+      font-weight: 600;
+    }
+    .error {
+      color: #ff3b30;
+      font-weight: 600;
+    }
+    .status-box {
+      padding: 10px 15px;
+      border-radius: 6px;
+      margin: 20px 0;
+    }
+    .status-success {
+      background-color: rgba(52, 199, 89, 0.1);
+      border-left: 4px solid #34c759;
+    }
+    .status-warning {
+      background-color: rgba(255, 149, 0, 0.1);
+      border-left: 4px solid #ff9500;
+    }
+    .status-error {
+      background-color: rgba(255, 59, 48, 0.1);
+      border-left: 4px solid #ff3b30;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+    }
+    th, td {
+      padding: 12px 15px;
+      border-bottom: 1px solid #e0e0e0;
+      text-align: left;
+    }
+    th {
+      background-color: #f5f5f7;
+      font-weight: 600;
+    }
+    .footer {
+      margin-top: 40px;
+      font-size: 14px;
+      color: #666;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Pleasant Cove Design - Widget Troubleshooting Guide</h1>
+    
+    <div class="status-box status-success" id="status-check">
+      <h3>🔍 Checking your widget configuration...</h3>
+      <div id="config-details"></div>
+    </div>
+    
+    <p>This guide will help you troubleshoot and fix any connection issues with Pleasant Cove Design widgets.</p>
+    
+    <div id="fix-actions">
+      <button id="fix-btn" onclick="fixAllWidgetSettings()">
+        Apply Recommended Fixes
+      </button>
+      
+      <button id="test-connection-btn" onclick="testApiConnection()" style="background-color: #5856D6; margin-left: 10px;">
+        Test API Connection
+      </button>
+    </div>
+    
+    <div id="api-result" style="display: none; margin-top: 20px;"></div>
+  </div>
+  
+  <div class="card">
+    <h2>Common Issues & Solutions</h2>
+    
+    <h3>Messaging Widget Not Showing in Admin Inbox</h3>
+    <p>This happens when your Admin UI is connected to a different backend than your widgets.</p>
+    <ul>
+      <li>The Admin UI should be connected to: <code>https://pcd-production-clean-production-e6f3.up.railway.app</code></li>
+      <li>Visit <a href="http://localhost:5173/set-api-prod.html" target="_blank">http://localhost:5173/set-api-prod.html</a> to fix Admin UI connection</li>
+    </ul>
+    
+    <h3>Widgets Not Working on Squarespace</h3>
+    <p>Ensure proper integration by including the fix-widget-connections.js script in your widget code:</p>
+    <pre>&lt;script src="https://pcd-production-clean-production-e6f3.up.railway.app/client-widget/js/fix-widget-connections.js"&gt;&lt;/script&gt;</pre>
+    
+    <h3>Appointments Not Showing in Admin UI</h3>
+    <p>The appointment widget must be configured to use the production API endpoint:</p>
+    <pre>backendUrl = 'https://pcd-production-clean-production-e6f3.up.railway.app';</pre>
+  </div>
+  
+  <div class="card">
+    <h2>Development vs. Production</h2>
+    
+    <table>
+      <thead>
+        <tr>
+          <th>Component</th>
+          <th>Development URL</th>
+          <th>Production URL</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Admin UI</td>
+          <td><code>http://localhost:5173</code></td>
+          <td><code>https://admin.pleasantcovedesign.com</code></td>
+        </tr>
+        <tr>
+          <td>Backend API</td>
+          <td><code>http://localhost:3000</code></td>
+          <td><code>https://pcd-production-clean-production-e6f3.up.railway.app</code></td>
+        </tr>
+        <tr>
+          <td>Messaging Widget</td>
+          <td><code>http://localhost:3000/client-widget/messaging-widget-unified.html</code></td>
+          <td><code>https://pcd-production-clean-production-e6f3.up.railway.app/client-widget/messaging-widget-unified.html</code></td>
+        </tr>
+        <tr>
+          <td>Appointment Widget</td>
+          <td><code>http://localhost:3000/client-widget/appointment-booking.html</code></td>
+          <td><code>https://pcd-production-clean-production-e6f3.up.railway.app/client-widget/appointment-booking.html</code></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  
+  <div class="footer">
+    Pleasant Cove Design System &copy; 2025
+  </div>
+
+  <script>
+    // Check current configuration
+    function checkCurrentConfig() {
+      const configDetails = document.getElementById('config-details');
+      const statusBox = document.getElementById('status-check');
+      
+      const apiUrl = localStorage.getItem('pcd_backend_url');
+      const adminApiUrl = localStorage.getItem('pcd_admin_api_url');
+      const projectToken = localStorage.getItem('pcd_project_token');
+      const debugMode = localStorage.getItem('pcd_debug_mode') === 'true';
+      
+      let configHTML = '<ul>';
+      
+      if (apiUrl && apiUrl.includes('railway.app')) {
+        configHTML += '<li class="success">✓ Widget API URL: Set to production</li>';
+      } else if (apiUrl && apiUrl.includes('localhost')) {
+        configHTML += '<li class="warning">⚠️ Widget API URL: Set to localhost</li>';
+        statusBox.className = 'status-box status-warning';
+      } else {
+        configHTML += '<li class="warning">⚠️ Widget API URL: Not explicitly set</li>';
+        statusBox.className = 'status-box status-warning';
+      }
+      
+      if (adminApiUrl && adminApiUrl.includes('railway.app')) {
+        configHTML += '<li class="success">✓ Admin API URL: Set to production</li>';
+      } else if (adminApiUrl && adminApiUrl.includes('localhost')) {
+        configHTML += '<li class="warning">⚠️ Admin API URL: Set to localhost</li>';
+        statusBox.className = 'status-box status-warning';
+      } else {
+        configHTML += '<li class="warning">⚠️ Admin API URL: Not explicitly set</li>';
+        statusBox.className = 'status-box status-warning';
+      }
+      
+      if (projectToken) {
+        configHTML += '<li class="success">✓ Project token: Present</li>';
+      } else {
+        configHTML += '<li class="warning">⚠️ Project token: Not found</li>';
+        statusBox.className = 'status-box status-warning';
+      }
+      
+      if (debugMode) {
+        configHTML += '<li class="warning">⚠️ Debug mode: Enabled (forces localhost)</li>';
+        statusBox.className = 'status-box status-warning';
+      } else {
+        configHTML += '<li class="success">✓ Debug mode: Disabled</li>';
+      }
+      
+      configHTML += '</ul>';
+      configDetails.innerHTML = configHTML;
+      
+      // Update heading based on status
+      const heading = statusBox.querySelector('h3');
+      if (statusBox.className.includes('warning')) {
+        heading.textContent = '⚠️ Configuration issues detected';
+      } else {
+        heading.textContent = '✓ Your configuration looks good!';
+      }
+    }
+    
+    // Fix all widget settings
+    function fixAllWidgetSettings() {
+      const fixBtn = document.getElementById('fix-btn');
+      const apiResult = document.getElementById('api-result');
+      
+      fixBtn.disabled = true;
+      fixBtn.textContent = 'Applying fixes...';
+      
+      try {
+        // Set proper production URLs
+        localStorage.setItem('pcd_backend_url', 'https://pcd-production-clean-production-e6f3.up.railway.app');
+        localStorage.setItem('pcd_admin_api_url', 'https://pcd-production-clean-production-e6f3.up.railway.app');
+        localStorage.setItem('pcd_admin_ws_url', 'https://pcd-production-clean-production-e6f3.up.railway.app');
+        
+        // Disable debug mode
+        localStorage.removeItem('pcd_debug_mode');
+        
+        // Show success message
+        apiResult.style.display = 'block';
+        apiResult.className = 'status-box status-success';
+        apiResult.innerHTML = '<p class="success">✓ Settings successfully updated! Reloading page...</p>';
+        
+        // Refresh configuration display
+        setTimeout(() => {
+          location.reload();
+        }, 2000);
+      } catch (e) {
+        apiResult.style.display = 'block';
+        apiResult.className = 'status-box status-error';
+        apiResult.innerHTML = '<p class="error">✗ Error: ' + e.message + '</p>';
+        
+        fixBtn.disabled = false;
+        fixBtn.textContent = 'Apply Recommended Fixes';
+      }
+    }
+    
+    // Test API connection
+    function testApiConnection() {
+      const testBtn = document.getElementById('test-connection-btn');
+      const apiResult = document.getElementById('api-result');
+      
+      testBtn.disabled = true;
+      testBtn.textContent = 'Testing...';
+      apiResult.style.display = 'block';
+      apiResult.className = 'status-box';
+      apiResult.innerHTML = '<p>Testing connection to backend...</p>';
+      
+      // First try production
+      testEndpoint('https://pcd-production-clean-production-e6f3.up.railway.app/api/health')
+        .then(prodResult => {
+          let resultHTML = '<h4>Connection Test Results:</h4><ul>';
+          
+          if (prodResult.success) {
+            resultHTML += `<li class="success">✓ Production API: Connected successfully (${prodResult.time}ms)</li>`;
+          } else {
+            resultHTML += `<li class="error">✗ Production API: Failed (${prodResult.error})</li>`;
+          }
+          
+          // Then try local
+          return testEndpoint('http://localhost:3000/api/health')
+            .then(localResult => {
+              if (localResult.success) {
+                resultHTML += `<li class="success">✓ Local API: Connected successfully (${localResult.time}ms)</li>`;
+              } else {
+                resultHTML += `<li class="warning">✗ Local API: Not available (${localResult.error})</li>`;
+              }
+              
+              resultHTML += '</ul>';
+              
+              if (prodResult.success) {
+                resultHTML += '<p class="success">✓ Production backend is working correctly!</p>';
+                apiResult.className = 'status-box status-success';
+              } else {
+                resultHTML += '<p class="error">✗ Production backend is not responding. Please check your internet connection.</p>';
+                apiResult.className = 'status-box status-error';
+              }
+              
+              apiResult.innerHTML = resultHTML;
+              testBtn.disabled = false;
+              testBtn.textContent = 'Test API Connection';
+            });
+        })
+        .catch(error => {
+          apiResult.className = 'status-box status-error';
+          apiResult.innerHTML = '<p class="error">✗ Error testing connection: ' + error.message + '</p>';
+          testBtn.disabled = false;
+          testBtn.textContent = 'Test API Connection';
+        });
+    }
+    
+    // Helper to test an endpoint
+    async function testEndpoint(url) {
+      const startTime = Date.now();
+      
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000);
+        
+        const response = await fetch(url, {
+          method: 'GET',
+          headers: {
+            'X-Test-Client': 'PCD Widget Diagnostic',
+            'X-Ngrok-Skip-Browser-Warning': 'true'
+          },
+          signal: controller.signal
+        });
+        
+        clearTimeout(timeoutId);
+        const endTime = Date.now();
+        
+        if (response.ok) {
+          return {
+            success: true,
+            time: endTime - startTime
+          };
+        } else {
+          return {
+            success: false,
+            error: `Status ${response.status}`
+          };
+        }
+      } catch (error) {
+        return {
+          success: false,
+          error: error.name === 'AbortError' ? 'Timeout (5s)' : error.message
+        };
+      }
+    }
+    
+    // Initialize
+    checkCurrentConfig();
+  </script>
+</body>
+</html>

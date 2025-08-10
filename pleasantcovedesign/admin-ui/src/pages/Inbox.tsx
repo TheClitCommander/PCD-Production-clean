@@ -126,36 +126,21 @@ const Inbox: React.FC = () => {
     
     console.log(`📖 [READ_MESSAGES] Found ${unreadMessages.length} unread messages for ${conversation.customerName}`);
     
-    for (const msg of unreadMessages) {
-      try {
-        console.log(`📖 [READ_MESSAGES] Marking message ${msg.id} as read`);
-        await api.post(`/messages/${msg.id}/read`);
-      } catch (error: any) {
-        // Handle 404 gracefully - production server might not have this endpoint yet
-        if (error.response?.status === 404) {
-          console.warn(`⚠️ Read receipt endpoint not available on production server - messages will appear unread until server is updated`);
-          // Don't spam console with repeated 404s
-          break;
-        } else {
-          console.error('Failed to mark message as read:', error);
-        }
-      }
-    }
+    // Update conversation locally without waiting for API calls
+    const updatedMessages = conversation.messages.map(msg => ({
+      ...msg,
+      readAt: (msg.senderType === 'client' && !msg.readAt) ? readAt : msg.readAt
+    }));
     
-    // Update conversation with read messages
+    // Update the conversation in state immediately for better UX
     const updatedConversation = {
       ...conversation,
       unreadCount: 0,
-      messages: conversation.messages.map(msg => ({
-        ...msg,
-        readAt: (msg.senderType === 'client' && !msg.readAt) ? readAt : msg.readAt
-      }))
+      messages: updatedMessages
     };
-    
-    // Update selected conversation
     setSelectedConversation(updatedConversation);
     
-    // Clear unread count - update both local state and persist
+    // Update conversations list
     setConversations(prevConversations =>
       prevConversations.map(conv =>
         conv.id === conversation.id
@@ -163,6 +148,38 @@ const Inbox: React.FC = () => {
           : conv
       )
     );
+    
+    // Now try to update on the server in the background
+    for (const msg of unreadMessages) {
+      try {
+        console.log(`📖 [READ_MESSAGES] Marking message ${msg.id} as read`);
+        // Try with both endpoint formats for backward compatibility
+        try {
+          await api.post(`/messages/${msg.id}/read`);
+          console.log(`✅ [READ_MESSAGES] Successfully marked message ${msg.id} as read`);
+        } catch (innerError: any) {
+          if (innerError.response?.status === 404) {
+            // Try alternative endpoint format
+            await api.post(`/admin/messages/${msg.id}/read`);
+            console.log(`✅ [READ_MESSAGES] Successfully marked message ${msg.id} as read (alternative endpoint)`);
+          } else {
+            throw innerError; // Re-throw for outer catch
+          }
+        }
+      } catch (error: any) {
+        // Handle errors gracefully
+        if (error.response?.status === 404) {
+          console.warn(`⚠️ Read receipt endpoint not available on server - messages will appear unread on reload`);
+          // Don't spam console with repeated 404s
+          break;
+        } else if (error.code === 'ERR_NETWORK') {
+          console.warn(`⚠️ Network error marking message as read - will retry on next selection`);
+          break;
+        } else {
+          console.error('Failed to mark message as read:', error);
+        }
+      }
+    }
     
     // Cache this selection
     localStorage.setItem('pcd_last_admin_project', conversation.projectToken)
@@ -179,23 +196,45 @@ const Inbox: React.FC = () => {
     console.log(`🔌 [WEBSOCKET] Connecting to: ${backendUrl}`);
     setConnectionStatus('connecting');
     
-    const socket = io(backendUrl, {
-      transports: ['websocket'],
-      autoConnect: true,
-      reconnection: true,
-      reconnectionAttempts: 5,
-      reconnectionDelay: 1000,
-    });
+    // Try to connect to WebSocket with fallback options
+    let socket;
+    try {
+      socket = io(backendUrl, {
+        transports: ['websocket', 'polling'], // Try websocket first, fallback to polling
+        autoConnect: true,
+        reconnection: true,
+        reconnectionAttempts: 5,
+        reconnectionDelay: 1000,
+        timeout: 10000, // Increase timeout
+      });
+      
+      socketRef.current = socket;
+    } catch (error) {
+      console.error('Failed to initialize socket.io:', error);
+      setConnectionStatus('error');
+      // Continue with local functionality only
+      return;
+    }
     
-    socketRef.current = socket;
+    // Add connection error handler
+    socket.on('connect_error', (error) => {
+      console.error(`❌ [WEBSOCKET] Connection error:`, error);
+      setConnectionStatus('error');
+    });
     
     socket.on('connect', () => {
       console.log(`✅ [WEBSOCKET] Connected with ID: ${socket.id}`);
       setConnectionStatus('connected');
       console.log('🏠 [WEBSOCKET] Joining universal admin room...');
-      socket.emit('join', 'admin-room', (response: any) => {
-        console.log(`✅ [WEBSOCKET] Join response for admin-room:`, response);
-      });
+      
+      // Try to join admin room, but don't block on failure
+      try {
+        socket.emit('join', 'admin-room', (response: any) => {
+          console.log(`✅ [WEBSOCKET] Join response for admin-room:`, response);
+        });
+      } catch (error) {
+        console.warn('Failed to join admin room, but continuing with local functionality:', error);
+      }
     });
 
     socket.on('disconnect', (reason) => {
@@ -442,7 +481,15 @@ const Inbox: React.FC = () => {
           console.log(`✅ [FETCH] Created conversation for ${customerName} with ${messages.length} messages, ${conversation.unreadCount} unread`);
         });
         
-        conversationList.sort((a, b) => new Date(b.lastMessageTime).getTime() - new Date(a.lastMessageTime).getTime());
+        // Priority sorting: Unread conversations first, then by newest message
+        conversationList.sort((a, b) => {
+          // First priority: Unread messages (unread conversations go to top)
+          if (a.unreadCount > 0 && b.unreadCount === 0) return -1;
+          if (a.unreadCount === 0 && b.unreadCount > 0) return 1;
+          
+          // Second priority: Most recent message time
+          return new Date(b.lastMessageTime).getTime() - new Date(a.lastMessageTime).getTime();
+        });
 
         console.log(`📥 [FETCH] Final conversation list:`, conversationList.map(c => ({
           name: c.customerName,
@@ -803,10 +850,10 @@ const Inbox: React.FC = () => {
         </div>
       )}
 
-      {/* Sidebar */}
-      <div className="flex h-[calc(100vh-12rem)] bg-white rounded-xl shadow-sm border border-border">
+      {/* Main Inbox Container - Full Screen */}
+      <div className="flex h-screen w-full bg-white">
         {/* Conversations Sidebar */}
-        <div className="w-80 border-r border-border flex flex-col">
+        <div className="w-80 lg:w-96 xl:w-80 border-r border-gray-200 flex flex-col bg-gray-50">
           {/* Header */}
           <div className="p-4 border-b border-border">
             <div className="flex items-center justify-between mb-4">
@@ -929,8 +976,12 @@ const Inbox: React.FC = () => {
               <div
                 key={`conversation-${conversation.id}`}
                 onClick={() => handleConversationSelect(conversation)}
-                className={`relative p-4 border-b border-border cursor-pointer hover:bg-gray-50 ${
-                  selectedConversation?.id === conversation.id ? 'bg-primary-50 border-r-2 border-r-primary-500' : ''
+                className={`conversation-item ${
+                  selectedConversation?.id === conversation.id 
+                    ? 'conversation-item-active' 
+                    : conversation.unreadCount > 0 
+                      ? 'conversation-item-unread' 
+                      : ''
                 }`}
               >
                 <div className="flex items-start gap-3">
@@ -939,18 +990,18 @@ const Inbox: React.FC = () => {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
-                      <p className="font-medium text-foreground truncate">
+                      <p className={`${conversation.unreadCount > 0 ? 'font-bold' : 'font-medium'} text-foreground truncate`}>
                         {conversation.customerName || 'Unknown Customer'}
                       </p>
-                      <span className="text-xs text-muted">
+                      <span className={`text-xs ${conversation.unreadCount > 0 ? 'text-blue-600 font-medium' : 'text-muted'}`}>
                         {conversation.lastMessageTime ? formatTime(conversation.lastMessageTime) : ''}
                       </span>
                     </div>
-                    <p className="text-sm text-muted truncate">
+                    <p className={`text-sm ${conversation.unreadCount > 0 ? 'text-gray-700 font-medium' : 'text-muted'} truncate`}>
                       {conversation.projectTitle || 'No Title'}
                     </p>
                     {conversation.lastMessage ? (
-                      <p className="text-sm text-muted truncate mt-1">
+                      <p className={`text-sm ${conversation.unreadCount > 0 ? 'text-gray-700 font-medium' : 'text-muted'} truncate mt-1`}>
                         {conversation.lastMessage.senderType === 'admin' ? '🔵 You: ' : '💬 '}
                         {conversation.lastMessage.content || (conversation.lastMessage.attachments?.length ? `📎 ${conversation.lastMessage.attachments.length} file(s)` : 'Message')}
                       </p>
@@ -958,10 +1009,10 @@ const Inbox: React.FC = () => {
                       <p className="text-sm text-muted truncate mt-1 italic">No messages yet</p>
                     )}
                     {conversation.unreadCount > 0 && (
-                      <div className="absolute top-4 right-4 flex items-center">
+                      <div className="absolute top-3 right-3 flex items-center">
                         <div className="relative">
-                          <div className="animate-ping absolute inline-flex h-3 w-3 rounded-full bg-blue-400 opacity-75"></div>
-                          <div className="relative inline-flex items-center justify-center min-w-[20px] h-5 px-1 bg-blue-500 text-white text-xs font-semibold rounded-full">
+                          <div className="unread-pulse absolute inline-flex h-4 w-4 rounded-full bg-blue-400 opacity-75"></div>
+                          <div className="relative inline-flex items-center justify-center min-w-[24px] h-6 px-1.5 bg-blue-600 text-white text-xs font-bold rounded-full shadow-md">
                             {conversation.unreadCount}
                           </div>
                         </div>
@@ -981,8 +1032,8 @@ const Inbox: React.FC = () => {
           </div>
         </div>
 
-        {/* Chat Area */}
-        <div className="flex-1 flex flex-col">
+        {/* Chat Area - Full remaining width */}
+        <div className="flex-1 flex flex-col bg-white">
           {selectedConversation ? (
             <>
               {/* Chat Header */}
@@ -1007,21 +1058,21 @@ const Inbox: React.FC = () => {
                   
                   <div className="flex items-center gap-2">
                     <button 
-                      className="p-2 hover:bg-gray-100 rounded-lg"
+                      className="btn-icon"
                       onClick={() => handlePhoneCall(selectedConversation)}
                       title="Call client"
                     >
                       <Phone className="h-4 w-4 text-muted" />
                     </button>
                     <button 
-                      className="p-2 hover:bg-gray-100 rounded-lg"
+                      className="btn-icon"
                       onClick={() => handleVideoCall(selectedConversation)}
                       title="Start video call"
                     >
                       <Video className="h-4 w-4 text-muted" />
                     </button>
                     <button 
-                      className="p-2 hover:bg-gray-100 rounded-lg"
+                      className="btn-icon"
                       onClick={() => handleConversationMenu(selectedConversation)}
                       title="Conversation options"
                     >
@@ -1038,10 +1089,10 @@ const Inbox: React.FC = () => {
                     key={`message-${message.id}`}
                     className={`flex ${message.senderType === 'admin' ? 'justify-end' : 'justify-start'}`}
                   >
-                    <div className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
+                    <div className={`max-w-xs lg:max-w-md px-4 py-2 ${
                       message.senderType === 'admin'
-                        ? 'bg-primary-600 text-white'
-                        : 'bg-gray-100 text-foreground'
+                        ? 'message-bubble-admin'
+                        : 'message-bubble-client'
                     }`}>
                       {message.content && <p className="text-sm">{message.content}</p>}
                       
@@ -1261,10 +1312,10 @@ const Inbox: React.FC = () => {
               </div>
             </>
           ) : (
-            <div className="flex flex-col items-center justify-center h-full text-center text-muted">
-              <MessageSquare className="h-16 w-16 mb-4 text-gray-300" />
-              <h2 className="text-lg font-medium">Select a conversation</h2>
-              <p className="text-sm">Choose a conversation from the left to start messaging.</p>
+            <div className="flex flex-col items-center justify-center h-full text-center text-muted px-8">
+              <MessageSquare className="h-20 w-20 mb-6 text-gray-300" />
+              <h2 className="text-xl font-semibold text-gray-700 mb-2">Welcome to Business Inbox</h2>
+              <p className="text-gray-500 max-w-md">Choose a conversation from the sidebar to start messaging with your clients. All your project communications are organized here.</p>
             </div>
           )}
         </div>

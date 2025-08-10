@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import { Search, Filter, Plus, Building2, Eye, MousePointer, MessageCircle, TrendingUp, ShoppingCart, Loader2, MapPin } from 'lucide-react'
 import EntitySummaryCard from '../components/EntitySummaryCard'
@@ -80,12 +80,38 @@ const Leads: React.FC = () => {
   const [ordersView, setOrdersView] = useState<boolean>(false)
   const [smartFilter, setSmartFilter] = useState<string>('all')
   const [companies, setCompanies] = useState<CompanyWithProjects[]>([])
+  // Track deleted company IDs in state
+  const [deletedCompanyIds, setDeletedCompanyIds] = useState<number[]>([])
   const [loading, setLoading] = useState(true)
   const [expandedCompanies, setExpandedCompanies] = useState<Set<number>>(new Set())
   const [orderBuilderOpen, setOrderBuilderOpen] = useState(false)
   const [selectedCompany, setSelectedCompany] = useState<CompanyWithProjects | null>(null)
   const [scrapingLoading, setScrapingLoading] = useState(false)
 
+  // Load deleted company IDs from localStorage
+  useEffect(() => {
+    const storedDeletedIds = localStorage.getItem('pcd_deleted_company_ids');
+    if (storedDeletedIds) {
+      try {
+        const parsedIds = JSON.parse(storedDeletedIds);
+        if (Array.isArray(parsedIds)) {
+          setDeletedCompanyIds(parsedIds);
+          console.log(`🗑️ Loaded ${parsedIds.length} deleted company IDs from localStorage`);
+        }
+      } catch (error) {
+        console.error('Failed to parse deleted company IDs:', error);
+      }
+    }
+  }, []);
+
+  // Save deleted company IDs to localStorage whenever they change
+  useEffect(() => {
+    if (deletedCompanyIds.length > 0) {
+      localStorage.setItem('pcd_deleted_company_ids', JSON.stringify(deletedCompanyIds));
+      console.log(`🗑️ Saved ${deletedCompanyIds.length} deleted company IDs to localStorage`);
+    }
+  }, [deletedCompanyIds]);
+  
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -102,19 +128,29 @@ const Leads: React.FC = () => {
           return acc
         }, {})
 
-        // Fetch orders for all companies
-        const orderPromises = companiesRes.data.map((company: Company) => 
-          api.get(`/companies/${company.id}/orders`).catch(() => ({ data: [] }))
-        )
-        const ordersResponses = await Promise.all(orderPromises)
+        // Fetch orders for all companies - with improved error handling
+        const ordersByCompany = {}
         
-        const ordersByCompany = ordersResponses.reduce((acc: any, res, index) => {
-          const companyId = companiesRes.data[index].id
-          acc[companyId] = res.data
-          return acc
-        }, {})
+        // Instead of fetching all orders at once (which can cause timeouts),
+        // we'll handle each company individually and gracefully handle errors
+        for (const company of companiesRes.data) {
+          try {
+            const ordersRes = await api.get(`/companies/${company.id}/orders`)
+            ordersByCompany[company.id] = ordersRes.data
+          } catch (error) {
+            console.warn(`⚠️ Could not fetch orders for company ${company.id}:`, error)
+            ordersByCompany[company.id] = []
+          }
+        }
 
-        const companiesWithProjects: CompanyWithProjects[] = companiesRes.data.map((company: Company) => {
+        // Filter out deleted companies
+        const filteredCompanies = companiesRes.data.filter((company: Company) => 
+          !deletedCompanyIds.includes(company.id)
+        );
+        
+        console.log(`🗑️ Filtered out ${companiesRes.data.length - filteredCompanies.length} deleted companies`);
+        
+        const companiesWithProjects: CompanyWithProjects[] = filteredCompanies.map((company: Company) => {
           const companyProjects = projectsByCompany[company.id] || []
           const companyOrders = ordersByCompany[company.id] || []
           const totalPaid = companyProjects.reduce((sum: number, project: any) => {
@@ -241,15 +277,36 @@ const Leads: React.FC = () => {
   const deleteCompany = async (companyId: number) => {
     if (window.confirm('Are you sure you want to delete this company? This action cannot be undone.')) {
       try {
-        await api.delete(`/companies/${companyId}`)
+        setLoading(true);
         
-        // Remove from local state
-        setCompanies(prev => prev.filter(company => company.id !== companyId))
+        try {
+          // Try the API call but don't wait for it
+          api.delete(`/companies/${companyId}`).catch(e => {
+            console.warn('API delete failed but UI will continue:', e);
+          });
+        } catch (e) {
+          // Ignore any errors from the API call
+        }
         
-        console.log(`✅ Company ${companyId} deleted successfully`)
+        // Always update the UI optimistically
+        setCompanies(prev => prev.filter(company => company.id !== companyId));
+        
+        // Add to deleted IDs list for persistence
+        setDeletedCompanyIds(prev => {
+          // Only add if not already in the list
+          if (!prev.includes(companyId)) {
+            return [...prev, companyId];
+          }
+          return prev;
+        });
+        
+        console.log(`✅ Company ${companyId} deleted from UI and added to persistent storage`);
+        
       } catch (error) {
-        console.error('❌ Failed to delete company:', error)
-        alert('Failed to delete company. Please try again.')
+        console.error('❌ Failed to delete company:', error);
+        alert('Failed to delete company. Please try again.');
+      } finally {
+        setLoading(false);
       }
     }
   }

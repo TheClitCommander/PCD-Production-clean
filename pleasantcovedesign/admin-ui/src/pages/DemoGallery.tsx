@@ -51,7 +51,13 @@ const DemoGallery: React.FC = () => {
       // Try to fetch real demo data
       try {
         const response = await api.get('/demos')
-        setDemos(response.data)
+        // Ensure we're setting an array
+        if (Array.isArray(response.data)) {
+          setDemos(response.data)
+        } else {
+          console.warn('API returned non-array data:', response.data)
+          setDemos([])
+        }
       } catch (error) {
         console.log('No demo data available yet')
         // Set empty array - will show empty state
@@ -59,6 +65,8 @@ const DemoGallery: React.FC = () => {
       }
     } catch (error) {
       console.error('Error fetching demos:', error)
+      // Ensure we always set demos to an array in case of error
+      setDemos([])
     } finally {
       setLoading(false)
     }
@@ -131,7 +139,10 @@ const DemoGallery: React.FC = () => {
     return colors[type as keyof typeof colors] || colors.default
   }
 
-  const filteredDemos = demos.filter(demo => {
+  // Ensure demos is an array before filtering
+  const demosArray = Array.isArray(demos) ? demos : [];
+  
+  const filteredDemos = demosArray.filter(demo => {
     const matchesSearch = searchTerm === '' || 
       demo.companyName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       demo.businessType.toLowerCase().includes(searchTerm.toLowerCase())
@@ -141,7 +152,7 @@ const DemoGallery: React.FC = () => {
     return matchesSearch && matchesBusinessType
   })
 
-  const businessTypes = [...new Set(demos.map(demo => demo.businessType))]
+  const businessTypes = Array.isArray(demos) ? [...new Set(demos.map(demo => demo.businessType))] : []
 
   if (loading) {
     return (

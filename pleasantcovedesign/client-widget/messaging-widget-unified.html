@@ -646,52 +646,54 @@
             }
 
             detectBackendUrl() {
-                console.debug('[WIDGET] detectBackendUrl - hostname:', window.location.hostname);
-                console.debug('[WIDGET] detectBackendUrl - protocol:', window.location.protocol);
-                console.debug('[WIDGET] detectBackendUrl - full URL:', window.location.href);
+                console.log('🔍 [CONFIG] Detecting backend URL...');
+                console.log('   [CONFIG] hostname:', window.location.hostname);
+                console.log('   [CONFIG] protocol:', window.location.protocol);
+                console.log('   [CONFIG] URL:', window.location.href);
                 
-                // Production-first logic - use Railway unless specifically localhost
-                // This ensures widget always connects to production by default
+                // PRIORITY 1: Check for debug mode (forced localhost)
+                const forceDebug = localStorage.getItem('pcd_debug_mode') === 'true';
+                if (forceDebug) {
+                    console.log('🐛 [CONFIG] DEBUG MODE - Force using localhost:3000');
+                    return 'http://localhost:3000';
+                }
                 
-                // Local development detection (for testing)
+                // PRIORITY 2: Check URL parameters for backend URL
+                const urlParams = new URLSearchParams(window.location.search);
+                const paramBackendUrl = urlParams.get('backendUrl') || urlParams.get('api_url');
+                if (paramBackendUrl) {
+                    console.log('🔗 [CONFIG] Using backend URL from URL parameter:', paramBackendUrl);
+                    // Store for future use
+                    localStorage.setItem('pcd_backend_url', paramBackendUrl);
+                    return paramBackendUrl;
+                }
+                
+                // PRIORITY 3: Check for stored URL in local storage
+                const storedBackendUrl = localStorage.getItem('pcd_backend_url');
+                if (storedBackendUrl) {
+                    console.log('💾 [CONFIG] Using stored backend URL:', storedBackendUrl);
+                    return storedBackendUrl;
+                }
+                
+                // PRIORITY 4: iframe data attribute override
+                const el = document.getElementById('pcd-messaging-widget');
+                if (el?.dataset.backendUrl) {
+                    console.log('🖼️ [CONFIG] Using backend URL from iframe data attribute:', el.dataset.backendUrl);
+                    return el.dataset.backendUrl;
+                }
+                
+                // PRIORITY 5: Local development detection (for development)
                 if (window.location.hostname === 'localhost' || 
                     window.location.hostname === '127.0.0.1' ||
                     window.location.hostname === '::1' ||
                     window.location.port === '8080' ||
                     window.location.href.includes('localhost:')) {
-                    console.debug('[WIDGET] detectBackendUrl dev → https://pcd-production-clean-production-e6f3.up.railway.app');
-return 'https://pcd-production-clean-production-e6f3.up.railway.app';
+                    console.log('🏠 [CONFIG] Running in local development mode - using localhost:3000');
+                    return 'http://localhost:3000';
                 }
                 
-                // Squarespace domains (including trial sites)
-                if (window.location.hostname.includes('.squarespace.com') ||
-                    window.location.hostname.includes('.sqsp.net')) {
-                    console.debug('[WIDGET] detectBackendUrl Squarespace → https://pcd-production-clean-production-e6f3.up.railway.app');
-                    return 'https://pcd-production-clean-production-e6f3.up.railway.app';
-                }
-                
-                // Production domain - ALWAYS use Railway for pleasantcovedesign.com
-                if (window.location.hostname === 'www.pleasantcovedesign.com' || 
-                    window.location.hostname === 'pleasantcovedesign.com') {
-                    console.debug('[WIDGET] detectBackendUrl production → https://pcd-production-clean-production-e6f3.up.railway.app');
-                    return 'https://pcd-production-clean-production-e6f3.up.railway.app';
-                }
-                
-                // iframe override
-                const el = document.getElementById('pcd-messaging-widget');
-                if (el?.dataset.backendUrl) {
-                    console.debug('[WIDGET] detectBackendUrl iframe override →', el.dataset.backendUrl);
-                    return el.dataset.backendUrl;
-                }
-                
-                // file:// fallback
-                if (window.location.protocol === 'file:') {
-                    console.debug('[WIDGET] detectBackendUrl file:// → https://pcd-production-clean-production-e6f3.up.railway.app');
-return 'https://pcd-production-clean-production-e6f3.up.railway.app';
-                }
-                
-                // Default to Railway production for any other HTTPS sites
-                console.debug('[WIDGET] detectBackendUrl default → https://pcd-production-clean-production-e6f3.up.railway.app');
+                // For any other URL, use the Railway production backend
+                console.log('🚀 [CONFIG] Using production backend URL');
                 return 'https://pcd-production-clean-production-e6f3.up.railway.app';
             }
             
@@ -764,7 +766,21 @@ return 'https://pcd-production-clean-production-e6f3.up.railway.app';
                         console.error('❌ [INIT] Could not determine backend URL');
                         return;
                     }
-                    console.log('🌐 [BACKEND] Using backend URL:', this.config.backendUrl);
+                    
+                    // Check and display debug mode status
+                    const isDebugMode = localStorage.getItem('pcd_debug_mode') === 'true';
+                    const statusEl = document.getElementById('debugModeStatus');
+                    if (statusEl) {
+                        if (isDebugMode) {
+                            statusEl.textContent = 'Debug mode ON - using localhost:3000';
+                            statusEl.style.color = '#28a745';
+                        } else {
+                            statusEl.textContent = 'Debug mode OFF - using production server';
+                            statusEl.style.color = '#dc3545';
+                        }
+                    }
+                    
+                    console.log(`🌐 [BACKEND] Using backend URL: ${this.config.backendUrl}${isDebugMode ? ' (DEBUG MODE)' : ''}`);
                     
                     // STEP 1: FIRST detect current Squarespace member
                     const currentMember = await this.robustMemberDetection();
@@ -1565,17 +1581,23 @@ return 'https://pcd-production-clean-production-e6f3.up.railway.app';
                 
                 container.innerHTML = `
                     <div class="pcd-waiting-state">
-                        <h3>👋 Welcome to Pleasant Cove Design</h3>
-                        <p>Please log in to your Squarespace member account to access the messaging system.</p>
-                        <p>If you're already logged in, please refresh this page.</p>
-                        <button onclick="window.location.reload()" class="pcd-force-reload-btn">
-                            Refresh Page
-                        </button>
-                        <hr style="margin: 20px 0; opacity: 0.3;">
-                        <p style="font-size: 0.9em; opacity: 0.7;">For testing purposes only:</p>
-                        <button onclick="window.messagingWidget?.enterTestMode()" class="pcd-force-reload-btn" style="background: #666;">
-                            Enter Test Mode
-                        </button>
+                                        <h3>👋 Welcome to Pleasant Cove Design</h3>
+                <p>Please log in to your Squarespace member account to access the messaging system.</p>
+                <p>If you're already logged in, please refresh this page.</p>
+                <button onclick="window.location.reload()" class="pcd-force-reload-btn">
+                    Refresh Page
+                </button>
+                <hr style="margin: 20px 0; opacity: 0.3;">
+                <p style="font-size: 0.9em; opacity: 0.7;">For testing purposes only:</p>
+                <div style="display: flex; gap: 10px; margin-bottom: 10px; justify-content: center;">
+                    <button onclick="window.messagingWidget?.enterTestMode()" class="pcd-force-reload-btn" style="background: #666;">
+                        Enter Test Mode
+                    </button>
+                    <button onclick="window.messagingWidget?.toggleDebugMode()" class="pcd-force-reload-btn" style="background: #6b6b6b;">
+                        Toggle Debug Mode
+                    </button>
+                </div>
+                <div id="debugModeStatus" style="font-size: 12px; margin-top: 5px; opacity: 0.7;"></div>
                     </div>
                 `;
             }
@@ -1591,6 +1613,35 @@ return 'https://pcd-production-clean-production-e6f3.up.railway.app';
                 
                 // Authenticate with test member
                 this.authenticateUser(testMember);
+            }
+            
+            toggleDebugMode() {
+                console.log('🔧 [DEBUG_MODE] Toggling debug mode...');
+                
+                // Check current state
+                const currentState = localStorage.getItem('pcd_debug_mode') === 'true';
+                const newState = !currentState;
+                
+                // Toggle state
+                localStorage.setItem('pcd_debug_mode', newState.toString());
+                
+                // Update UI
+                const statusEl = document.getElementById('debugModeStatus');
+                if (statusEl) {
+                    if (newState) {
+                        statusEl.textContent = 'Debug mode ON - using localhost:3000';
+                        statusEl.style.color = '#28a745';
+                    } else {
+                        statusEl.textContent = 'Debug mode OFF - using production server';
+                        statusEl.style.color = '#dc3545';
+                    }
+                }
+                
+                // Show confirmation
+                alert(`Debug mode ${newState ? 'ENABLED' : 'DISABLED'}. The page will now reload to apply the changes.`);
+                
+                // Force reload to apply the new backend URL
+                window.location.reload();
             }
 
             async attemptPublicAccess(token) {
@@ -2047,7 +2098,26 @@ return 'https://pcd-production-clean-production-e6f3.up.railway.app';
                 console.log('📥 [MESSAGES] Loading conversation history...');
                 
                 try {
+                    // Make sure we have a project token
+                    if (!this.projectToken) {
+                        console.error('❌ [MESSAGES] No project token available!');
+                        
+                        // Try to recover from localStorage
+                        const storedToken = localStorage.getItem('pcd_project_token');
+                        if (storedToken) {
+                            console.log('🔄 [MESSAGES] Recovered token from localStorage:', storedToken.substring(0, 8) + '...');
+                            this.projectToken = storedToken;
+                        } else {
+                            console.error('❌ [MESSAGES] Cannot load messages: No project token available');
+                            return;
+                        }
+                    }
+                    
                     const cacheBust = `t=${new Date().getTime()}`;
+                    
+                    // Log crucial debugging info
+                    console.log('📊 [MESSAGES] Backend URL:', this.config.backendUrl);
+                    console.log('📊 [MESSAGES] Project Token:', this.projectToken ? (this.projectToken.substring(0, 8) + '...') : 'MISSING');
                     
                     // Use the detected backend URL with ngrok bypass if needed
                     const baseUrl = `${this.config.backendUrl}/api/public/project/${this.projectToken}/messages`;
@@ -2055,17 +2125,31 @@ return 'https://pcd-production-clean-production-e6f3.up.railway.app';
                         ? `${baseUrl}?ngrok-skip-browser-warning=true&${cacheBust}`
                         : `${baseUrl}?${cacheBust}`;
                     
+                    console.log('🔍 [MESSAGES] Fetching messages from URL:', url);
+                    
+                    const headers = {
+                        'Accept': 'application/json',
+                        'Cache-Control': 'no-cache',
+                        'Pragma': 'no-cache',
+                        'ngrok-skip-browser-warning': 'true'
+                    };
+                    
+                    // Add project token as header for debugging
+                    if (this.projectToken) {
+                        headers['X-Project-Token'] = this.projectToken.substring(0, 8); // Only include first 8 chars for security
+                    }
+                    
                     const response = await fetch(url, {
                         method: 'GET',
-                        headers: {
-                            'Accept': 'application/json',
-                            'Cache-Control': 'no-cache',
-                            'Pragma': 'no-cache'
-                        }
+                        headers
                     });
                     
+                    console.log('📥 [MESSAGES] Response status:', response.status);
+                    
                     if (!response.ok) {
-                        throw new Error(`Failed to load messages: ${response.status}`);
+                        const errorText = await response.text();
+                        console.error('❌ [MESSAGES] Error response:', errorText);
+                        throw new Error(`Failed to load messages: ${response.status} - ${errorText}`);
                     }
                     
                     const data = await response.json();
@@ -2074,6 +2158,12 @@ return 'https://pcd-production-clean-production-e6f3.up.railway.app';
                     // Handle both direct array and object with messages property
                     let messages = Array.isArray(data) ? data : (data.messages || []);
                     console.log(`✅ [MESSAGES] Loaded ${messages.length} messages`);
+                    
+                    // If no messages were found, check if the API returned an error
+                    if (messages.length === 0 && data.error) {
+                        console.warn('⚠️ [MESSAGES] API returned an error:', data.error);
+                        throw new Error(`API error: ${data.error}`);
+                    }
                     
                     // Sort messages by createdAt to ensure oldest first (top) to newest last (bottom)
                     messages = messages.sort((a, b) => {

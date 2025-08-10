@@ -1671,6 +1671,30 @@ SUPPORT: pleasantcovedesign@gmail.com | (207) 380-5680
             
             const hostname = window.location.hostname;
             
+            // Check for API URL in local storage (highest priority)
+            const storedApiUrl = localStorage.getItem('pcd_api_url');
+            if (storedApiUrl) {
+                console.log('📌 Using STORED API URL from localStorage:', storedApiUrl);
+                return storedApiUrl;
+            }
+
+            // Check for debug mode - force localhost even on production
+            const isDebugMode = localStorage.getItem('pcd_debug_mode') === 'true';
+            if (isDebugMode) {
+                console.log('🐛 DEBUG MODE ENABLED: Using localhost API regardless of environment');
+                return 'http://localhost:3000';
+            }
+            
+            // Check for a URL param override
+            const urlParams = new URLSearchParams(window.location.search);
+            const apiUrlParam = urlParams.get('api_url');
+            if (apiUrlParam) {
+                console.log('🔗 Using API URL from URL parameter:', apiUrlParam);
+                // Store for future use
+                localStorage.setItem('pcd_api_url', apiUrlParam);
+                return apiUrlParam;
+            }
+            
             // Only use localhost if we're actually on localhost for development
             if (hostname === 'localhost' || hostname === '127.0.0.1') {
                 console.log('🏠 Using LOCAL API for development testing:', 'http://localhost:3000');
@@ -1741,16 +1765,44 @@ SUPPORT: pleasantcovedesign@gmail.com | (207) 380-5680
                 const apiUrl = getApiUrl();
                 console.log('▶️ getApiUrl() =', apiUrl);
 
-                const response = await fetch(`${apiUrl}/api/book-appointment`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'ngrok-skip-browser-warning': 'true'
-                    },
-                    body: JSON.stringify(appointmentData)
-                });
+                // Enhanced debugging for API calls
+                console.log('📤 SENDING TO: ' + `${apiUrl}/api/book-appointment`);
+                
+                // Prepare headers with debugging support
+                const headers = {
+                    'Content-Type': 'application/json',
+                    'ngrok-skip-browser-warning': 'true',
+                    'X-Debug-ClientInfo': window.navigator.userAgent,
+                    'X-Widget-Version': '2025-07-15'
+                };
+                
+                // Allow requests from both HTTP and HTTPS
+                if (window.location.protocol === 'https:') {
+                    console.log('🔒 Using HTTPS - adding secure headers');
+                    headers['X-Forwarded-Proto'] = 'https';
+                }
+                
+                // Try the fetch with added error handling
+                let response;
+                try {
+                    console.log('📤 Sending appointment data with headers:', headers);
+                    response = await fetch(`${apiUrl}/api/book-appointment`, {
+                        method: 'POST',
+                        headers,
+                        body: JSON.stringify(appointmentData)
+                    });
+                    
+                    // Log response headers for debugging
+                    console.log('📥 Response status:', response.status);
+                    console.log('📥 Response headers:', [...response.headers.entries()]);
+                    
+                    // Continue with response processing
+                } catch (fetchError) {
+                    console.error('🚨 FETCH ERROR:', fetchError);
+                    throw new Error(`Network error: ${fetchError.message}. Please check your internet connection.`);
+                }
 
-                if (response.ok) {
+                if (response && response.ok) {
                     const result = await response.json();
                     console.log('Appointment booked successfully:', result);
                     

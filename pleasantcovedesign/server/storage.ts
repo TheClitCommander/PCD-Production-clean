@@ -1041,4 +1041,3 @@ function createStorage() {
 }
 
 export const storage = createStorage();
-Object.freeze(storage); 

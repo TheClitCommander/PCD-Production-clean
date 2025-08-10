@@ -7456,7 +7456,19 @@ Booked via: ${source}
       const companyId = parseInt(req.params.id);
       console.log(`🏢 [ORDERS] Fetching orders for company ${companyId}`);
       
-      const orders = await storage.getOrdersByCompanyId(companyId);
+      // Backward-compatible call: fall back if older storage implementation is present in a stale build
+      let orders: any[] = [];
+      const anyStorage: any = storage as any;
+      if (typeof anyStorage.getOrdersByCompanyId === 'function') {
+        orders = await anyStorage.getOrdersByCompanyId(companyId);
+      } else if (typeof anyStorage.getOrdersByCompany === 'function') {
+        orders = await anyStorage.getOrdersByCompany(String(companyId));
+      } else if (anyStorage?.postgresStorage?.getOrdersByCompanyId) {
+        orders = await anyStorage.postgresStorage.getOrdersByCompanyId(companyId);
+      } else {
+        console.warn('⚠️ [ORDERS] No compatible storage method found; returning empty list');
+        orders = [];
+      }
       res.json(orders);
     } catch (error) {
       console.error('❌ [ORDERS] Error fetching company orders:', error);

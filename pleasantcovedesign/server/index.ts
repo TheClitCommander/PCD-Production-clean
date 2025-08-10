@@ -76,6 +76,28 @@ const io = new Server(server, {
 
 const PORT = Number(process.env.PORT) || 3000;
 
+// Runtime compatibility shim: ensure getOrdersByCompanyId exists even on older builds
+try {
+  const anyStorage: any = storage as any;
+  if (typeof anyStorage.getOrdersByCompanyId !== 'function') {
+    anyStorage.getOrdersByCompanyId = async (companyId: string | number) => {
+      if (typeof anyStorage.getOrdersByCompany === 'function') {
+        return anyStorage.getOrdersByCompany(String(companyId));
+      }
+      if (anyStorage.postgresStorage?.getOrdersByCompanyId) {
+        return anyStorage.postgresStorage.getOrdersByCompanyId(companyId);
+      }
+      if (anyStorage.postgresStorage?.getOrdersByCompany) {
+        return anyStorage.postgresStorage.getOrdersByCompany(String(companyId));
+      }
+      return [];
+    };
+    console.log('🧩 Added compatibility shim for storage.getOrdersByCompanyId');
+  }
+} catch (e) {
+  console.warn('⚠️ Could not apply storage compatibility shim', e);
+}
+
 // Store active connections by project token
 const activeConnections = new Map<string, Set<string>>();
 

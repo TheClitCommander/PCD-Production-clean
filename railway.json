@@ -5,7 +5,7 @@
     "buildCommand": "npm ci || npm install && npm run build:prod"
   },
   "deploy": {
-    "startCommand": "cd pleasantcovedesign/server && npm start",
+    "startCommand": "node pleasantcovedesign/server/dist/index.js",
     "healthcheckPath": "/health",
     "healthcheckTimeout": 30,
     "restartPolicyType": "ON_FAILURE",

@@ -142,16 +142,137 @@ class GoogleMapsScraper:
     def setup_driver(self, headless):
         """Configure and initialize the Chrome WebDriver"""
         options = Options()
-        if headless:
-            options.add_argument("--headless")
+        
+        # Enhanced stability flags for macOS
         options.add_argument("--no-sandbox")
         options.add_argument("--disable-dev-shm-usage")
+        options.add_argument("--disable-gpu")
+        options.add_argument("--disable-software-rasterizer")
+        options.add_argument("--disable-background-timer-throttling")
+        options.add_argument("--disable-backgrounding-occluded-windows")
+        options.add_argument("--disable-renderer-backgrounding")
+        options.add_argument("--disable-features=TranslateUI")
+        options.add_argument("--disable-ipc-flooding-protection")
+        options.add_argument("--disable-background-networking")
         options.add_argument("--disable-blink-features=AutomationControlled")
-        options.add_argument("user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36")
-        options.add_argument("--window-size=1920,1080")
+        options.add_argument("--disable-infobars")
+        options.add_argument("--disable-extensions")
+        options.add_argument("--disable-default-apps")
+        options.add_argument("--disable-sync")
+        options.add_argument("--disable-translate")
+        options.add_argument("--hide-scrollbars")
+        options.add_argument("--metrics-recording-only")
+        options.add_argument("--mute-audio")
+        options.add_argument("--no-first-run")
+        options.add_argument("--safebrowsing-disable-auto-update")
+        options.add_argument("--disable-web-security")
+        options.add_argument("--allow-running-insecure-content")
+        options.add_argument("--disable-logging")
+        options.add_argument("--disable-gpu-logging")
+        options.add_argument("--log-level=3")  # Suppress INFO, WARNING, ERROR
+        options.add_argument("--silent")
         
-        self.driver = webdriver.Chrome(options=options)
-        self.wait = WebDriverWait(self.driver, 10)
+        # Memory and performance optimizations
+        options.add_argument("--memory-pressure-off")
+        options.add_argument("--max_old_space_size=4096")
+        options.add_argument("--aggressive-cache-discard")
+        
+        # Window settings
+        options.add_argument("--window-size=1920,1080")
+        options.add_argument("--start-maximized")
+        
+        # Headless configuration
+        if headless:
+            options.add_argument("--headless=new")
+            options.add_argument("--disable-gpu")
+        
+        # User agent
+        options.add_argument(
+            "user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36"
+        )
+        
+        # Additional prefs to reduce memory usage and crashes
+        prefs = {
+            "profile.default_content_setting_values": {
+                "notifications": 2,
+                "media_stream": 2,
+            },
+            "profile.default_content_settings.popups": 0,
+            "profile.managed_default_content_settings.images": 2,  # Block images for speed
+            "profile.content_settings.exceptions.automatic_downloads.*.setting": 2,
+        }
+        options.add_experimental_option("prefs", prefs)
+        
+        # Prevent automation detection
+        options.add_experimental_option("excludeSwitches", ["enable-automation"])
+        options.add_experimental_option('useAutomationExtension', False)
+        
+        # Try multiple driver initialization strategies
+        driver = None
+        
+        # Strategy 1: Try undetected-chromedriver with retries
+        for attempt in range(3):
+            try:
+                import undetected_chromedriver as uc
+                logger.info(f"Attempt {attempt + 1}: Trying undetected-chromedriver...")
+                
+                driver = uc.Chrome(
+                    options=options, 
+                    headless=headless,
+                    version_main=None,  # Auto-detect Chrome version
+                    driver_executable_path=None  # Auto-find chromedriver
+                )
+                logger.info("✅ Successfully initialized undetected-chromedriver")
+                break
+                
+            except Exception as e:
+                logger.warning(f"Attempt {attempt + 1} with undetected-chromedriver failed: {e}")
+                if attempt == 2:  # Last attempt
+                    logger.warning("All undetected-chromedriver attempts failed, falling back to standard WebDriver")
+        
+        # Strategy 2: Fall back to standard Chrome WebDriver
+        if driver is None:
+            try:
+                logger.info("Trying standard Chrome WebDriver...")
+                
+                # Try to use ChromeDriverManager for automatic driver management
+                try:
+                    from webdriver_manager.chrome import ChromeDriverManager
+                    from selenium.webdriver.chrome.service import Service
+                    
+                    service = Service(ChromeDriverManager().install())
+                    driver = webdriver.Chrome(service=service, options=options)
+                    logger.info("✅ Successfully initialized Chrome WebDriver with ChromeDriverManager")
+                    
+                except ImportError:
+                    # Fallback to system chromedriver
+                    logger.info("ChromeDriverManager not available, using system chromedriver...")
+                    driver = webdriver.Chrome(options=options)
+                    logger.info("✅ Successfully initialized Chrome WebDriver with system chromedriver")
+                    
+            except Exception as e:
+                logger.error(f"Failed to initialize Chrome WebDriver: {e}")
+                logger.error("Please ensure Chrome and chromedriver are properly installed")
+                raise
+        
+        # Final check and setup
+        if driver is None:
+            raise Exception("Failed to initialize any WebDriver")
+        
+        self.driver = driver
+        self.wait = WebDriverWait(self.driver, 15)  # Increased timeout
+        
+        # Execute additional stability scripts
+        try:
+            self.driver.execute_cdp_cmd('Page.addScriptToEvaluateOnNewDocument', {
+                "source": """
+                    Object.defineProperty(navigator, 'webdriver', {
+                        get: () => undefined,
+                    });
+                """
+            })
+        except Exception:
+            pass  # CDP commands might not be available in all setups
     
     def setup_database(self):
         """Initialize SQLite database with required tables"""
@@ -427,17 +548,79 @@ class GoogleMapsScraper:
                     pass
 
     def _create_thread_driver(self):
-        """Create a WebDriver instance for use in a thread"""
+        """Create a WebDriver instance for use in a thread with same stability configs"""
         options = Options()
-        options.add_argument("--headless")
+        
+        # Use same enhanced stability flags as main driver
+        options.add_argument("--headless=new")
         options.add_argument("--no-sandbox")
         options.add_argument("--disable-dev-shm-usage")
+        options.add_argument("--disable-gpu")
+        options.add_argument("--disable-software-rasterizer")
+        options.add_argument("--disable-background-timer-throttling")
+        options.add_argument("--disable-backgrounding-occluded-windows")
+        options.add_argument("--disable-renderer-backgrounding")
+        options.add_argument("--disable-features=TranslateUI")
+        options.add_argument("--disable-ipc-flooding-protection")
+        options.add_argument("--disable-background-networking")
         options.add_argument("--disable-blink-features=AutomationControlled")
-        options.add_argument("user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36")
+        options.add_argument("--disable-infobars")
+        options.add_argument("--disable-extensions")
+        options.add_argument("--disable-default-apps")
+        options.add_argument("--disable-sync")
+        options.add_argument("--disable-translate")
+        options.add_argument("--hide-scrollbars")
+        options.add_argument("--metrics-recording-only")
+        options.add_argument("--mute-audio")
+        options.add_argument("--no-first-run")
+        options.add_argument("--safebrowsing-disable-auto-update")
+        options.add_argument("--disable-web-security")
+        options.add_argument("--allow-running-insecure-content")
+        options.add_argument("--disable-logging")
+        options.add_argument("--disable-gpu-logging")
+        options.add_argument("--log-level=3")
+        options.add_argument("--silent")
+        options.add_argument("--memory-pressure-off")
+        options.add_argument("--max_old_space_size=4096")
+        options.add_argument("--aggressive-cache-discard")
         options.add_argument("--window-size=1920,1080")
         
-        driver = webdriver.Chrome(options=options)
-        return driver
+        options.add_argument(
+            "user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36"
+        )
+        
+        # Same prefs as main driver
+        prefs = {
+            "profile.default_content_setting_values": {
+                "notifications": 2,
+                "media_stream": 2,
+            },
+            "profile.default_content_settings.popups": 0,
+            "profile.managed_default_content_settings.images": 2,
+            "profile.content_settings.exceptions.automatic_downloads.*.setting": 2,
+        }
+        options.add_experimental_option("prefs", prefs)
+        options.add_experimental_option("excludeSwitches", ["enable-automation"])
+        options.add_experimental_option('useAutomationExtension', False)
+
+        # Try same initialization strategies as main driver
+        try:
+            import undetected_chromedriver as uc
+            return uc.Chrome(
+                options=options, 
+                headless=True,
+                version_main=None,
+                driver_executable_path=None
+            )
+        except Exception:
+            try:
+                from webdriver_manager.chrome import ChromeDriverManager
+                from selenium.webdriver.chrome.service import Service
+                
+                service = Service(ChromeDriverManager().install())
+                return webdriver.Chrome(service=service, options=options)
+            except ImportError:
+                return webdriver.Chrome(options=options)
 
     def _save_business_to_db(self, business_data, search_session_id):
         """Save a single business to the database (thread-safe)"""
@@ -1183,6 +1366,49 @@ class GoogleMapsScraper:
             
         except Exception as e:
             logger.error(f"Error during search: {e}")
+            # Try to recover by restarting driver
+            logger.info("🔄 Attempting to recover from error...")
+            try:
+                self.driver.quit()
+            except:
+                pass
+            
+            try:
+                # Reinitialize driver and try once more
+                self.setup_driver(headless=True)
+                logger.info("✅ Driver recovered, attempting search again...")
+                
+                # Retry the search one more time
+                self._safe_get("https://www.google.com/maps")
+                search_box = self.wait.until(EC.presence_of_element_located((By.ID, "searchboxinput")))
+                search_box.clear()
+                search_box.send_keys(query)
+                search_box.send_keys(Keys.ENTER)
+                
+                wait = WebDriverWait(self.driver, 10)
+                wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "div[role='article']")))
+                
+                self._scroll_results()
+                total_businesses = self._extract_business_data(business_type, location, session_id)
+                self._log_session_stats(session_id)
+                self._complete_search_session(session_id, total_businesses)
+                self._clear_checkpoint(session_id)
+                
+            except Exception as recovery_error:
+                logger.error(f"❌ Recovery attempt failed: {recovery_error}")
+                # Mark session as failed
+                try:
+                    conn = sqlite3.connect(self.db_path)
+                    cursor = conn.cursor()
+                    cursor.execute('''
+                        UPDATE search_sessions 
+                        SET status = 'failed', completed_at = CURRENT_TIMESTAMP
+                        WHERE id = ?
+                    ''', (session_id,))
+                    conn.commit()
+                    conn.close()
+                except:
+                    pass
         
     def _scroll_results(self):
         """Scroll through the results panel to load more businesses"""

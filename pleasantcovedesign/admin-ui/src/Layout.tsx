@@ -1,6 +1,6 @@
 import React from 'react'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
-import { Home, Users, TrendingUp, Calendar, Settings, Inbox, MessageCircle, Building2, Megaphone, UserCheck, Globe, FileText } from 'lucide-react'
+import { Home, Users, TrendingUp, Calendar, Settings, Inbox, MessageCircle, Building2, Megaphone, UserCheck, Globe, FileText, Search } from 'lucide-react'
 import { clsx } from 'clsx'
 
 // Navigation configuration for Pleasant Cove Design dashboard
@@ -13,6 +13,7 @@ interface NavItem {
 const navigation: NavItem[] = [
   { path: '/dashboard', label: 'Dashboard', icon: Home },
   { path: '/leads', label: 'Leads', icon: Users },
+  { path: '/scraper', label: 'Lead Scraper', icon: Search },
   { path: '/proposals', label: 'Proposals', icon: FileText },
   { path: '/outreach', label: 'Outreach', icon: Megaphone },
   { path: '/schedule', label: 'Appointments', icon: Calendar },

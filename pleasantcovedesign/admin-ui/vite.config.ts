@@ -10,14 +10,22 @@ export default defineConfig({
     proxy: {
       '/api': {
         // Point to local development server
-        target: 'http://localhost:3000',
+        target: 'http://localhost:3001',
         changeOrigin: true,
         secure: false,
         ws: true,
+        configure: (proxy, options) => {
+          proxy.on('proxyReq', (proxyReq, req, res) => {
+            // Forward Authorization header
+            if (req.headers.authorization) {
+              proxyReq.setHeader('Authorization', req.headers.authorization);
+            }
+          });
+        },
       },
       '/socket.io': {
         // Also proxy socket.io to local server
-        target: 'http://localhost:3000',
+        target: 'http://localhost:3001',
         changeOrigin: true,
         ws: true,
       },

@@ -19,6 +19,7 @@ import Schedule from './pages/Schedule'
 import Settings from './pages/Settings'
 import ClientProfile from './pages/ClientProfile'
 import BookAppointment from './pages/BookAppointment'
+import { LeadScraper } from './pages/LeadScraper'
 import AIChat from './components/AIChat'
 
 
@@ -57,6 +58,7 @@ const App: React.FC = () => {
             <Route path="inbox/:projectToken" element={<Inbox />} />
             <Route path="leads" element={<Leads />} />
             <Route path="leads/:id" element={<ClientProfile />} />
+            <Route path="scraper" element={<LeadScraper />} />
             <Route path="proposals" element={<Proposals />} />
             <Route path="clients" element={<Clients />} />
             <Route path="clients/:id" element={<ClientProfile />} />

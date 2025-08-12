@@ -31,6 +31,7 @@ import { createPaymentLink, verifyWebhookSignature } from './stripe-config';
 import { sendReceiptEmail, sendWelcomeEmail, sendInvoiceEmail } from './email-service';
 import { sendProposal, acceptProposal, rejectProposal, ProposalServiceError, validateProposalForSending } from './proposal-service';
 import { insertProposalSchema, updateProposalSchema } from './shared/schema';
+import { scraperService } from './scraper-service';
 
 // Use CommonJS compatible approach - avoid import.meta.url
 const __routes_dirname = path.dirname(__filename);
@@ -7497,4 +7498,114 @@ Booked via: ${source}
       res.status(500).json({ error: 'Failed to fetch campaigns' });
     }
   });
+
+  // 🔍 Lead Scraper API Routes
+  console.log('🔧 Registering scraper routes...');
+  
+  // GET /api/scraper/stats - Get scraping statistics
+  app.get('/api/scraper/stats', requireAdmin, async (req: Request, res: Response) => {
+    try {
+      console.log('📊 [SCRAPER] Fetching scraping statistics');
+      const stats = await scraperService.getScrapingStats();
+      res.json(stats);
+    } catch (error) {
+      console.error('❌ [SCRAPER] Error fetching stats:', error);
+      res.status(500).json({ error: 'Failed to fetch scraping statistics' });
+    }
+  });
+
+  // POST /api/scraper/start - Start a new scraping job
+  app.post('/api/scraper/start', requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const { businessType, location } = req.body;
+      
+      if (!businessType || !location) {
+        return res.status(400).json({ error: 'Business type and location are required' });
+      }
+
+      console.log(`🚀 [SCRAPER] Starting scraping job: ${businessType} in ${location}`);
+      const jobId = await scraperService.startScraping(businessType, location);
+      
+      res.json({ 
+        success: true, 
+        jobId,
+        message: 'Scraping job started successfully'
+      });
+    } catch (error) {
+      console.error('❌ [SCRAPER] Error starting scraping job:', error);
+      res.status(500).json({ error: 'Failed to start scraping job' });
+    }
+  });
+
+  // GET /api/scraper/jobs - Get all scraping jobs
+  app.get('/api/scraper/jobs', requireAdmin, async (req: Request, res: Response) => {
+    try {
+      console.log('📋 [SCRAPER] Fetching all scraping jobs');
+      const jobs = await scraperService.getAllJobs();
+      res.json(jobs);
+    } catch (error) {
+      console.error('❌ [SCRAPER] Error fetching jobs:', error);
+      res.status(500).json({ error: 'Failed to fetch scraping jobs' });
+    }
+  });
+
+  // GET /api/scraper/jobs/:jobId - Get specific job status
+  app.get('/api/scraper/jobs/:jobId', requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const { jobId } = req.params;
+      console.log(`🔍 [SCRAPER] Fetching job status: ${jobId}`);
+      
+      const job = await scraperService.getJobStatus(jobId);
+      
+      if (!job) {
+        return res.status(404).json({ error: 'Job not found' });
+      }
+      
+      res.json(job);
+    } catch (error) {
+      console.error('❌ [SCRAPER] Error fetching job status:', error);
+      res.status(500).json({ error: 'Failed to fetch job status' });
+    }
+  });
+
+  // GET /api/scraper/results - Get scraped business results
+  app.get('/api/scraper/results', requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const { sessionId } = req.query;
+      console.log('📊 [SCRAPER] Fetching scraping results', sessionId ? `for session ${sessionId}` : '(all)');
+      
+      const results = await scraperService.getScrapingResults(sessionId as string);
+      
+      res.json({
+        businesses: results,
+        total: results.length,
+        primeProspects: results.filter(b => !b.has_website && b.phone).length
+      });
+    } catch (error) {
+      console.error('❌ [SCRAPER] Error fetching results:', error);
+      res.status(500).json({ error: 'Failed to fetch scraping results' });
+    }
+  });
+
+  // POST /api/scraper/export - Export scraped leads
+  app.post('/api/scraper/export', requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const { format = 'excel' } = req.body;
+      console.log(`📋 [SCRAPER] Exporting leads in ${format} format`);
+      
+      const filename = await scraperService.exportLeads(format);
+      
+      res.json({ 
+        success: true, 
+        filename,
+        downloadUrl: `/downloads/${filename}`,
+        message: 'Export completed successfully'
+      });
+    } catch (error) {
+      console.error('❌ [SCRAPER] Error exporting leads:', error);
+      res.status(500).json({ error: 'Failed to export leads' });
+    }
+  });
+
+  console.log('✅ Scraper routes registered successfully');
 }

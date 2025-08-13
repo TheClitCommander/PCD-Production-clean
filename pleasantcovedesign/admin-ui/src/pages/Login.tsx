@@ -14,7 +14,7 @@ const Login: React.FC = () => {
     setError('');
 
     try {
-      const response = await fetch(`${api.defaults.baseURL?.replace('/api', '')}/api/auth/login`, {
+      const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

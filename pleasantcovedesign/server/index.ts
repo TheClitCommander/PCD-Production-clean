@@ -606,8 +606,14 @@ async function startServer() {
       }
     });
     
-    // Serve Admin UI in production
-    const adminDir = path.join(__main_dirname, "public", "admin");
+    // Serve Admin UI in production - check both possible locations
+    let adminDir = path.join(__main_dirname, "public", "admin");
+    
+    // Fallback to Docker build location if the primary location doesn't exist
+    if (!fs.existsSync(adminDir)) {
+      adminDir = path.join(__main_dirname, "../dist/client");
+    }
+    
     console.log('🔍 Looking for Admin UI at:', adminDir);
     
     if (fs.existsSync(adminDir)) {

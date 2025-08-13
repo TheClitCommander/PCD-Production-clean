@@ -606,6 +606,25 @@ async function startServer() {
       }
     });
     
+    // Serve Admin UI in production
+    const adminDir = path.join(__main_dirname, "public", "admin");
+    if (fs.existsSync(adminDir)) {
+      console.log('📦 Serving Admin UI from:', adminDir);
+      app.use(express.static(adminDir));
+      
+      // Send the Admin UI for any non-API route
+      app.get(/^\/(?!api\/).*/, (_req, res) => {
+        const indexPath = path.join(adminDir, "index.html");
+        if (fs.existsSync(indexPath)) {
+          res.sendFile(indexPath);
+        } else {
+          res.status(404).send('Admin UI not found. Please build and deploy the admin UI.');
+        }
+      });
+    } else {
+      console.log('⚠️  Admin UI directory not found. Run build script to create it.');
+    }
+    
     server.listen(PORT, "0.0.0.0", () => {
         console.log('✅ In-memory database initialized (empty - ready for real data)');
   console.log(`🚀 Pleasant Cove Design v1.1 server running on port ${PORT}`);

@@ -11,6 +11,7 @@
     "start:direct": "node index.ts",
     "start:simple": "tsx index.ts",
     "build": "tsc",
+    "build:with-admin": "tsc && cd ../admin-ui && npm ci && VITE_API_URL=/api VITE_WS_URL= npm run build && cd ../server && mkdir -p dist/public/admin && cp -R ../admin-ui/dist/client/* dist/public/admin/",
     "dev": "nodemon index.ts",
     "test": "jest"
   },

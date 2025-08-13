@@ -608,11 +608,13 @@ async function startServer() {
     
     // Serve Admin UI in production
     const adminDir = path.join(__main_dirname, "public", "admin");
+    console.log('🔍 Looking for Admin UI at:', adminDir);
+    
     if (fs.existsSync(adminDir)) {
       console.log('📦 Serving Admin UI from:', adminDir);
       app.use(express.static(adminDir));
       
-      // Send the Admin UI for any non-API route
+      // Send the Admin UI for any non-API route (SPA fallback)
       app.get(/^\/(?!api\/).*/, (_req, res) => {
         const indexPath = path.join(adminDir, "index.html");
         if (fs.existsSync(indexPath)) {
@@ -621,8 +623,11 @@ async function startServer() {
           res.status(404).send('Admin UI not found. Please build and deploy the admin UI.');
         }
       });
+      
+      console.log('✅ Admin UI routes configured - accessible at /');
     } else {
-      console.log('⚠️  Admin UI directory not found. Run build script to create it.');
+      console.log('⚠️  Admin UI directory not found at:', adminDir);
+      console.log('⚠️  Run build script or set Railway build command to create it.');
     }
     
     server.listen(PORT, "0.0.0.0", () => {

@@ -2,22 +2,11 @@
   "$schema": "https://railway.app/railway.schema.json",
   "build": {
     "builder": "NIXPACKS",
-    "buildCommand": "npm ci || npm install && npm run build:prod"
+    "buildCommand": "npm ci --prefix pleasantcovedesign/server && npm run build --prefix pleasantcovedesign/server && npm ci --prefix pleasantcovedesign/admin-ui && VITE_API_URL=/api VITE_WS_URL= npm run build --prefix pleasantcovedesign/admin-ui && mkdir -p pleasantcovedesign/server/dist/public/admin && cp -R pleasantcovedesign/admin-ui/dist/client/* pleasantcovedesign/server/dist/public/admin/"
   },
   "deploy": {
-    "startCommand": "node dist/index.js",
-    "healthcheckPath": "/health",
-    "healthcheckTimeout": 30,
+    "startCommand": "node pleasantcovedesign/server/dist/index.js",
     "restartPolicyType": "ON_FAILURE",
-    "restartPolicyMaxRetries": 3
-  },
-  "environments": {
-    "production": {
-      "variables": {
-        "NODE_ENV": "production",
-        "PORT": "3000"
-      }
-    }
+    "restartPolicyMaxRetries": 10
   }
 }
-

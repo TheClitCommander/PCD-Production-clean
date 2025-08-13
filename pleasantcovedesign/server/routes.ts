@@ -436,22 +436,80 @@ export async function registerRoutes(app: Express, io: any) {
     }
   });
   
-  app.get('/api/scrape-runs/:id', requireAdmin, (req: Request, res: Response) => {
+  app.get('/api/scrape-runs/:id', requireAdmin, async (req: Request, res: Response) => {
     const runId = req.params.id;
     
-    // Simulate realistic scrape progress
-    const isRecent = runId.includes(Date.now().toString().slice(0, -4)); // Last few minutes
-    const status = isRecent ? 'running' : 'completed';
-    const leadsFound = isRecent ? Math.floor(Math.random() * 20) + 5 : 43;
-    const leadsProcessed = status === 'completed' ? leadsFound : Math.floor(leadsFound * 0.7);
-    
-    res.json({
-      id: runId,
-      status,
-      leadsFound,
-      leadsProcessed,
-      message: status === 'running' ? 'Scraping in progress...' : 'Scrape completed successfully'
-    });
+    try {
+      // Get REAL count from the SQLite database
+      const sqlite3 = require('sqlite3').verbose();
+      const path = require('path');
+      const dbPath = path.join(__dirname, '../scrapers/scraper_results.db');
+      
+      const realData = await new Promise((resolve, reject) => {
+        const db = new sqlite3.Database(dbPath, (err: Error) => {
+          if (err) {
+            console.log('📂 SQLite database not found');
+            return resolve({ count: 0, latest: [] });
+          }
+        });
+
+        // Get total count and latest businesses
+        db.all(`
+          SELECT 
+            COUNT(*) as total_count,
+            business_name,
+            business_type,
+            location,
+            has_website,
+            scraped_at
+          FROM businesses 
+          ORDER BY scraped_at DESC 
+          LIMIT 5
+        `, [], (err: Error, rows: any[]) => {
+          if (err) {
+            reject(err);
+          } else {
+            const totalCount = rows[0]?.total_count || 0;
+            resolve({
+              count: totalCount,
+              latest: rows.map(row => ({
+                name: row.business_name,
+                type: row.business_type,
+                location: row.location,
+                hasWebsite: row.has_website,
+                scrapedAt: row.scraped_at
+              }))
+            });
+          }
+        });
+        
+        db.close();
+      });
+      
+      // For now, assume scraping is completed if we have any data
+      const status = realData.count > 0 ? 'completed' : 'running';
+      
+      res.json({
+        id: runId,
+        status,
+        leadsFound: realData.count,
+        leadsProcessed: realData.count,
+        latest: realData.latest,
+        message: status === 'completed' ? 
+          `Found ${realData.count} real businesses in database` : 
+          'Scraping in progress...'
+      });
+      
+    } catch (error) {
+      console.error('❌ Failed to get real scrape data:', error);
+      res.json({
+        id: runId,
+        status: 'failed',
+        leadsFound: 0,
+        leadsProcessed: 0,
+        message: 'Error reading scraped data'
+      });
+    }
   });
   
   app.get('/api/leads', requireAdmin, async (req: Request, res: Response) => {

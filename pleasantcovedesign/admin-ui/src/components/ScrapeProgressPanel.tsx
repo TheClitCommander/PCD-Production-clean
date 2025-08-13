@@ -204,10 +204,14 @@ const ScrapeProgressPanel: React.FC<ScrapeProgressPanelProps> = ({
         {/* Action Button */}
         {scrapeRun.status === 'completed' && (
           <button
-            onClick={onClose}
+            onClick={() => {
+              // Close the progress panel and navigate to leads page to show real data
+              onClose();
+              window.location.href = '/leads';
+            }}
             className="w-full bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors"
           >
-            View Results
+            View Results ({scrapeRun.leadsFound} leads)
           </button>
         )}
       </div>

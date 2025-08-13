@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Plus, TrendingUp, Users, Globe, CheckCircle } from 'lucide-react';
 import { FEATURES } from '../config/featureFlags';
 import LeadsTable from '../components/LeadsTable';
@@ -9,6 +9,7 @@ const LeadsUnified: React.FC = () => {
   const [showStartScrape, setShowStartScrape] = useState(false);
   const [activeRunId, setActiveRunId] = useState<string | null>(null);
   const [selectedLead, setSelectedLead] = useState<any>(null);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   const handleScrapeStarted = (runId: string) => {
     setActiveRunId(runId);
@@ -17,6 +18,9 @@ const LeadsUnified: React.FC = () => {
 
   const handleProgressClose = () => {
     setActiveRunId(null);
+    // Force refresh the leads table when progress panel closes
+    setRefreshTrigger(prev => prev + 1);
+    console.log('🔄 Forcing leads table refresh after scrape completion');
   };
 
   const handleLeadSelect = (lead: any) => {
@@ -106,7 +110,7 @@ const LeadsUnified: React.FC = () => {
 
       {/* Main Content */}
       <div className="bg-white rounded-lg border">
-        <LeadsTable onLeadSelect={handleLeadSelect} />
+        <LeadsTable key={refreshTrigger} onLeadSelect={handleLeadSelect} />
       </div>
 
       {/* Modals */}

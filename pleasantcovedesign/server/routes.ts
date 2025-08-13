@@ -532,8 +532,9 @@ export async function registerRoutes(app: Express, io: any) {
       
       // Create database and initialize with sample data if needed
       const initDb = new sqlite3.Database(dbPath);
-      await new Promise((resolve) => {
+      await new Promise((resolve, reject) => {
         initDb.serialize(() => {
+          // Create table first
           initDb.run(`CREATE TABLE IF NOT EXISTS businesses (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             business_name TEXT NOT NULL,
@@ -569,21 +570,43 @@ export async function registerRoutes(app: Express, io: any) {
             email_discovery_source TEXT,
             email_discovery_confidence REAL,
             email_enrichment_date TIMESTAMP
-          )`);
-          
-          // Check if we have any data, if not add sample data
-          initDb.get('SELECT COUNT(*) as count FROM businesses', [], (err, row) => {
-            if (!err && row.count === 0) {
-              console.log('📂 Adding sample data to empty database');
-              initDb.run(`INSERT INTO businesses (business_name, business_type, address, location, phone, website, has_website, rating, reviews, maps_url, search_session_id) VALUES
-                ('Atlantic Electric LLC', 'electricians', '123 Main St', 'Brunswick, ME', '(207) 729-5555', 'https://atlanticelectric.me', 1, 4.8, '45', 'https://maps.google.com/?cid=123', 'railway_init'),
-                ('Midcoast Plumbing Services', 'plumbing', '456 Bath Rd', 'Bath, ME', '(207) 443-2222', NULL, 0, 4.2, '23', 'https://maps.google.com/?cid=456', 'railway_init'),
-                ('Pine State HVAC', 'hvac', '789 Federal St', 'Portland, ME', '(207) 775-9999', 'https://pinestateheating.com', 1, 4.9, '78', 'https://maps.google.com/?cid=789', 'railway_init'),
-                ('Coastal Roofing Co', 'roofing', '321 Union St', 'Freeport, ME', '(207) 865-1111', 'https://coastalroofing.biz', 1, 4.6, '34', 'https://maps.google.com/?cid=321', 'railway_init'),
-                ('Down East Landscaping', 'landscaping', '654 Park Ave', 'Damariscotta, ME', '(207) 563-7777', NULL, 0, 4.4, '12', 'https://maps.google.com/?cid=654', 'railway_init'),
-                ('Tidewater Electric', 'electricians', '987 Water St', 'Wiscasset, ME', '(207) 882-3333', 'https://tidewaterelectric.com', 1, 4.7, '67', 'https://maps.google.com/?cid=987', 'railway_init')`);
+          )`, (err) => {
+            if (err) {
+              console.error('Failed to create table:', err);
+              reject(err);
+              return;
             }
-            resolve(true);
+            
+            // Check if we have any data, if not add sample data
+            initDb.get('SELECT COUNT(*) as count FROM businesses', [], (err, row) => {
+              if (err) {
+                console.error('Failed to count businesses:', err);
+                reject(err);
+                return;
+              }
+              
+              if (row.count === 0) {
+                console.log('📂 Adding sample data to empty database');
+                initDb.run(`INSERT INTO businesses (business_name, business_type, address, location, phone, website, has_website, rating, reviews, maps_url, search_session_id) VALUES
+                  ('Atlantic Electric LLC', 'electricians', '123 Main St', 'Brunswick, ME', '(207) 729-5555', 'https://atlanticelectric.me', 1, 4.8, '45', 'https://maps.google.com/?cid=123', 'railway_init'),
+                  ('Midcoast Plumbing Services', 'plumbing', '456 Bath Rd', 'Bath, ME', '(207) 443-2222', NULL, 0, 4.2, '23', 'https://maps.google.com/?cid=456', 'railway_init'),
+                  ('Pine State HVAC', 'hvac', '789 Federal St', 'Portland, ME', '(207) 775-9999', 'https://pinestateheating.com', 1, 4.9, '78', 'https://maps.google.com/?cid=789', 'railway_init'),
+                  ('Coastal Roofing Co', 'roofing', '321 Union St', 'Freeport, ME', '(207) 865-1111', 'https://coastalroofing.biz', 1, 4.6, '34', 'https://maps.google.com/?cid=321', 'railway_init'),
+                  ('Down East Landscaping', 'landscaping', '654 Park Ave', 'Damariscotta, ME', '(207) 563-7777', NULL, 0, 4.4, '12', 'https://maps.google.com/?cid=654', 'railway_init'),
+                  ('Tidewater Electric', 'electricians', '987 Water St', 'Wiscasset, ME', '(207) 882-3333', 'https://tidewaterelectric.com', 1, 4.7, '67', 'https://maps.google.com/?cid=987', 'railway_init')`, (err) => {
+                  if (err) {
+                    console.error('Failed to insert sample data:', err);
+                    reject(err);
+                    return;
+                  }
+                  console.log('✅ Sample data inserted successfully');
+                  resolve(true);
+                });
+              } else {
+                console.log(`📊 Database already has ${row.count} businesses`);
+                resolve(true);
+              }
+            });
           });
         });
       });
@@ -781,56 +804,106 @@ export async function registerRoutes(app: Express, io: any) {
     }
   });
   
-  // Delete a lead from the main database
+  // Delete a lead from the SQLite database
   app.delete('/api/leads/:id', requireAdmin, async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
       
-      const result = await storage.query('DELETE FROM leads WHERE id = $1 RETURNING name', [id]);
+      // Delete from SQLite database
+      const sqlite3 = require('sqlite3').verbose();
+      const path = require('path');
+      const dbPath = path.join(__dirname, '../scrapers/scraper_results.db');
       
-      if (result.rows.length === 0) {
+      const result = await new Promise((resolve, reject) => {
+        const db = new sqlite3.Database(dbPath);
+        db.get('SELECT business_name FROM businesses WHERE id = ?', [id], (err, row) => {
+          if (err) {
+            reject(err);
+            return;
+          }
+          
+          if (!row) {
+            resolve({ found: false });
+            return;
+          }
+          
+          db.run('DELETE FROM businesses WHERE id = ?', [id], function(err) {
+            if (err) {
+              reject(err);
+              return;
+            }
+            resolve({ found: true, name: row.business_name, changes: this.changes });
+          });
+        });
+        db.close();
+      });
+      
+      if (!result.found) {
         return res.status(404).json({ error: 'Lead not found' });
       }
       
       res.json({ 
         success: true, 
-        message: `Deleted lead "${result.rows[0].name}"` 
+        message: `Deleted lead "${result.name}"` 
       });
       
     } catch (error) {
       console.error('❌ Failed to delete lead:', error);
-      res.status(500).json({ error: 'Failed to delete lead' });
+      res.status(500).json({ error: 'Failed to delete lead', details: error.message });
     }
   });
   
-  // Archive/mark as processed (soft delete)
+  // Archive/mark as processed (soft delete) in SQLite
   app.put('/api/leads/:id/archive', requireAdmin, async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
       const { reason } = req.body; // 'contacted', 'not_interested', 'duplicate', etc.
       
-      const result = await storage.query(
-        `UPDATE leads 
-         SET tags = array_append(tags, $2), 
-             notes = COALESCE(notes, '') || $3,
-             updated_at = NOW()
-         WHERE id = $1 
-         RETURNING name`,
-        [id, 'archived', `\nArchived: ${reason} (${new Date().toISOString()})`]
-      );
+      // Archive in SQLite database by adding a note
+      const sqlite3 = require('sqlite3').verbose();
+      const path = require('path');
+      const dbPath = path.join(__dirname, '../scrapers/scraper_results.db');
       
-      if (result.rows.length === 0) {
+      const result = await new Promise((resolve, reject) => {
+        const db = new sqlite3.Database(dbPath);
+        
+        // First get the current business name
+        db.get('SELECT business_name FROM businesses WHERE id = ?', [id], (err, row) => {
+          if (err) {
+            reject(err);
+            return;
+          }
+          
+          if (!row) {
+            resolve({ found: false });
+            return;
+          }
+          
+          // Add archive note to the business record
+          const archiveNote = `ARCHIVED: ${reason} (${new Date().toISOString()})`;
+          db.run('UPDATE businesses SET search_session_id = ? WHERE id = ?', [archiveNote, id], function(err) {
+            if (err) {
+              reject(err);
+              return;
+            }
+            resolve({ found: true, name: row.business_name, changes: this.changes });
+          });
+        });
+        db.close();
+      });
+      
+      if (!result.found) {
         return res.status(404).json({ error: 'Lead not found' });
       }
       
       res.json({ 
         success: true, 
-        message: `Archived lead "${result.rows[0].name}" - ${reason}` 
+        message: `Archived lead "${result.name}" - ${reason}` 
       });
       
     } catch (error) {
       console.error('❌ Failed to archive lead:', error);
-      res.status(500).json({ error: 'Failed to archive lead' });
+      res.status(500).json({ error: 'Failed to archive lead', details: error.message });
     }
   });
 

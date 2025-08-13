@@ -1,6 +1,6 @@
 import React from 'react'
-import { NavLink, Outlet, useLocation } from 'react-router-dom'
-import { Home, Users, TrendingUp, Calendar, Settings, Inbox, MessageCircle, Building2, Megaphone, UserCheck, Globe, FileText, Search } from 'lucide-react'
+import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
+import { Home, Users, TrendingUp, Calendar, Settings, Inbox, MessageCircle, Building2, Megaphone, UserCheck, Globe, FileText, Search, LogOut } from 'lucide-react'
 import { clsx } from 'clsx'
 
 // Navigation configuration for Pleasant Cove Design dashboard
@@ -28,7 +28,17 @@ const navigation: NavItem[] = [
 
 const Layout: React.FC = () => {
   const location = useLocation()
+  const navigate = useNavigate()
   const isInboxPage = location.pathname.includes('/inbox')
+
+  const handleLogout = () => {
+    // Remove authentication data
+    localStorage.removeItem('admin_token')
+    localStorage.removeItem('admin_user')
+    
+    // Reload the page to trigger auth check
+    window.location.reload()
+  }
   
   return (
     <div className="min-h-screen bg-background">
@@ -40,7 +50,17 @@ const Layout: React.FC = () => {
             <div className="flex items-center">
               <h1 className="text-xl font-bold text-primary-600">Pleasant Cove Design</h1>
             </div>
-            <div className="text-sm text-muted">Biz Pro Dashboard</div>
+            <div className="flex items-center gap-4">
+              <div className="text-sm text-muted">Biz Pro Dashboard</div>
+              <button
+                onClick={handleLogout}
+                className="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors"
+                title="Logout"
+              >
+                <LogOut className="h-4 w-4" />
+                <span className="hidden sm:block">Logout</span>
+              </button>
+            </div>
           </div>
           
           {/* Tab Navigation - Full Dashboard */}

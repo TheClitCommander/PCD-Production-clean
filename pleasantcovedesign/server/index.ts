@@ -41,30 +41,43 @@ const io = new Server(server, {
   upgradeTimeout: 30000,
   maxHttpBufferSize: 1e6,
   cors: {
-    origin: [
-      'http://localhost:3000',
-      'http://localhost:5173',
-      'https://localhost:5173', 
-      'http://localhost:5174',
-      'https://localhost:5174',
-      // SquareSpace domains
-      /\.squarespace\.com$/,
-      /\.squarespace-cdn\.com$/,
-      'https://www.pleasantcovedesign.com',
-      'http://www.pleasantcovedesign.com',
-      'https://pleasantcovedesign.com',
-      'http://pleasantcovedesign.com',
-      /pleasantcove/,
-      // Railway production
-      'https://pcd-production-clean-production-e6f3.up.railway.app',
-      // Local IP for mobile access
-      'http://192.168.1.87:3000',
-      // ngrok support
-      /\.ngrok-free\.app$/,
-      /\.ngrok\.io$/,
-      // Current ngrok URL
-      'https://1ce2-2603-7080-e501-3f6a-59ca-c294-1beb-ddfc.ngrok-free.app',
-    ],
+    origin: (() => {
+      // Default development origins
+      const defaultOrigins = [
+        'http://localhost:3000',
+        'http://localhost:5173',
+        'https://localhost:5173', 
+        'http://localhost:5174',
+        'https://localhost:5174',
+        // SquareSpace domains
+        /\.squarespace\.com$/,
+        /\.squarespace-cdn\.com$/,
+        'https://www.pleasantcovedesign.com',
+        'http://www.pleasantcovedesign.com',
+        'https://pleasantcovedesign.com',
+        'http://pleasantcovedesign.com',
+        /pleasantcove/,
+        // ngrok support for development
+        /\.ngrok-free\.app$/,
+        /\.ngrok\.io$/,
+      ];
+
+      // Add environment-specified origins
+      if (process.env.CORS_ORIGINS) {
+        const envOrigins = process.env.CORS_ORIGINS.split(',').map(origin => origin.trim());
+        console.log('🌐 Adding CORS origins from environment:', envOrigins);
+        defaultOrigins.push(...envOrigins);
+      }
+
+      // Add Railway production URL if available
+      if (process.env.RAILWAY_PUBLIC_DOMAIN) {
+        const railwayUrl = `https://${process.env.RAILWAY_PUBLIC_DOMAIN}`;
+        console.log('🚂 Adding Railway CORS origin:', railwayUrl);
+        defaultOrigins.push(railwayUrl);
+      }
+
+      return defaultOrigins;
+    })(),
     methods: ['GET', 'POST'],
     credentials: true,
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin']

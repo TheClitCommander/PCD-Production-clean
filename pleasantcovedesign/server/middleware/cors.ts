@@ -5,32 +5,38 @@ import cors from 'cors';
 export function createCorsMiddleware() {
   const isDevelopment = process.env.NODE_ENV === 'development';
   
-  // Parse allowed origins from environment
-  const allowedOrigins = process.env.CORS_ORIGINS?.split(' ') || [
+  // Parse allowed origins from environment (comma-separated)
+  const envOrigins = process.env.CORS_ORIGINS?.split(',').map(origin => origin.trim()) || [];
+  
+  // Default development origins
+  const defaultOrigins = [
     'http://localhost:5173',
     'http://localhost:3000',
     'http://localhost:8080'
   ];
 
-  // Always include production domains if they exist
+  // Standard production domains
   const productionDomains = [
     'https://pleasantcovedesign.com',
     'https://www.pleasantcovedesign.com',
     'https://admin.pleasantcovedesign.com',
-    'https://api.pleasantcovedesign.com',
-    'https://pcd-production-clean-production-e6f3.up.railway.app',
-    // Squarespace domains - specific site
-    'https://nectarine-sparrow-dwsp.squarespace.com',
-    // Additional Squarespace variants that might be needed
-    'https://nectarine-sparrow-dwsp.sqsp.net',
-    'https://www.nectarine-sparrow-dwsp.squarespace.com',
-    // Development/testing
-    'https://1ce2-2603-7080-e501-3f6a-59ca-c294-1beb-ddfc.ngrok-free.app',
-    'http://192.168.1.87:3000'
+    'https://api.pleasantcovedesign.com'
   ];
 
-  // Merge origins, removing duplicates
-  const allOrigins = [...new Set([...allowedOrigins, ...productionDomains])];
+  // Add Railway production URL if available
+  if (process.env.RAILWAY_PUBLIC_DOMAIN) {
+    productionDomains.push(`https://${process.env.RAILWAY_PUBLIC_DOMAIN}`);
+  }
+
+  // Legacy Railway URL (can be removed once env is updated)
+  if (!process.env.RAILWAY_PUBLIC_DOMAIN) {
+    productionDomains.push('https://pcd-production-clean-production-e6f3.up.railway.app');
+  }
+
+  // Merge all origins: environment + default + production, removing duplicates
+  const allOrigins = [...new Set([...envOrigins, ...defaultOrigins, ...productionDomains])];
+  
+  console.log('🌐 CORS configured origins:', allOrigins.length, 'total');
 
   const corsOptions: cors.CorsOptions = {
     origin: function (origin, callback) {

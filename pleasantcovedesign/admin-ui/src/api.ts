@@ -1,17 +1,49 @@
 // @ts-ignore
 import axios from 'axios'
 
-// Unified API URL configuration with override support (URL param or localStorage)
+// Environment-driven API URL configuration with dev override support
 const getApiBaseUrl = () => {
-  // ALWAYS use production Railway server - this is the permanent fix
-  console.log('🔍 [API] Using production Railway server');
-  return 'https://pcd-production-clean-production-e6f3.up.railway.app/api';
+  // Check for environment variable first (production)
+  const envApiUrl = import.meta.env.VITE_API_URL;
+  
+  // Check for URL parameter override (development/debugging)
+  const urlParams = new URLSearchParams(window.location.search);
+  const overrideApi = urlParams.get('api');
+  
+  if (overrideApi) {
+    console.log('🔍 [API] Using URL override:', overrideApi);
+    return overrideApi;
+  }
+  
+  if (envApiUrl) {
+    console.log('🔍 [API] Using environment URL:', envApiUrl);
+    return envApiUrl;
+  }
+  
+  // Default to same-origin in production
+  const sameOriginUrl = `${window.location.origin}/api`;
+  console.log('🔍 [API] Using same-origin fallback:', sameOriginUrl);
+  return sameOriginUrl;
 };
 
 // Export base URL for WebSocket connections (with same override logic)
 export const getWebSocketUrl = () => {
-  // ALWAYS use production Railway server - this is the permanent fix
-  return 'https://pcd-production-clean-production-e6f3.up.railway.app';
+  const envWsUrl = import.meta.env.VITE_WS_URL;
+  
+  // Check for URL parameter override
+  const urlParams = new URLSearchParams(window.location.search);
+  const overrideApi = urlParams.get('api');
+  
+  if (overrideApi) {
+    return overrideApi.replace('/api', '');
+  }
+  
+  if (envWsUrl) {
+    return envWsUrl;
+  }
+  
+  // Default to same origin
+  return window.location.origin;
 };
 
 const api = axios.create({

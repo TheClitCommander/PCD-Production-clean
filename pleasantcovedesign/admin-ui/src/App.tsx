@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import Layout from './Layout'
 import ErrorBoundary from './components/ErrorBoundary'
@@ -21,12 +21,56 @@ import ClientProfile from './pages/ClientProfile'
 import BookAppointment from './pages/BookAppointment'
 import { LeadScraper } from './pages/LeadScraper'
 import AIChat from './components/AIChat'
+import Login from './pages/Login'
+import api from './api'
 
 
 
 const App: React.FC = () => {
   const [isChatOpen, setIsChatOpen] = React.useState(false);
   const [isChatMinimized, setIsChatMinimized] = React.useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const [authLoading, setAuthLoading] = useState(true);
+
+  // Check authentication on app load
+  useEffect(() => {
+    const checkAuth = async () => {
+      const token = localStorage.getItem('admin_token');
+      
+      if (!token) {
+        setIsAuthenticated(false);
+        setAuthLoading(false);
+        return;
+      }
+
+      try {
+        const response = await fetch(`${api.defaults.baseURL?.replace('/api', '')}/api/auth/validate`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+
+        const data = await response.json();
+        
+        if (data.success) {
+          setIsAuthenticated(true);
+        } else {
+          // Token is invalid, remove it
+          localStorage.removeItem('admin_token');
+          localStorage.removeItem('admin_user');
+          setIsAuthenticated(false);
+        }
+      } catch (error) {
+        console.error('Auth check failed:', error);
+        // Network error - assume authenticated for now if token exists
+        setIsAuthenticated(true);
+      } finally {
+        setAuthLoading(false);
+      }
+    };
+
+    checkAuth();
+  }, []);
 
   const handleToggleChat = () => {
     if (isChatOpen) {
@@ -42,6 +86,33 @@ const App: React.FC = () => {
     setIsChatMinimized(false);
   };
 
+  // Show loading spinner while checking auth
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show login page if not authenticated
+  if (!isAuthenticated) {
+    return (
+      <ErrorBoundary>
+        <Router>
+          <Routes>
+            <Route path="/login" element={<Login />} />
+            <Route path="*" element={<Navigate to="/login" replace />} />
+          </Routes>
+        </Router>
+      </ErrorBoundary>
+    );
+  }
+
+  // Show main app if authenticated
   return (
     <ErrorBoundary>
       <Router>

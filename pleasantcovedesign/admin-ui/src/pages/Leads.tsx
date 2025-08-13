@@ -10,8 +10,17 @@ import { authenticatedFetch, checkAuthStatus, AuthAPI } from '../utils/auth'
 // Make communication functions available globally for UI components
 (window as any).initiateVideoCall = communicationFallbacks.initiateVideoCall;
 
-// MINERVA API Integration
-const MINERVA_API_URL = 'http://localhost:8001/api/minerva';
+// MINERVA API Integration - Environment-driven
+const getMinervaApiUrl = () => {
+  const envUrl = import.meta.env.VITE_MINERVA_BASE_URL;
+  if (envUrl) {
+    return `${envUrl}/api/minerva`;
+  }
+  // Fallback for development
+  return 'http://localhost:8001/api/minerva';
+};
+
+const MINERVA_API_URL = getMinervaApiUrl();
 
 interface MinervaResponse {
   success: boolean;

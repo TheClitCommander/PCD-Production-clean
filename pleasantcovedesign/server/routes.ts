@@ -32,6 +32,7 @@ import { sendReceiptEmail, sendWelcomeEmail, sendInvoiceEmail } from './email-se
 import { sendProposal, acceptProposal, rejectProposal, ProposalServiceError, validateProposalForSending } from './proposal-service';
 import { insertProposalSchema, updateProposalSchema } from './shared/schema';
 import { scraperService } from './scraper-service';
+import { generateToken, verifyToken } from './middleware/auth';
 
 // Use CommonJS compatible approach - avoid import.meta.url
 const __routes_dirname = path.dirname(__filename);
@@ -270,6 +271,96 @@ const requireAdmin = (req: Request, res: Response, next: NextFunction) => {
 export async function registerRoutes(app: Express, io: any) {
   console.log('🔌 Socket.IO server initialized for routes');
   console.log('🚀 registerRoutes function called - about to register all routes');
+
+  // ===== AUTHENTICATION ROUTES =====
+  
+  // Production login route
+  app.post('/api/auth/login', (req: Request, res: Response) => {
+    const { password } = req.body;
+    const adminPassword = process.env.ADMIN_PASSWORD || 'pleasantcove2024admin';
+    
+    if (!password) {
+      return res.status(400).json({
+        success: false,
+        error: 'Password required',
+        message: 'Please provide a password'
+      });
+    }
+    
+    if (password !== adminPassword) {
+      console.warn(`🚨 Failed login attempt from IP: ${req.ip}`);
+      return res.status(401).json({
+        success: false,
+        error: 'Invalid credentials',
+        message: 'Incorrect password'
+      });
+    }
+    
+    // Generate JWT token for admin
+    const token = generateToken({
+      id: 'admin-user',
+      email: 'admin@pleasantcovedesign.com',
+      role: 'admin'
+    });
+    
+    console.log(`✅ Admin login successful from IP: ${req.ip}`);
+    
+    res.json({
+      success: true,
+      token,
+      user: {
+        id: 'admin-user',
+        email: 'admin@pleasantcovedesign.com',
+        role: 'admin'
+      },
+      message: 'Login successful'
+    });
+  });
+
+  // Token validation endpoint  
+  app.get('/api/auth/validate', (req: Request, res: Response) => {
+    const authHeader = req.headers.authorization;
+    const token = authHeader && authHeader.startsWith('Bearer ') 
+      ? authHeader.substring(7) 
+      : null;
+
+    if (!token) {
+      return res.status(401).json({
+        success: false,
+        error: 'No token provided',
+        message: 'Authentication required'
+      });
+    }
+
+    const decoded = verifyToken(token);
+    if (!decoded) {
+      return res.status(401).json({
+        success: false,
+        error: 'Invalid token',
+        message: 'Token verification failed'
+      });
+    }
+
+    res.json({
+      success: true,
+      user: {
+        id: decoded.id,
+        email: decoded.email,
+        role: decoded.role
+      },
+      message: 'Token is valid'
+    });
+  });
+
+  // Logout endpoint (client-side token removal)
+  app.post('/api/auth/logout', (req: Request, res: Response) => {
+    res.json({
+      success: true,
+      message: 'Logged out successfully'
+    });
+  });
+
+  // ===== END AUTHENTICATION ROUTES =====
 
   // Helper function to broadcast to admin room
   const broadcastToAdmin = (eventName: string, data: any) => {
@@ -1771,8 +1862,8 @@ export async function registerRoutes(app: Express, io: any) {
       }
       
       // Call Minerva billing API to send invoice
-      const billingPort = process.env.BILLING_PORT || 8007;
-      const sendResponse = await fetch(`http://localhost:${billingPort}/api/invoices/${order.invoiceId}/send`, {
+      const billingBaseUrl = process.env.BILLING_BASE_URL || `http://localhost:${process.env.BILLING_PORT || 8007}`;
+      const sendResponse = await fetch(`${billingBaseUrl}/api/invoices/${order.invoiceId}/send`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -1829,10 +1920,10 @@ export async function registerRoutes(app: Express, io: any) {
       // Generate receipt via Minerva billing if invoice exists
       if (order.invoiceId) {
         try {
-          const billingPort = process.env.BILLING_PORT || 8007;
+          const billingBaseUrl = process.env.BILLING_BASE_URL || `http://localhost:${process.env.BILLING_PORT || 8007}`;
           
           // Trigger receipt generation in Minerva
-          const receiptResponse = await fetch(`http://localhost:${billingPort}/api/receipts`, {
+          const receiptResponse = await fetch(`${billingBaseUrl}/api/receipts`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json'
@@ -1902,8 +1993,8 @@ export async function registerRoutes(app: Express, io: any) {
       }
       
       // Get invoice from Minerva billing
-      const billingPort = process.env.BILLING_PORT || 8007;
-      const invoiceResponse = await fetch(`http://localhost:${billingPort}/api/invoices/${invoiceId}`);
+      const billingBaseUrl = process.env.BILLING_BASE_URL || `http://localhost:${process.env.BILLING_PORT || 8007}`;
+      const invoiceResponse = await fetch(`${billingBaseUrl}/api/invoices/${invoiceId}`);
       
       if (invoiceResponse.ok) {
         const invoice = await invoiceResponse.json();
@@ -1936,8 +2027,8 @@ export async function registerRoutes(app: Express, io: any) {
       }
       
       // Record payment via Minerva billing
-      const billingPort = process.env.BILLING_PORT || 8007;
-      const paymentResponse = await fetch(`http://localhost:${billingPort}/api/payments`, {
+      const billingBaseUrl = process.env.BILLING_BASE_URL || `http://localhost:${process.env.BILLING_PORT || 8007}`;
+      const paymentResponse = await fetch(`${billingBaseUrl}/api/payments`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -2030,8 +2121,8 @@ export async function registerRoutes(app: Express, io: any) {
 
       // Also forward to Minerva billing if it's running
       try {
-        const billingPort = process.env.BILLING_PORT || 8007;
-        await fetch(`http://localhost:${billingPort}/api/stripe/webhook`, {
+        const billingBaseUrl = process.env.BILLING_BASE_URL || `http://localhost:${process.env.BILLING_PORT || 8007}`;
+        await fetch(`${billingBaseUrl}/api/stripe/webhook`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

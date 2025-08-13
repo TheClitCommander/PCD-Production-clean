@@ -521,63 +521,77 @@ export async function registerRoutes(app: Express, io: any) {
       // Path to the scraper's SQLite database
       const dbPath = path.join(__dirname, '../scrapers/scraper_results.db');
       
-      const leads = await new Promise((resolve, reject) => {
-        const db = new sqlite3.Database(dbPath, (err: Error) => {
-          if (err) {
-            console.log('📂 SQLite database not found, creating and adding sample data');
-            // Create database and add sample data for Railway
-            const newDb = new sqlite3.Database(dbPath);
-            newDb.serialize(() => {
-              newDb.run(`CREATE TABLE IF NOT EXISTS businesses (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                business_name TEXT NOT NULL,
-                business_type TEXT,
-                category TEXT,
-                address TEXT,
-                location TEXT,
-                phone TEXT,
-                website TEXT,
-                has_website BOOLEAN,
-                rating REAL,
-                reviews TEXT,
-                years_in_business TEXT,
-                maps_url TEXT UNIQUE,
-                project_id TEXT,
-                scraped_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                search_session_id TEXT,
-                phone_valid BOOLEAN DEFAULT NULL,
-                phone_formatted TEXT,
-                phone_carrier TEXT,
-                phone_country TEXT,
-                phone_line_type TEXT,
-                phone_error TEXT,
-                email_format_valid BOOLEAN DEFAULT NULL,
-                email_discovered TEXT,
-                validation_date TIMESTAMP,
-                email_valid BOOLEAN DEFAULT NULL,
-                email_confidence_score REAL,
-                email_type TEXT,
-                email_risk_score REAL,
-                email_mx_valid BOOLEAN DEFAULT NULL,
-                email_is_disposable BOOLEAN DEFAULT NULL,
-                email_discovery_source TEXT,
-                email_discovery_confidence REAL,
-                email_enrichment_date TIMESTAMP
-              )`);
-              
-              // Add real sample data for Railway
-              newDb.run(`INSERT INTO businesses (business_name, business_type, address, location, phone, website, has_website, rating, reviews, maps_url, search_session_id) VALUES
+      // First, try to create the database and table if they don't exist
+      const fs = require('fs');
+      const scraperDir = path.dirname(dbPath);
+      
+      // Ensure the scrapers directory exists
+      if (!fs.existsSync(scraperDir)) {
+        fs.mkdirSync(scraperDir, { recursive: true });
+      }
+      
+      // Create database and initialize with sample data if needed
+      const initDb = new sqlite3.Database(dbPath);
+      await new Promise((resolve) => {
+        initDb.serialize(() => {
+          initDb.run(`CREATE TABLE IF NOT EXISTS businesses (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            business_name TEXT NOT NULL,
+            business_type TEXT,
+            category TEXT,
+            address TEXT,
+            location TEXT,
+            phone TEXT,
+            website TEXT,
+            has_website BOOLEAN,
+            rating REAL,
+            reviews TEXT,
+            years_in_business TEXT,
+            maps_url TEXT UNIQUE,
+            project_id TEXT,
+            scraped_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            search_session_id TEXT,
+            phone_valid BOOLEAN DEFAULT NULL,
+            phone_formatted TEXT,
+            phone_carrier TEXT,
+            phone_country TEXT,
+            phone_line_type TEXT,
+            phone_error TEXT,
+            email_format_valid BOOLEAN DEFAULT NULL,
+            email_discovered TEXT,
+            validation_date TIMESTAMP,
+            email_valid BOOLEAN DEFAULT NULL,
+            email_confidence_score REAL,
+            email_type TEXT,
+            email_risk_score REAL,
+            email_mx_valid BOOLEAN DEFAULT NULL,
+            email_is_disposable BOOLEAN DEFAULT NULL,
+            email_discovery_source TEXT,
+            email_discovery_confidence REAL,
+            email_enrichment_date TIMESTAMP
+          )`);
+          
+          // Check if we have any data, if not add sample data
+          initDb.get('SELECT COUNT(*) as count FROM businesses', [], (err, row) => {
+            if (!err && row.count === 0) {
+              console.log('📂 Adding sample data to empty database');
+              initDb.run(`INSERT INTO businesses (business_name, business_type, address, location, phone, website, has_website, rating, reviews, maps_url, search_session_id) VALUES
                 ('Atlantic Electric LLC', 'electricians', '123 Main St', 'Brunswick, ME', '(207) 729-5555', 'https://atlanticelectric.me', 1, 4.8, '45', 'https://maps.google.com/?cid=123', 'railway_init'),
                 ('Midcoast Plumbing Services', 'plumbing', '456 Bath Rd', 'Bath, ME', '(207) 443-2222', NULL, 0, 4.2, '23', 'https://maps.google.com/?cid=456', 'railway_init'),
                 ('Pine State HVAC', 'hvac', '789 Federal St', 'Portland, ME', '(207) 775-9999', 'https://pinestateheating.com', 1, 4.9, '78', 'https://maps.google.com/?cid=789', 'railway_init'),
                 ('Coastal Roofing Co', 'roofing', '321 Union St', 'Freeport, ME', '(207) 865-1111', 'https://coastalroofing.biz', 1, 4.6, '34', 'https://maps.google.com/?cid=321', 'railway_init'),
                 ('Down East Landscaping', 'landscaping', '654 Park Ave', 'Damariscotta, ME', '(207) 563-7777', NULL, 0, 4.4, '12', 'https://maps.google.com/?cid=654', 'railway_init'),
                 ('Tidewater Electric', 'electricians', '987 Water St', 'Wiscasset, ME', '(207) 882-3333', 'https://tidewaterelectric.com', 1, 4.7, '67', 'https://maps.google.com/?cid=987', 'railway_init')`);
-            });
-            newDb.close();
-            return resolve([]);
-          }
+            }
+            resolve(true);
+          });
         });
+      });
+      initDb.close();
+      
+      // Now read the data
+      const leads = await new Promise((resolve, reject) => {
+        const db = new sqlite3.Database(dbPath);
 
         let query = `
           SELECT 

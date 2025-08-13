@@ -10,6 +10,12 @@ COPY pleasantcovedesign/server/package*.json ./
 # Install dependencies with legacy peer deps flag for compatibility
 RUN npm ci --legacy-peer-deps
 
+# --- Add Python for scraper ---
+RUN apk add --no-cache python3 py3-pip bash
+
+# Install minimal Python deps used by your scraper
+RUN pip3 install --no-cache-dir requests pandas
+
 # Copy TypeScript config and source code
 COPY pleasantcovedesign/server/tsconfig.json ./
 COPY pleasantcovedesign/server/ ./
@@ -28,6 +34,9 @@ RUN npm run build
 
 # Copy built admin UI into server dist so Express can serve it
 RUN mkdir -p /app/dist/client && cp -r /tmp/admin-ui/dist/client/* /app/dist/client/
+
+# Copy the scrapers folder into the image so the server can run them
+COPY scrapers /app/scrapers
 
 # Remove unnecessary files to reduce image size
 RUN rm -rf src/ tsconfig.json && npm cache clean --force

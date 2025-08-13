@@ -42,7 +42,13 @@ class ScraperService {
   private scraperDbPath: string;
 
   constructor() {
-    this.scraperDbPath = path.join(process.cwd(), '../../scraper_results.db');
+    // Compute paths relative to the built server (works in Docker/Railway)
+    const DIST_DIR = __dirname; // .../pleasantcovedesign/server/dist
+    const APP_DIR = path.resolve(DIST_DIR, ".."); // .../pleasantcovedesign/server
+    const ROOT_DIR = path.resolve(APP_DIR, ".."); // .../pleasantcovedesign
+    
+    // Use a DB file at repo root so Python & Node agree on one location
+    this.scraperDbPath = path.join(ROOT_DIR, "..", "scraper_results.db");
   }
 
   async startScraping(businessType: string, location: string): Promise<string> {
@@ -83,17 +89,30 @@ class ScraperService {
       job.status = 'running';
       job.progress = 10;
 
-      const scraperPath = path.join(process.cwd(), '../../scrapers/real_business_scraper_clean.py');
-      const venvPath = path.join(process.cwd(), '../../venv/bin/activate');
-      
-      // Run the clean scraper (no fake data)
-      const command = `source ${venvPath} && python ${scraperPath} -t ${businessType.toLowerCase()} -l "${location}" --limit 10`;
+      // Compute paths relative to the built server (so it works in Docker/Railway)
+      const DIST_DIR = __dirname; // .../pleasantcovedesign/server/dist
+      const APP_DIR = path.resolve(DIST_DIR, ".."); // .../pleasantcovedesign/server
+      const ROOT_DIR = path.resolve(APP_DIR, ".."); // .../pleasantcovedesign
+      const SCRAPERS_DIR = path.resolve(ROOT_DIR, "..", "scrapers"); // .../<repo>/scrapers
+
+      // Drop the "source venv …" and call Python directly (works locally & in Docker)
+      const python = process.env.PYTHON_BIN || "python3";
+      const scraperPath = path.join(SCRAPERS_DIR, "real_business_scraper_clean.py");
+      const args = [
+        scraperPath,
+        "-t", businessType.toLowerCase(),
+        "-l", location,
+        "--limit", String(Number(process.env.SCRAPE_LIMIT || 50)),
+      ];
+
+      const command = `${python} ${args.map(a => JSON.stringify(a)).join(" ")}`;
       
       console.log(`🔍 Running CLEAN scraper (no fake data): ${command}`);
       job.progress = 50;
 
       const { stdout, stderr } = await execAsync(command, {
-        cwd: path.join(process.cwd(), '../..')
+        cwd: path.resolve(ROOT_DIR, ".."), 
+        shell: "/bin/bash"
       });
 
       console.log('Scraper output:', stdout);

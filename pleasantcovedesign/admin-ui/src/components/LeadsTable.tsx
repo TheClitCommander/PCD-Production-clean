@@ -94,6 +94,29 @@ const LeadsTable: React.FC<LeadsTableProps> = ({ onLeadSelect }) => {
     fetchLeads();
   }, [page, searchTerm, websiteStatusFilter, cityFilter]);
 
+  // Refresh leads when the page becomes visible (e.g., after navigating from scrape progress)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        console.log('🔄 Page became visible, refreshing leads...');
+        fetchLeads();
+      }
+    };
+
+    const handleFocus = () => {
+      console.log('🔄 Window focused, refreshing leads...');
+      fetchLeads();
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', handleFocus);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleFocus);
+    };
+  }, []);
+
   const getWebsiteStatusBadge = (status: string, confidence: number) => {
     const badges = {
       'HAS_SITE': {

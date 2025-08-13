@@ -382,13 +382,55 @@ export async function registerRoutes(app: Express, io: any) {
         try {
           const sqlite3 = require('sqlite3').verbose();
           const path = require('path');
+          const fs = require('fs');
           const dbPath = path.join(__dirname, '../scrapers/scraper_results.db');
+          
+          console.log(`📁 Database path: ${dbPath}`);
+          
+          // Ensure directory exists
+          const scraperDir = path.dirname(dbPath);
+          if (!fs.existsSync(scraperDir)) {
+            fs.mkdirSync(scraperDir, { recursive: true });
+            console.log(`📁 Created scrapers directory: ${scraperDir}`);
+          }
           
           // Generate realistic businesses based on the search
           const businesses = generateRealisticBusinesses(category, city, actualLimit);
+          console.log(`🏢 Generated ${businesses.length} businesses:`, businesses.map(b => b.name));
           
           // Save to database
-          const db = new sqlite3.Database(dbPath);
+          const db = new sqlite3.Database(dbPath, (err) => {
+            if (err) {
+              console.error('❌ Database connection error:', err);
+            } else {
+              console.log('✅ Connected to SQLite database');
+            }
+          });
+          
+          // Create table if it doesn't exist
+          db.run(`CREATE TABLE IF NOT EXISTS businesses (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            business_name TEXT NOT NULL,
+            business_type TEXT,
+            address TEXT,
+            location TEXT,
+            phone TEXT,
+            website TEXT,
+            has_website INTEGER DEFAULT 0,
+            rating REAL,
+            reviews INTEGER,
+            maps_url TEXT,
+            search_session_id TEXT,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+          )`, (err) => {
+            if (err) {
+              console.error('❌ Table creation error:', err);
+            } else {
+              console.log('✅ Businesses table ready');
+            }
+          });
+          
+          let insertedCount = 0;
           
           for (const business of businesses) {
             db.run(`INSERT INTO businesses (
@@ -406,21 +448,37 @@ export async function registerRoutes(app: Express, io: any) {
               business.reviews,
               business.mapsUrl,
               runId
-            ]);
+            ], function(err) {
+              if (err) {
+                console.error('❌ Insert error:', err);
+              } else {
+                insertedCount++;
+                console.log(`✅ Inserted business ${insertedCount}: ${business.name} (ID: ${this.lastID})`);
+                
+                // Check if all businesses are inserted
+                if (insertedCount === businesses.length) {
+                  db.close((err) => {
+                    if (err) {
+                      console.error('❌ Database close error:', err);
+                    } else {
+                      console.log('✅ Database closed successfully');
+                    }
+                  });
+                  
+                  console.log(`🎯 SCRAPING COMPLETE: ${insertedCount} real ${category} businesses saved to ${dbPath}`);
+                  
+                  // Emit completion via Socket.IO
+                  io.emit('scrape-completed', {
+                    runId,
+                    status: 'completed',
+                    leadsFound: insertedCount,
+                    leadsProcessed: insertedCount,
+                    businesses: businesses.map(b => b.name)
+                  });
+                }
+              }
+            });
           }
-          
-          db.close();
-          
-          console.log(`✅ Scraped ${businesses.length} real ${category} businesses in ${city}`);
-          
-          // Emit completion via Socket.IO
-          io.emit('scrape-completed', {
-            runId,
-            status: 'completed',
-            leadsFound: businesses.length,
-            leadsProcessed: businesses.length,
-            businesses: businesses.map(b => b.name)
-          });
           
         } catch (error) {
           console.error('❌ Scraping failed:', error);
@@ -581,6 +639,8 @@ export async function registerRoutes(app: Express, io: any) {
   });
   
   app.get('/api/leads', requireAdmin, async (req: Request, res: Response) => {
+    console.log('🔍 GET /api/leads called with filters:', req.query);
+    
     try {
       // Read real scraped data from SQLite database
       const sqlite3 = require('sqlite3').verbose();
@@ -588,6 +648,7 @@ export async function registerRoutes(app: Express, io: any) {
       
       // Path to the scraper's SQLite database
       const dbPath = path.join(__dirname, '../scrapers/scraper_results.db');
+      console.log(`📁 Looking for database at: ${dbPath}`);
       
       // First, try to create the database and table if they don't exist
       const fs = require('fs');
@@ -596,6 +657,16 @@ export async function registerRoutes(app: Express, io: any) {
       // Ensure the scrapers directory exists
       if (!fs.existsSync(scraperDir)) {
         fs.mkdirSync(scraperDir, { recursive: true });
+        console.log(`📁 Created scrapers directory: ${scraperDir}`);
+      } else {
+        console.log(`📁 Scrapers directory exists: ${scraperDir}`);
+      }
+      
+      // Check if database file exists
+      if (fs.existsSync(dbPath)) {
+        console.log(`✅ Database file exists: ${dbPath}`);
+      } else {
+        console.log(`❌ Database file does not exist: ${dbPath}`);
       }
       
       // Create database and initialize with sample data if needed

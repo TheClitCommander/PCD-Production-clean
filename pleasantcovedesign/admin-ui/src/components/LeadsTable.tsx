@@ -12,7 +12,10 @@ import {
   HelpCircle,
   Users,
   RefreshCw,
-  Eye
+  Eye,
+  Save,
+  Trash2,
+  Archive
 } from 'lucide-react';
 import api from '../api';
 
@@ -144,6 +147,53 @@ const LeadsTable: React.FC<LeadsTableProps> = ({ onLeadSelect }) => {
       ));
     } catch (err) {
       console.error('Failed to reverify website:', err);
+    }
+  };
+
+  const handleSaveLead = async (leadId: string) => {
+    try {
+      console.log('Saving lead to main database:', leadId);
+      const response = await api.post('/leads/save-from-scraper', { scrapedBusinessId: leadId });
+      
+      // Show success message and refresh
+      alert('Lead saved to main database!');
+      fetchLeads();
+    } catch (err: any) {
+      console.error('Failed to save lead:', err);
+      alert(`Failed to save lead: ${err.response?.data?.error || err.message}`);
+    }
+  };
+
+  const handleDeleteLead = async (leadId: string) => {
+    if (!confirm('Are you sure you want to delete this lead? This cannot be undone.')) {
+      return;
+    }
+    
+    try {
+      console.log('Deleting lead:', leadId);
+      await api.delete(`/leads/${leadId}`);
+      
+      // Refresh leads after deletion
+      fetchLeads();
+    } catch (err: any) {
+      console.error('Failed to delete lead:', err);
+      alert(`Failed to delete lead: ${err.response?.data?.error || err.message}`);
+    }
+  };
+
+  const handleArchiveLead = async (leadId: string) => {
+    const reason = prompt('Reason for archiving (contacted/not_interested/duplicate/other):') || 'other';
+    
+    try {
+      console.log('Archiving lead:', leadId, 'Reason:', reason);
+      await api.put(`/leads/${leadId}/archive`, { reason });
+      
+      // Show success and refresh
+      alert(`Lead archived: ${reason}`);
+      fetchLeads();
+    } catch (err: any) {
+      console.error('Failed to archive lead:', err);
+      alert(`Failed to archive lead: ${err.response?.data?.error || err.message}`);
     }
   };
 
@@ -314,6 +364,27 @@ const LeadsTable: React.FC<LeadsTableProps> = ({ onLeadSelect }) => {
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => handleSaveLead(lead.id)}
+                        className="p-1 text-gray-400 hover:text-green-600 transition-colors"
+                        title="Save to Leads Database"
+                      >
+                        <Save className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={() => handleArchiveLead(lead.id)}
+                        className="p-1 text-gray-400 hover:text-yellow-600 transition-colors"
+                        title="Archive Lead"
+                      >
+                        <Archive className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteLead(lead.id)}
+                        className="p-1 text-gray-400 hover:text-red-600 transition-colors"
+                        title="Delete Lead"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
                       <button
                         onClick={() => handleReverifyWebsite(lead.id)}
                         className="p-1 text-gray-400 hover:text-blue-600 transition-colors"

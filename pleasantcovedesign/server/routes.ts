@@ -586,6 +586,133 @@ export async function registerRoutes(app: Express, io: any) {
     }
   });
   
+  // Save a scraped business as a lead (move from scraper DB to main leads DB)
+  app.post('/api/leads/save-from-scraper', requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const { scrapedBusinessId } = req.body;
+      
+      // Get business from scraper database
+      const sqlite3 = require('sqlite3').verbose();
+      const path = require('path');
+      const dbPath = path.join(__dirname, '../scrapers/scraper_results.db');
+      
+      const business = await new Promise((resolve, reject) => {
+        const db = new sqlite3.Database(dbPath);
+        db.get('SELECT * FROM businesses WHERE id = ?', [scrapedBusinessId], (err: Error, row: any) => {
+          if (err) reject(err);
+          else resolve(row);
+        });
+        db.close();
+      });
+      
+      if (!business) {
+        return res.status(404).json({ error: 'Scraped business not found' });
+      }
+      
+      // Save to main leads database (PostgreSQL via storage)
+      const leadData = {
+        name: business.business_name,
+        category: business.business_type,
+        source: 'scraper',
+        phoneRaw: business.phone,
+        phoneNormalized: business.phone,
+        addressRaw: business.address,
+        city: business.location?.split(',')[0]?.trim(),
+        region: 'Maine',
+        websiteUrl: business.website,
+        websiteStatus: business.has_website ? 'HAS_SITE' : 'NO_SITE',
+        websiteConfidence: business.has_website ? 0.85 : 0.15,
+        mapsRating: parseFloat(business.rating) || null,
+        mapsReviews: parseInt(business.reviews) || null,
+        mapsUrl: business.maps_url,
+        tags: ['saved_from_scraper'],
+        notes: `Scraped from: ${business.search_session_id || 'unknown session'}`
+      };
+      
+      // Insert into main database
+      const result = await storage.query(
+        `INSERT INTO leads (
+          name, category, source, phone_raw, phone_normalized, 
+          address_raw, city, region, website_url, website_status, 
+          website_confidence, maps_rating, maps_reviews, maps_url, 
+          tags, notes, created_at, updated_at
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, NOW(), NOW()) 
+        RETURNING id`,
+        [
+          leadData.name, leadData.category, leadData.source,
+          leadData.phoneRaw, leadData.phoneNormalized, leadData.addressRaw,
+          leadData.city, leadData.region, leadData.websiteUrl,
+          leadData.websiteStatus, leadData.websiteConfidence,
+          leadData.mapsRating, leadData.mapsReviews, leadData.mapsUrl,
+          leadData.tags, leadData.notes
+        ]
+      );
+      
+      res.json({ 
+        success: true, 
+        leadId: result.rows[0].id,
+        message: `Saved "${business.business_name}" to leads database` 
+      });
+      
+    } catch (error) {
+      console.error('❌ Failed to save lead:', error);
+      res.status(500).json({ error: 'Failed to save lead' });
+    }
+  });
+  
+  // Delete a lead from the main database
+  app.delete('/api/leads/:id', requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      
+      const result = await storage.query('DELETE FROM leads WHERE id = $1 RETURNING name', [id]);
+      
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'Lead not found' });
+      }
+      
+      res.json({ 
+        success: true, 
+        message: `Deleted lead "${result.rows[0].name}"` 
+      });
+      
+    } catch (error) {
+      console.error('❌ Failed to delete lead:', error);
+      res.status(500).json({ error: 'Failed to delete lead' });
+    }
+  });
+  
+  // Archive/mark as processed (soft delete)
+  app.put('/api/leads/:id/archive', requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const { reason } = req.body; // 'contacted', 'not_interested', 'duplicate', etc.
+      
+      const result = await storage.query(
+        `UPDATE leads 
+         SET tags = array_append(tags, $2), 
+             notes = COALESCE(notes, '') || $3,
+             updated_at = NOW()
+         WHERE id = $1 
+         RETURNING name`,
+        [id, 'archived', `\nArchived: ${reason} (${new Date().toISOString()})`]
+      );
+      
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'Lead not found' });
+      }
+      
+      res.json({ 
+        success: true, 
+        message: `Archived lead "${result.rows[0].name}" - ${reason}` 
+      });
+      
+    } catch (error) {
+      console.error('❌ Failed to archive lead:', error);
+      res.status(500).json({ error: 'Failed to archive lead' });
+    }
+  });
+
   app.post('/api/leads/:id/verify-website', requireAdmin, (req: Request, res: Response) => {
     res.json({ message: 'Verification system in development' });
   });

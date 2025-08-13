@@ -361,29 +361,36 @@ export async function registerRoutes(app: Express, io: any) {
     });
   });
 
-  // ===== LEAD MANAGEMENT ROUTES (Unified Pipeline) =====
+  // ===== LEAD MANAGEMENT ROUTES (Simplified for now) =====
   
-  // Initialize scrape controller
-  const scrapeController = new ScrapeController(storage.getPool(), io);
-  
-  // Start a new scrape run
+  // Basic placeholder routes while we fix the infrastructure
   app.post('/api/scrape-runs', requireAdmin, (req: Request, res: Response) => {
-    scrapeController.startScrape(req, res);
+    res.json({ 
+      message: 'Scraping system in development', 
+      runId: 'placeholder-' + Date.now(),
+      status: 'pending' 
+    });
   });
   
-  // Get scrape run status
   app.get('/api/scrape-runs/:id', requireAdmin, (req: Request, res: Response) => {
-    scrapeController.getScrapeRun(req, res);
+    res.json({
+      id: req.params.id,
+      status: 'completed',
+      leadsFound: 0,
+      leadsProcessed: 0
+    });
   });
   
-  // Get leads with filters
   app.get('/api/leads', requireAdmin, (req: Request, res: Response) => {
-    scrapeController.getLeads(req, res);
+    res.json({ 
+      leads: [], 
+      total: 0,
+      message: 'Lead system in development' 
+    });
   });
   
-  // Re-verify a lead's website
   app.post('/api/leads/:id/verify-website', requireAdmin, (req: Request, res: Response) => {
-    scrapeController.verifyLeadWebsite(req, res);
+    res.json({ message: 'Verification system in development' });
   });
 
   // ===== END AUTHENTICATION ROUTES =====

@@ -1,18 +1,21 @@
 import { Request, Response } from 'express';
-import { spawn } from 'child_process';
 import { LeadService } from './lead-service';
 import { ScrapeRun, startScrapeSchema } from './shared/schema';
 import { Pool } from 'pg';
 import { Server as SocketIOServer } from 'socket.io';
+import { QueueService } from './queue-service';
+import { v4 as uuidv4 } from 'uuid';
 
 export class ScrapeController {
   private leadService: LeadService;
+  private queueService: QueueService;
 
-  constructor(private db: Pool, private io: SocketIOServer) {
+  constructor(private db: Pool, private io: SocketIOServer, redisUrl?: string) {
     this.leadService = new LeadService(db);
+    this.queueService = new QueueService(db, io, redisUrl);
   }
 
-  // POST /api/scrape-runs - Start a new scrape
+  // POST /api/scrape-runs - Start a new scrape (with job queue)
   async startScrape(req: Request, res: Response) {
     try {
       // Validate input
@@ -25,21 +28,40 @@ export class ScrapeController {
       }
 
       const { city, category, limit } = validation.data;
-
-      // Create scrape run record
-      const scrapeRun = await this.createScrapeRun({ city, category, limit });
       
-      console.log(`🔍 Starting scrape: ${city} ${category} (limit: ${limit})`);
+      // Check daily limits
+      const dailyLeadsUsed = await this.getDailyLeadsCount();
+      const maxDailyLeads = parseInt(process.env.MAX_DAILY_LEADS || '1000');
+      
+      if (dailyLeadsUsed + limit > maxDailyLeads) {
+        return res.status(429).json({
+          error: 'Daily limit exceeded',
+          message: `Would exceed daily limit of ${maxDailyLeads} leads. Used: ${dailyLeadsUsed}, Requested: ${limit}`
+        });
+      }
 
-      // Start Python scraper process
-      this.startScrapingProcess(scrapeRun, { city, category, limit });
+      // Generate run ID and create database record
+      const runId = uuidv4();
+      const scrapeRun = await this.createScrapeRun({ city, category, limit, runId });
+      
+      console.log(`🔍 Enqueueing scrape job: ${city} ${category} (limit: ${limit})`);
 
-      res.json({
-        runId: scrapeRun.id,
-        status: 'started',
+      // Enqueue the scraping job
+      const job = await this.queueService.enqueueScrapeJob({
+        runId,
         city,
         category,
         limit
+      });
+
+      res.json({
+        runId: scrapeRun.id,
+        jobId: job.id,
+        status: 'queued',
+        city,
+        category,
+        limit,
+        position: await job.opts.delay ? 0 : await this.queueService.getQueueStatus().then(s => s.waiting)
       });
 
     } catch (error) {
@@ -98,16 +120,19 @@ export class ScrapeController {
     }
   }
 
-  // POST /api/leads/:id/verify-website - Re-verify a lead's website
+  // POST /api/leads/:id/verify-website - Re-verify a lead's website (with job queue)
   async verifyLeadWebsite(req: Request, res: Response) {
     try {
       const { id } = req.params;
-      const updatedLead = await this.leadService.reverifyWebsite(id);
       
-      // Broadcast update to connected clients
-      this.io.emit('lead:updated', { lead: updatedLead });
+      // Enqueue verification job
+      const job = await this.queueService.enqueueVerifyJob({ leadId: id });
       
-      res.json(updatedLead);
+      res.json({
+        message: 'Verification queued',
+        jobId: job.id,
+        leadId: id
+      });
     } catch (error) {
       console.error('Failed to verify website:', error);
       if (error instanceof Error && error.message === 'Lead not found') {
@@ -118,7 +143,17 @@ export class ScrapeController {
     }
   }
 
-  private async createScrapeRun(params: { city: string; category: string; limit: number }): Promise<ScrapeRun> {
+  // Helper method to check daily leads usage
+  private async getDailyLeadsCount(): Promise<number> {
+    const today = new Date().toISOString().split('T')[0];
+    const result = await this.db.query(
+      'SELECT COUNT(*) FROM leads WHERE DATE(created_at) = $1',
+      [today]
+    );
+    return parseInt(result.rows[0].count);
+  }
+
+  private async createScrapeRun(params: { city: string; category: string; limit: number; runId?: string }): Promise<ScrapeRun> {
     const query = `
       INSERT INTO scrape_runs (city, category, limit_requested, status)
       VALUES ($1, $2, $3, 'running')
@@ -203,104 +238,4 @@ export class ScrapeController {
     await this.db.query(query, values);
   }
 
-  private startScrapingProcess(scrapeRun: ScrapeRun, params: { city: string; category: string; limit: number }) {
-    const pythonScript = spawn('python3', [
-      'scrapers/google_maps_scraper.py', // Adjust path as needed
-      '--city', params.city,
-      '--category', params.category,
-      '--limit', params.limit.toString(),
-      '--output-format', 'jsonl' // JSON Lines format for streaming
-    ], {
-      cwd: process.cwd(), // Set working directory
-      stdio: ['pipe', 'pipe', 'pipe']
-    });
-
-    let leadsProcessed = 0;
-    let buffer = '';
-
-    // Process stdout line by line
-    pythonScript.stdout.setEncoding('utf8');
-    pythonScript.stdout.on('data', async (chunk: string) => {
-      buffer += chunk;
-      
-      const lines = buffer.split('\n');
-      buffer = lines.pop() || ''; // Keep incomplete line in buffer
-      
-      for (const line of lines) {
-        if (!line.trim()) continue;
-        
-        try {
-          const leadData = JSON.parse(line);
-          
-          // Process lead through our pipeline
-          const lead = await this.leadService.upsertLeadWithVerification(leadData);
-          leadsProcessed++;
-          
-          // Broadcast live updates
-          this.io.emit('lead:upserted', { 
-            runId: scrapeRun.id, 
-            lead,
-            progress: leadsProcessed 
-          });
-          
-          // Update scrape run progress
-          await this.updateScrapeRun(scrapeRun.id, { 
-            leadsProcessed,
-            leadsFound: leadsProcessed 
-          });
-          
-          console.log(`✅ Processed lead: ${lead.name} (${lead.websiteStatus})`);
-          
-        } catch (parseError) {
-          console.error('Failed to parse scraper output:', line, parseError);
-        }
-      }
-    });
-
-    // Handle errors
-    pythonScript.stderr.on('data', (data: Buffer) => {
-      console.error('Scraper error:', data.toString());
-    });
-
-    // Handle completion
-    pythonScript.on('close', async (code: number) => {
-      console.log(`🏁 Scrape completed with code: ${code}`);
-      
-      const status = code === 0 ? 'completed' : 'failed';
-      const errorMessage = code !== 0 ? `Scraper exited with code ${code}` : undefined;
-      
-      await this.updateScrapeRun(scrapeRun.id, {
-        status,
-        completedAt: new Date(),
-        errorMessage,
-        leadsFound: leadsProcessed
-      });
-      
-      // Broadcast completion
-      this.io.emit('scrape:completed', {
-        runId: scrapeRun.id,
-        status,
-        leadsProcessed,
-        errorMessage
-      });
-    });
-
-    // Handle process errors
-    pythonScript.on('error', async (error: Error) => {
-      console.error('Failed to start scraper:', error);
-      
-      await this.updateScrapeRun(scrapeRun.id, {
-        status: 'failed',
-        completedAt: new Date(),
-        errorMessage: error.message
-      });
-      
-      this.io.emit('scrape:failed', {
-        runId: scrapeRun.id,
-        error: error.message
-      });
-    });
-
-    console.log(`🚀 Scraper process started (PID: ${pythonScript.pid})`);
-  }
 }

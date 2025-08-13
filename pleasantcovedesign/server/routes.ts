@@ -740,8 +740,7 @@ export async function registerRoutes(app: Express, io: any) {
             reviews,
             maps_url,
             scraped_at,
-            data_source,
-            google_place_id
+            search_session_id
           FROM businesses 
           WHERE 1=1
         `;

@@ -30,7 +30,9 @@ const Login: React.FC = () => {
         localStorage.setItem('admin_user', JSON.stringify(data.user));
         
         console.log('✅ Login successful');
-        navigate('/');
+        
+        // Force page reload to trigger auth check
+        window.location.href = '/dashboard';
       } else {
         setError(data.message || 'Login failed');
       }

@@ -377,108 +377,95 @@ export async function registerRoutes(app: Express, io: any) {
       
       console.log(`📍 Scraping ${category} businesses in ${city}, Maine...`);
       
-      // Simulate real scraping process (in production, this would call Google Places API)
+      // Call the REAL Python scraper to get actual businesses from Google Maps
       setTimeout(async () => {
         try {
-          const sqlite3 = require('sqlite3').verbose();
+          const { spawn } = require('child_process');
           const path = require('path');
           const fs = require('fs');
-          const dbPath = path.join(__dirname, '../scrapers/scraper_results.db');
           
+          const scraperDir = path.join(__dirname, '../scrapers');
+          const dbPath = path.join(scraperDir, 'scraper_results.db');
+          const scraperPath = path.join(scraperDir, 'google_maps_api_scraper.py');
+          
+          console.log(`📁 Scraper path: ${scraperPath}`);
           console.log(`📁 Database path: ${dbPath}`);
           
           // Ensure directory exists
-          const scraperDir = path.dirname(dbPath);
           if (!fs.existsSync(scraperDir)) {
             fs.mkdirSync(scraperDir, { recursive: true });
             console.log(`📁 Created scrapers directory: ${scraperDir}`);
           }
           
-          // Generate realistic businesses based on the search
-          const businesses = generateRealisticBusinesses(category, city, actualLimit);
-          console.log(`🏢 Generated ${businesses.length} businesses:`, businesses.map(b => b.name));
+          console.log(`🚀 STARTING REAL SCRAPER: ${category} in ${city}, Maine (limit: ${actualLimit})`);
           
-          // Save to database
-          const db = new sqlite3.Database(dbPath, (err) => {
-            if (err) {
-              console.error('❌ Database connection error:', err);
-            } else {
-              console.log('✅ Connected to SQLite database');
-            }
+          // Run the Python scraper with real Google Maps API
+          const pythonProcess = spawn('python3', [
+            scraperPath,
+            '--business-type', category,
+            '--location', `${city}, Maine`, 
+            '--limit', actualLimit.toString()
+          ], {
+            cwd: scraperDir,
+            stdio: ['pipe', 'pipe', 'pipe']
           });
           
-          // Create table if it doesn't exist
-          db.run(`CREATE TABLE IF NOT EXISTS businesses (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            business_name TEXT NOT NULL,
-            business_type TEXT,
-            address TEXT,
-            location TEXT,
-            phone TEXT,
-            website TEXT,
-            has_website INTEGER DEFAULT 0,
-            rating REAL,
-            reviews INTEGER,
-            maps_url TEXT,
-            search_session_id TEXT,
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-          )`, (err) => {
-            if (err) {
-              console.error('❌ Table creation error:', err);
-            } else {
-              console.log('✅ Businesses table ready');
-            }
+          let output = '';
+          let errorOutput = '';
+          
+          pythonProcess.stdout.on('data', (data) => {
+            output += data.toString();
+            console.log(`📝 Scraper: ${data.toString().trim()}`);
           });
           
-          let insertedCount = 0;
+          pythonProcess.stderr.on('data', (data) => {
+            errorOutput += data.toString();
+            console.log(`⚠️ Scraper: ${data.toString().trim()}`);
+          });
           
-          for (const business of businesses) {
-            db.run(`INSERT INTO businesses (
-              business_name, business_type, address, location, phone, website, 
-              has_website, rating, reviews, maps_url, search_session_id
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, [
-              business.name,
-              category,
-              business.address,
-              `${city}, Maine`,
-              business.phone,
-              business.website,
-              business.website ? 1 : 0,
-              business.rating,
-              business.reviews,
-              business.mapsUrl,
-              runId
-            ], function(err) {
-              if (err) {
-                console.error('❌ Insert error:', err);
-              } else {
-                insertedCount++;
-                console.log(`✅ Inserted business ${insertedCount}: ${business.name} (ID: ${this.lastID})`);
-                
-                // Check if all businesses are inserted
-                if (insertedCount === businesses.length) {
-                  db.close((err) => {
-                    if (err) {
-                      console.error('❌ Database close error:', err);
-                    } else {
-                      console.log('✅ Database closed successfully');
-                    }
+          pythonProcess.on('close', async (code) => {
+            console.log(`🏁 Python scraper finished with code: ${code}`);
+            
+            if (code === 0) {
+              // Successfully scraped - count the actual results
+              const sqlite3 = require('sqlite3').verbose();
+              const db = new sqlite3.Database(dbPath);
+              
+              db.get(`SELECT COUNT(*) as count FROM businesses WHERE search_session_id = ?`, [runId], (err, row) => {
+                if (err) {
+                  console.error('❌ Failed to count results:', err);
+                  io.emit('scrape-completed', {
+                    runId,
+                    status: 'failed',
+                    error: 'Failed to count scraped results'
                   });
-                  
-                  console.log(`🎯 SCRAPING COMPLETE: ${insertedCount} real ${category} businesses saved to ${dbPath}`);
+                } else {
+                  const actualCount = row?.count || 0;
+                  console.log(`✅ REAL SCRAPING COMPLETE: Found ${actualCount} actual businesses in ${city}`);
                   
                   // Emit completion via Socket.IO
                   io.emit('scrape-completed', {
                     runId,
                     status: 'completed',
-                    leadsFound: insertedCount,
-                    leadsProcessed: insertedCount,
-                    businesses: businesses.map(b => b.name)
+                    leadsFound: actualCount,
+                    leadsProcessed: actualCount,
+                    realData: true
                   });
                 }
-              }
-            });
-          }
+                db.close();
+              });
+            } else {
+              console.error(`❌ Scraper failed with code ${code}`);
+              console.error(`❌ Error output: ${errorOutput}`);
+              
+              io.emit('scrape-completed', {
+                runId,
+                status: 'failed',
+                error: `Scraper failed: ${errorOutput || 'Unknown error'}`
+              });
+            }
+          });
+
           
         } catch (error) {
           console.error('❌ Scraping failed:', error);
@@ -509,58 +496,7 @@ export async function registerRoutes(app: Express, io: any) {
     }
   });
   
-  // Helper function to generate realistic businesses
-  function generateRealisticBusinesses(category: string, city: string, limit: number) {
-    const businessTemplates = {
-      plumbers: [
-        { name: 'Maine Plumbing Solutions', hasWebsite: true },
-        { name: 'Coastal Pipe & Drain', hasWebsite: false },
-        { name: '{city} Plumbing Services', hasWebsite: true },
-        { name: 'Downeast Plumbing Co', hasWebsite: false },
-        { name: 'Pine State Plumbers', hasWebsite: true }
-      ],
-      electricians: [
-        { name: 'Atlantic Electric', hasWebsite: true },
-        { name: '{city} Electrical Services', hasWebsite: false },
-        { name: 'Maine Coast Electric', hasWebsite: true },
-        { name: 'Lighthouse Electric Co', hasWebsite: false },
-        { name: 'Pine Tree Electric', hasWebsite: true }
-      ],
-      restaurants: [
-        { name: '{city} Diner', hasWebsite: false },
-        { name: 'Maine Lobster House', hasWebsite: true },
-        { name: 'Coastal Cafe', hasWebsite: false },
-        { name: '{city} Family Restaurant', hasWebsite: true },
-        { name: 'Downeast Eatery', hasWebsite: false }
-      ],
-      contractors: [
-        { name: '{city} Construction', hasWebsite: true },
-        { name: 'Maine Building Co', hasWebsite: false },
-        { name: 'Coastal Contractors', hasWebsite: true },
-        { name: 'Pine State Builders', hasWebsite: false },
-        { name: '{city} Home Improvement', hasWebsite: true }
-      ]
-    };
-    
-    const templates = businessTemplates[category] || businessTemplates.contractors;
-    const businesses = [];
-    
-    for (let i = 0; i < Math.min(limit, templates.length); i++) {
-      const template = templates[i];
-      const business = {
-        name: template.name.replace('{city}', city),
-        address: `${100 + i * 50} Main St`,
-        phone: `(207) ${Math.floor(Math.random() * 900) + 100}-${Math.floor(Math.random() * 9000) + 1000}`,
-        website: template.hasWebsite ? `https://${template.name.toLowerCase().replace(/[^a-z]/g, '')}.com` : null,
-        rating: (Math.random() * 2 + 3).toFixed(1), // 3.0 to 5.0
-        reviews: Math.floor(Math.random() * 100) + 10,
-        mapsUrl: `https://maps.google.com/?cid=${Math.floor(Math.random() * 1000000)}`
-      };
-      businesses.push(business);
-    }
-    
-    return businesses;
-  }
+
   
   app.get('/api/scrape-runs/:id', requireAdmin, async (req: Request, res: Response) => {
     const runId = req.params.id;

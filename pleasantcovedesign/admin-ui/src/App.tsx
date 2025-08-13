@@ -44,7 +44,7 @@ const App: React.FC = () => {
       }
 
       try {
-        const response = await fetch(`${api.defaults.baseURL?.replace('/api', '')}/api/auth/validate`, {
+        const response = await fetch('/api/auth/validate', {
           headers: {
             'Authorization': `Bearer ${token}`,
           },

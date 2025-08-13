@@ -364,18 +364,76 @@ export async function registerRoutes(app: Express, io: any) {
   // ===== LEAD MANAGEMENT ROUTES (Simplified for now) =====
   
   // Basic placeholder routes while we fix the infrastructure
-  app.post('/api/scrape-runs', requireAdmin, (req: Request, res: Response) => {
+  app.post('/api/scrape-runs', requireAdmin, async (req: Request, res: Response) => {
     const { city, category, limit } = req.body;
     const runId = 'scrape-' + Date.now();
     
-    res.json({ 
-      message: `Starting scrape for ${category} businesses in ${city} (limit: ${limit})`, 
-      runId,
-      status: 'running',
-      city,
-      category,
-      limit: parseInt(limit) || 50
-    });
+    console.log(`🚀 Starting real scrape: ${category} in ${city} (limit: ${limit})`);
+    
+    // Start the Python scraper in the background
+    try {
+      const spawn = require('child_process').spawn;
+      const pythonPath = process.env.PYTHON_PATH || 'python3';
+      const scraperPath = '../scrapers/google_maps_api_scraper.py';
+      
+      console.log(`📍 Executing: ${pythonPath} ${scraperPath} --business-type "${category}" --location "${city}, Maine" --limit ${limit}`);
+      
+      const scraperProcess = spawn(pythonPath, [
+        scraperPath,
+        '--business-type', category,
+        '--location', `${city}, Maine`,
+        '--limit', limit.toString()
+      ], {
+        cwd: __dirname,
+        stdio: ['pipe', 'pipe', 'pipe']
+      });
+      
+      let output = '';
+      let errorOutput = '';
+      
+      scraperProcess.stdout.on('data', (data: Buffer) => {
+        output += data.toString();
+        console.log(`📝 Scraper: ${data.toString().trim()}`);
+      });
+      
+      scraperProcess.stderr.on('data', (data: Buffer) => {
+        errorOutput += data.toString();
+        console.error(`⚠️ Scraper Error: ${data.toString().trim()}`);
+      });
+      
+      scraperProcess.on('close', (code: number) => {
+        console.log(`🏁 Scraper finished with code: ${code}`);
+        console.log(`📊 Output: ${output}`);
+        if (errorOutput) {
+          console.error(`❌ Errors: ${errorOutput}`);
+        }
+        
+        // Emit completion via Socket.IO
+        io.emit('scrape-completed', {
+          runId,
+          status: code === 0 ? 'completed' : 'failed',
+          output,
+          errorOutput
+        });
+      });
+      
+      res.json({ 
+        message: `🚀 Real scraper started for ${category} businesses in ${city}`, 
+        runId,
+        status: 'running',
+        city,
+        category,
+        limit: parseInt(limit) || 50,
+        scraperType: 'google_maps_api'
+      });
+      
+    } catch (error) {
+      console.error('❌ Failed to start scraper:', error);
+      res.status(500).json({
+        error: 'Failed to start scraper',
+        message: error.message
+      });
+    }
   });
   
   app.get('/api/scrape-runs/:id', requireAdmin, (req: Request, res: Response) => {
@@ -396,92 +454,136 @@ export async function registerRoutes(app: Express, io: any) {
     });
   });
   
-  app.get('/api/leads', requireAdmin, (req: Request, res: Response) => {
-    // Mock data to test the UI while backend is in development
-    const mockLeads = [
-      {
-        id: '550e8400-e29b-41d4-a716-446655440001',
-        name: 'Brunswick Plumbing Services',
-        category: 'plumbing',
-        source: 'scraper',
-        phoneNormalized: '+1-207-555-0123',
-        emailNormalized: 'info@brunswickplumbing.com',
-        city: 'Brunswick',
-        region: 'Maine',
-        websiteUrl: 'https://brunswickplumbing.com',
-        websiteStatus: 'HAS_SITE',
-        websiteConfidence: 0.95,
-        mapsRating: 4.7,
-        mapsReviews: 89,
-        tags: ['verified', 'has_phone', 'high_confidence'],
-        createdAt: new Date('2025-01-15T10:30:00Z'),
-        updatedAt: new Date('2025-01-15T10:30:00Z')
-      },
-      {
-        id: '550e8400-e29b-41d4-a716-446655440002',
-        name: 'Coastal Electric Solutions',
-        category: 'electrical',
-        source: 'scraper',
-        phoneNormalized: '+1-207-555-0456',
-        city: 'Portland',
-        region: 'Maine',
-        websiteUrl: null,
-        websiteStatus: 'NO_SITE',
-        websiteConfidence: 0.15,
-        socialUrls: ['https://facebook.com/coastalelectric'],
-        mapsRating: 4.2,
-        mapsReviews: 34,
-        tags: ['needs_website', 'social_only'],
-        createdAt: new Date('2025-01-15T11:15:00Z'),
-        updatedAt: new Date('2025-01-15T11:15:00Z')
-      },
-      {
-        id: '550e8400-e29b-41d4-a716-446655440003',
-        name: 'Pine Tree Landscaping',
-        category: 'landscaping',
-        source: 'manual',
-        phoneNormalized: '+1-207-555-0789',
-        emailNormalized: 'contact@pinetreelandscaping.me',
-        city: 'Freeport',
-        region: 'Maine',
-        websiteUrl: 'https://pinetreelandscaping.me',
-        websiteStatus: 'UNSURE',
-        websiteConfidence: 0.72,
-        mapsRating: 4.9,
-        mapsReviews: 156,
-        tags: ['premium_prospect', 'high_rating'],
-        createdAt: new Date('2025-01-14T16:45:00Z'),
-        updatedAt: new Date('2025-01-15T09:22:00Z')
-      }
-    ];
+  app.get('/api/leads', requireAdmin, async (req: Request, res: Response) => {
+    try {
+      // Read real scraped data from SQLite database
+      const sqlite3 = require('sqlite3').verbose();
+      const path = require('path');
+      
+      // Path to the scraper's SQLite database
+      const dbPath = path.join(__dirname, '../scrapers/scraper_results.db');
+      
+      const leads = await new Promise((resolve, reject) => {
+        const db = new sqlite3.Database(dbPath, (err: Error) => {
+          if (err) {
+            console.log('📂 SQLite database not found, using mock data');
+            // Return mock data as fallback
+            return resolve([]);
+          }
+        });
 
-    // Apply basic filters (this would normally be done in the database)
-    let filteredLeads = mockLeads;
-    const { websiteStatus, city, query } = req.query;
-    
-    if (websiteStatus && websiteStatus !== 'all') {
-      filteredLeads = filteredLeads.filter(lead => lead.websiteStatus === websiteStatus);
-    }
-    
-    if (city) {
-      filteredLeads = filteredLeads.filter(lead => 
-        lead.city.toLowerCase().includes((city as string).toLowerCase())
-      );
-    }
-    
-    if (query) {
-      const searchTerm = (query as string).toLowerCase();
-      filteredLeads = filteredLeads.filter(lead => 
-        lead.name.toLowerCase().includes(searchTerm) ||
-        lead.category.toLowerCase().includes(searchTerm)
-      );
-    }
+        let query = `
+          SELECT 
+            id,
+            business_name as name,
+            business_type as category,
+            address,
+            location,
+            phone,
+            website,
+            has_website,
+            rating,
+            reviews,
+            maps_url,
+            scraped_at,
+            data_source,
+            google_place_id
+          FROM businesses 
+          WHERE 1=1
+        `;
+        
+        const params: any[] = [];
+        const { websiteStatus, city, query: searchQuery } = req.query;
+        
+        // Apply filters
+        if (websiteStatus && websiteStatus !== 'all') {
+          if (websiteStatus === 'HAS_SITE') {
+            query += ' AND has_website = 1';
+          } else if (websiteStatus === 'NO_SITE') {
+            query += ' AND (has_website = 0 OR has_website IS NULL)';
+          }
+        }
+        
+        if (city) {
+          query += ' AND location LIKE ?';
+          params.push(`%${city}%`);
+        }
+        
+        if (searchQuery) {
+          query += ' AND (business_name LIKE ? OR business_type LIKE ?)';
+          params.push(`%${searchQuery}%`, `%${searchQuery}%`);
+        }
+        
+        query += ' ORDER BY scraped_at DESC LIMIT 100';
+        
+        db.all(query, params, (err: Error, rows: any[]) => {
+          if (err) {
+            reject(err);
+            return;
+          }
+          
+          // Transform SQLite data to our Lead format
+          const transformedLeads = rows.map(row => ({
+            id: row.id.toString(),
+            name: row.name || 'Unknown Business',
+            category: row.category || 'unknown',
+            source: 'scraper',
+            phoneNormalized: row.phone,
+            city: row.location?.split(',')[0]?.trim(),
+            region: 'Maine',
+            websiteUrl: row.website,
+            websiteStatus: row.has_website ? 'HAS_SITE' : 'NO_SITE',
+            websiteConfidence: row.has_website ? 0.85 : 0.15,
+            mapsRating: parseFloat(row.rating) || null,
+            mapsReviews: parseInt(row.reviews) || null,
+            mapsUrl: row.maps_url,
+            tags: [
+              row.has_website ? 'has_website' : 'no_website',
+              row.phone ? 'has_phone' : 'no_phone',
+              'scraped'
+            ].filter(Boolean),
+            createdAt: new Date(row.scraped_at || Date.now()),
+            updatedAt: new Date(row.scraped_at || Date.now())
+          }));
+          
+          resolve(transformedLeads);
+        });
+        
+        db.close();
+      });
 
-    res.json({ 
-      leads: filteredLeads, 
-      total: filteredLeads.length,
-      message: 'Mock data - showing test leads to verify UI' 
-    });
+      res.json({ 
+        leads, 
+        total: leads.length,
+        message: leads.length > 0 ? `Showing ${leads.length} real scraped businesses` : 'No scraped data found - run a scrape first' 
+      });
+      
+    } catch (error) {
+      console.error('❌ Failed to read scraped data:', error);
+      
+      // Fallback to mock data if SQLite fails
+      const mockLeads = [
+        {
+          id: 'mock-1',
+          name: 'No scraped data available',
+          category: 'demo',
+          source: 'mock',
+          city: 'Brunswick',
+          region: 'Maine',
+          websiteStatus: 'UNKNOWN',
+          websiteConfidence: 0.0,
+          tags: ['demo'],
+          createdAt: new Date(),
+          updatedAt: new Date()
+        }
+      ];
+      
+      res.json({ 
+        leads: mockLeads, 
+        total: mockLeads.length,
+        message: 'Error reading scraped data - using demo data' 
+      });
+    }
   });
   
   app.post('/api/leads/:id/verify-website', requireAdmin, (req: Request, res: Response) => {

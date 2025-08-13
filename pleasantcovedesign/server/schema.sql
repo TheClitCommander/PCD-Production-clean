@@ -194,6 +194,94 @@ CREATE INDEX IF NOT EXISTS idx_appointments_project_id ON appointments(project_i
 CREATE INDEX IF NOT EXISTS idx_orders_company_id ON orders(company_id);
 CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(status);
 
+-- Leads indexes for performance
+CREATE INDEX IF NOT EXISTS idx_leads_dedup_key ON leads(dedup_key);
+CREATE INDEX IF NOT EXISTS idx_leads_website_status ON leads(website_status);
+CREATE INDEX IF NOT EXISTS idx_leads_city ON leads(city);
+CREATE INDEX IF NOT EXISTS idx_leads_phone_normalized ON leads(phone_normalized);
+CREATE INDEX IF NOT EXISTS idx_leads_created_at ON leads(created_at);
+CREATE INDEX IF NOT EXISTS idx_leads_has_contact_form ON leads(has_contact_form);
+CREATE INDEX IF NOT EXISTS idx_leads_website_confidence ON leads(website_confidence);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_leads_dedup_unique ON leads(dedup_key) WHERE dedup_key IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_scrape_runs_status ON scrape_runs(status);
+CREATE INDEX IF NOT EXISTS idx_scrape_runs_started_at ON scrape_runs(started_at);
+
+-- Leads table (unified scraper pipeline)
+CREATE TABLE IF NOT EXISTS leads (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name VARCHAR(255) NOT NULL,
+    category VARCHAR(100),
+    source VARCHAR(50) DEFAULT 'scraper', -- 'scraper', 'manual', 'import'
+    
+    -- Contact info (normalized)
+    phone_raw VARCHAR(50),
+    phone_normalized VARCHAR(20),
+    email_raw VARCHAR(255),
+    email_normalized VARCHAR(255),
+    
+    -- Address (normalized)
+    address_raw TEXT,
+    address_line1 VARCHAR(255),
+    city VARCHAR(100),
+    region VARCHAR(100), -- state/province
+    postal_code VARCHAR(20),
+    country VARCHAR(5) DEFAULT 'US',
+    lat DECIMAL(10, 8),
+    lng DECIMAL(11, 8),
+    
+    -- Website verification (enhanced)
+    website_url VARCHAR(500),
+    website_status VARCHAR(20) DEFAULT 'UNKNOWN', -- 'HAS_SITE', 'NO_SITE', 'SOCIAL_ONLY', 'UNSURE', 'UNKNOWN'
+    website_confidence DECIMAL(3,2) DEFAULT 0.0, -- 0.0 to 1.0
+    website_last_checked_at TIMESTAMP,
+    social_urls JSONB DEFAULT '[]'::jsonb,
+    
+    -- Contact enrichment
+    contact_emails JSONB DEFAULT '[]'::jsonb, -- Found emails from website/forms
+    has_contact_form BOOLEAN DEFAULT false,
+    
+    -- Verification evidence (for UI transparency)
+    verification_evidence JSONB DEFAULT '{}'::jsonb, -- {title_snippet, matched_phone, schema_types, etc}
+    
+    -- Quality signals
+    website_tech_stack JSONB DEFAULT '[]'::jsonb, -- Detected CMS, frameworks
+    has_ssl BOOLEAN DEFAULT NULL,
+    is_mobile_friendly BOOLEAN DEFAULT NULL,
+    page_load_speed_ms INTEGER DEFAULT NULL,
+    
+    -- Google Maps data
+    place_id VARCHAR(255),
+    maps_url TEXT,
+    maps_rating DECIMAL(3,2),
+    maps_reviews INTEGER,
+    
+    -- Deduplication
+    dedup_key VARCHAR(500), -- computed: phone||domain||address_fingerprint
+    
+    -- Metadata
+    raw JSONB, -- original scraper payload
+    tags TEXT[] DEFAULT '{}',
+    notes TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    
+    CONSTRAINT leads_website_status_check CHECK (website_status IN ('HAS_SITE', 'NO_SITE', 'SOCIAL_ONLY', 'UNSURE', 'UNKNOWN'))
+);
+
+-- Scrape runs table (track scraping sessions)
+CREATE TABLE IF NOT EXISTS scrape_runs (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    city VARCHAR(100) NOT NULL,
+    category VARCHAR(100) NOT NULL,
+    limit_requested INTEGER DEFAULT 200,
+    status VARCHAR(20) DEFAULT 'running', -- 'running', 'completed', 'failed'
+    leads_found INTEGER DEFAULT 0,
+    leads_processed INTEGER DEFAULT 0,
+    started_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    completed_at TIMESTAMP,
+    error_message TEXT
+);
+
 -- Canvas data tables
 CREATE TABLE IF NOT EXISTS canvas_data (
     project_id INTEGER PRIMARY KEY REFERENCES projects(id) ON DELETE CASCADE,

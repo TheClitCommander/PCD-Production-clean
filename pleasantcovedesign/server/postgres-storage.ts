@@ -16,6 +16,11 @@ export class PostgreSQLStorage {
     this.initializeTables();
   }
 
+  // Expose pool for specialized services (like LeadService)
+  getPool(): Pool {
+    return this.pool;
+  }
+
   async forceMigration() {
     try {
       console.log('🔧 FORCE MIGRATION: Adding missing columns...');

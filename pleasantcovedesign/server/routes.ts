@@ -28,6 +28,7 @@ import {
 import { requestLogger, errorHandler, performanceMonitor, getHealthStats } from './middleware/logging';
 import { processAIChat, storeUserMessage } from './ai-service';
 import { createPaymentLink, verifyWebhookSignature } from './stripe-config';
+import { ScrapeController } from './scrape-controller';
 import { sendReceiptEmail, sendWelcomeEmail, sendInvoiceEmail } from './email-service';
 import { sendProposal, acceptProposal, rejectProposal, ProposalServiceError, validateProposalForSending } from './proposal-service';
 import { insertProposalSchema, updateProposalSchema } from './shared/schema';
@@ -358,6 +359,31 @@ export async function registerRoutes(app: Express, io: any) {
       success: true,
       message: 'Logged out successfully'
     });
+  });
+
+  // ===== LEAD MANAGEMENT ROUTES (Unified Pipeline) =====
+  
+  // Initialize scrape controller
+  const scrapeController = new ScrapeController(storage.getPool(), io);
+  
+  // Start a new scrape run
+  app.post('/api/scrape-runs', requireAdmin, (req: Request, res: Response) => {
+    scrapeController.startScrape(req, res);
+  });
+  
+  // Get scrape run status
+  app.get('/api/scrape-runs/:id', requireAdmin, (req: Request, res: Response) => {
+    scrapeController.getScrapeRun(req, res);
+  });
+  
+  // Get leads with filters
+  app.get('/api/leads', requireAdmin, (req: Request, res: Response) => {
+    scrapeController.getLeads(req, res);
+  });
+  
+  // Re-verify a lead's website
+  app.post('/api/leads/:id/verify-website', requireAdmin, (req: Request, res: Response) => {
+    scrapeController.verifyLeadWebsite(req, res);
   });
 
   // ===== END AUTHENTICATION ROUTES =====

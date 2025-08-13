@@ -529,4 +529,92 @@ export const messageSchema = z.object({
   createdAt: z.string(),
 });
 
-export type Message = z.infer<typeof messageSchema>; 
+export type Message = z.infer<typeof messageSchema>;
+
+// Lead Management System (Unified Pipeline)
+export interface Lead {
+  id: string; // UUID
+  name: string;
+  category?: string;
+  source: 'scraper' | 'manual' | 'import';
+  
+  // Contact info (normalized)
+  phoneRaw?: string;
+  phoneNormalized?: string;
+  emailRaw?: string;
+  emailNormalized?: string;
+  
+  // Address (normalized)
+  addressRaw?: string;
+  addressLine1?: string;
+  city?: string;
+  region?: string; // state/province
+  postalCode?: string;
+  country?: string;
+  lat?: number;
+  lng?: number;
+  
+  // Website verification
+  websiteUrl?: string;
+  websiteStatus: 'HAS_SITE' | 'NO_SITE' | 'SOCIAL_ONLY' | 'UNSURE' | 'UNKNOWN';
+  websiteConfidence: number; // 0.0 to 1.0
+  websiteLastCheckedAt?: Date;
+  socialUrls: string[];
+  
+  // Google Maps data
+  placeId?: string;
+  mapsUrl?: string;
+  mapsRating?: number;
+  mapsReviews?: number;
+  
+  // Deduplication
+  dedupKey?: string;
+  
+  // Metadata
+  raw?: any; // original scraper payload
+  tags: string[];
+  notes?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface ScrapeRun {
+  id: string; // UUID
+  city: string;
+  category: string;
+  limitRequested: number;
+  status: 'running' | 'completed' | 'failed';
+  leadsFound: number;
+  leadsProcessed: number;
+  startedAt: Date;
+  completedAt?: Date;
+  errorMessage?: string;
+}
+
+export interface WebsiteVerificationResult {
+  url?: string;
+  status: 'HAS_SITE' | 'NO_SITE' | 'SOCIAL_ONLY' | 'UNSURE';
+  confidence: number;
+  candidates?: string[];
+}
+
+// Validation schemas for leads
+export const insertLeadSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  category: z.string().optional(),
+  source: z.enum(['scraper', 'manual', 'import']).default('manual'),
+  phoneRaw: z.string().optional(),
+  emailRaw: z.string().optional(),
+  addressRaw: z.string().optional(),
+  websiteUrl: z.string().optional(),
+  city: z.string().optional(),
+  region: z.string().optional()
+});
+
+export const startScrapeSchema = z.object({
+  city: z.string().min(1, "City is required"),
+  category: z.string().min(1, "Category is required"),
+  limit: z.number().min(1).max(1000).default(200)
+});
+
+export type NewLead = Omit<Lead, 'id' | 'createdAt' | 'updatedAt'>; 

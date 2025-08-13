@@ -12,8 +12,7 @@ interface NavItem {
 
 const navigation: NavItem[] = [
   { path: '/dashboard', label: 'Dashboard', icon: Home },
-  { path: '/leads', label: 'Leads', icon: Users },
-  { path: '/scraper', label: 'Lead Scraper', icon: Search },
+  { path: '/leads', label: 'Lead Management', icon: Users },
   { path: '/proposals', label: 'Proposals', icon: FileText },
   { path: '/outreach', label: 'Outreach', icon: Megaphone },
   { path: '/schedule', label: 'Appointments', icon: Calendar },

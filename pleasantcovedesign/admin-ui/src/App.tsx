@@ -7,6 +7,7 @@ import ErrorBoundary from './components/ErrorBoundary'
 import Dashboard from './pages/Dashboard'
 import Inbox from './pages/Inbox'
 import Leads from './pages/Leads'
+import LeadsUnified from './pages/LeadsUnified'
 import Proposals from './pages/Proposals'
 import Clients from './pages/Clients'
 import Outreach from './pages/Outreach'
@@ -127,7 +128,7 @@ const App: React.FC = () => {
             <Route path="business/1/inbox" element={<Inbox />} />
             <Route path="inbox" element={<Inbox />} />
             <Route path="inbox/:projectToken" element={<Inbox />} />
-            <Route path="leads" element={<Leads />} />
+            <Route path="leads" element={<LeadsUnified />} />
             <Route path="leads/:id" element={<ClientProfile />} />
             <Route path="scraper" element={<LeadScraper />} />
             <Route path="proposals" element={<Proposals />} />

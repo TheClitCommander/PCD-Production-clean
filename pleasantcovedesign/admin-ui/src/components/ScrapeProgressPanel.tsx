@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { X, CheckCircle, AlertCircle, Loader2, Activity } from 'lucide-react';
 import api from '../api';
 
@@ -26,6 +27,7 @@ const ScrapeProgressPanel: React.FC<ScrapeProgressPanelProps> = ({
   onClose, 
   onLeadUpdate 
 }) => {
+  const navigate = useNavigate();
   const [scrapeRun, setScrapeRun] = useState<ScrapeRun | null>(null);
   const [recentLeads, setRecentLeads] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -205,9 +207,9 @@ const ScrapeProgressPanel: React.FC<ScrapeProgressPanelProps> = ({
         {scrapeRun.status === 'completed' && (
           <button
             onClick={() => {
-              // Close the progress panel and navigate to leads page to show real data
+              // Close the progress panel and navigate to leads page using React Router
               onClose();
-              window.location.href = '/leads';
+              navigate('/leads');
             }}
             className="w-full bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors"
           >

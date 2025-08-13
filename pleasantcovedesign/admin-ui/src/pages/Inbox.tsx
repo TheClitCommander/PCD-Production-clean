@@ -1111,7 +1111,7 @@ const Inbox: React.FC = () => {
                             if (isImage && attachment.includes('/uploads/') && !attachment.startsWith('https://pcd-production-clean-production-e6f3.up.railway.app')) {
                               // Fix any remaining old Railway URLs to use the correct domain
                               displayUrl = attachment.replace(
-                                'https://pleasantcovedesign-production.up.railway.app',
+                                window.location.origin,
                                 'https://pcd-production-clean-production-e6f3.up.railway.app'
                               );
                             }

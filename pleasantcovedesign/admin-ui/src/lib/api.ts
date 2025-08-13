@@ -1,24 +1,10 @@
 import axios from 'axios';
 
-// Force correct URL for local development
-const API_URL = 'http://localhost:3001/api';
+// Force same-origin API for Railway deployment
+const API_URL = '/api';
 const ADMIN_TOKEN = import.meta.env.VITE_ADMIN_TOKEN || 'pleasantcove2024admin';
 
-console.log('🔧 API Configuration:', { API_URL, ADMIN_TOKEN });
-console.log('🌐 Backend URL:', API_URL.replace('/api', ''));
-console.log('🔍 Environment check:', {
-  VITE_API_URL: import.meta.env.VITE_API_URL,
-  NODE_ENV: import.meta.env.NODE_ENV,
-  MODE: import.meta.env.MODE
-});
-
-// Alert if still using wrong port
-if (API_URL.includes(':3000')) {
-  console.error('❌ STILL USING PORT 3000! This is wrong!');
-  alert('API Configuration Error: Still pointing to port 3000 instead of 3001!');
-} else {
-  console.log('✅ API correctly configured for port 3001');
-}
+console.log('🔧 API Configuration - Same Origin:', { API_URL, ADMIN_TOKEN });
 
 export const api = axios.create({
   baseURL: API_URL,

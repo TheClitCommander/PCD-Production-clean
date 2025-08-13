@@ -1,11 +1,34 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
-import { Search, Filter, Plus, Building2, Eye, MousePointer, MessageCircle, TrendingUp, ShoppingCart, Loader2, MapPin } from 'lucide-react'
+import { Search, Filter, Plus, Building2, Eye, MousePointer, MessageCircle, TrendingUp, ShoppingCart, Loader2, MapPin, Download } from 'lucide-react'
 import EntitySummaryCard from '../components/EntitySummaryCard'
 import OrderBuilder from '../components/OrderBuilder'
 import api from '../api'
 import { deviceDetection, communicationFallbacks, urlUtils } from '../utils/deviceDetection'
 import { authenticatedFetch, checkAuthStatus, AuthAPI } from '../utils/auth'
+import { FEATURES } from '../config/featureFlags'
+
+// CSV Export Helpers
+const toCsv = (rows: any[]) => {
+  if (!rows?.length) return '';
+  const headers = Array.from(
+    new Set(rows.flatMap((r) => Object.keys(r ?? {})))
+  );
+  const esc = (v: any) =>
+    `"${String(v ?? '').replace(/"/g, '""')}"`;
+  const body = rows
+    .map((r) => headers.map((h) => esc(r[h])).join(','))
+    .join('\n');
+  return `${headers.join(',')}\n${body}`;
+};
+
+const download = (filename: string, text: string) => {
+  const blob = new Blob([text], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename; a.click();
+  URL.revokeObjectURL(url);
+};
 
 // Make communication functions available globally for UI components
 (window as any).initiateVideoCall = communicationFallbacks.initiateVideoCall;
@@ -759,6 +782,15 @@ Due Date: ${new Date(invoice.due_date).toLocaleDateString()}`);
               </>
             )}
           </button>
+          {FEATURES.EXPORT_LEADS && (
+            <button
+              onClick={() => download(`leads-${new Date().toISOString().slice(0,10)}.csv`, toCsv(companies))}
+              className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
+            >
+              <Download className="h-4 w-4" />
+              Export CSV
+            </button>
+          )}
           <button
             onClick={() => setOrderBuilderOpen(true)}
             className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"

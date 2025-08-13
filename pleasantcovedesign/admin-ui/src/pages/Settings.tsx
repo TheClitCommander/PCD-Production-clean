@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { Save, Phone, Mail, MapPin, FileText, Zap } from 'lucide-react'
 import ClientNote from '../components/ClientNote'
 import QuickAction from '../components/QuickAction'
+import { FEATURES } from '../config/featureFlags'
 
 const Settings: React.FC = () => {
   const [businessInfo, setBusinessInfo] = useState({
@@ -27,28 +28,28 @@ const Settings: React.FC = () => {
     },
   ])
 
+  // Feature-flagged quick actions - only show what's actually implemented
   const quickActions = [
-    {
-      id: '1',
-      title: 'Export Leads',
-      description: 'Download CSV of all leads',
-      icon: FileText,
-      action: () => alert('Export functionality coming soon!'),
-    },
-    {
-      id: '2',
+    ...(FEATURES.BULK_FOLLOWUP ? [{
+      id: 'bulk-followup',
       title: 'Send Follow-up Emails',
       description: 'Bulk email to inactive leads',
       icon: Mail,
-      action: () => alert('Email functionality coming soon!'),
-    },
-    {
-      id: '3',
+      action: () => {
+        // TODO: Implement bulk follow-up functionality
+        console.log('Bulk follow-up triggered');
+      },
+    }] : []),
+    ...(FEATURES.REPORTS ? [{
+      id: 'reports',
       title: 'Generate Reports',
       description: 'Monthly performance report',
       icon: Zap,
-      action: () => alert('Reports functionality coming soon!'),
-    },
+      action: () => {
+        // TODO: Implement reports functionality
+        console.log('Reports generation triggered');
+      },
+    }] : []),
   ]
 
   const handleBusinessInfoChange = (field: string, value: string) => {

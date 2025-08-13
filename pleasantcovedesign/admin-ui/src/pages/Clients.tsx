@@ -1,7 +1,84 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Search, Filter, Building2, DollarSign, Calendar, MessageCircle, TrendingUp, Eye } from 'lucide-react'
+import { Search, Filter, Building2, DollarSign, Calendar, MessageCircle, TrendingUp, Eye, Plus } from 'lucide-react'
 import api from '../api'
+import { FEATURES } from '../config/featureFlags'
+
+// Add Client Modal Component
+function AddClientModal({ open, onClose, onCreated }: any) {
+  const [form, setForm] = useState({ name: "", email: "", phone: "", industry: "general" });
+  const [busy, setBusy] = useState(false);
+
+  if (!open) return null;
+
+  const submit = async () => {
+    if (!form.name.trim()) return;
+    setBusy(true);
+    try {
+      const res = await api.post("/companies", { 
+        ...form, 
+        priority: "medium",
+        stage: "new"
+      });
+      onCreated?.(res.data);
+      onClose();
+      setForm({ name: "", email: "", phone: "", industry: "general" });
+    } catch (error) {
+      console.error('Failed to create client:', error);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50">
+      <div className="bg-white rounded-2xl p-6 w-full max-w-md space-y-4">
+        <h3 className="text-lg font-semibold">Add Client</h3>
+        <input 
+          className="w-full border rounded p-2" 
+          placeholder="Company Name"
+          value={form.name} 
+          onChange={(e) => setForm({...form, name: e.target.value})}
+        />
+        <input 
+          className="w-full border rounded p-2" 
+          placeholder="Email"
+          type="email"
+          value={form.email} 
+          onChange={(e) => setForm({...form, email: e.target.value})}
+        />
+        <input 
+          className="w-full border rounded p-2" 
+          placeholder="Phone"
+          value={form.phone} 
+          onChange={(e) => setForm({...form, phone: e.target.value})}
+        />
+        <select 
+          className="w-full border rounded p-2"
+          value={form.industry}
+          onChange={(e) => setForm({...form, industry: e.target.value})}
+        >
+          <option value="general">General</option>
+          <option value="restaurant">Restaurant</option>
+          <option value="retail">Retail</option>
+          <option value="healthcare">Healthcare</option>
+          <option value="professional">Professional Services</option>
+          <option value="other">Other</option>
+        </select>
+        <div className="flex gap-2 justify-end">
+          <button className="px-3 py-2 text-gray-600" onClick={onClose}>Cancel</button>
+          <button 
+            className="px-3 py-2 bg-blue-600 text-white rounded disabled:opacity-50" 
+            disabled={busy || !form.name.trim()} 
+            onClick={submit}
+          >
+            {busy ? "Creating..." : "Create Client"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 interface Client {
   id: number;
@@ -45,6 +122,7 @@ const Clients: React.FC = () => {
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('all')
+  const [openAddClient, setOpenAddClient] = useState(false)
 
   useEffect(() => {
     fetchClients()
@@ -134,13 +212,15 @@ const Clients: React.FC = () => {
           <h1 className="text-2xl font-bold text-gray-900">Clients</h1>
           <p className="text-gray-600">Manage your active clients and projects</p>
         </div>
-        <button
-          onClick={() => alert('Add Client functionality coming soon!')}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
-        >
-          <Building2 className="h-4 w-4" />
-          <span>Add Client</span>
-        </button>
+        {FEATURES.CLIENT_ADD && (
+          <button
+            onClick={() => setOpenAddClient(true)}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
+          >
+            <Plus className="h-4 w-4" />
+            <span>Add Client</span>
+          </button>
+        )}
       </div>
 
       {/* Stats Cards */}
@@ -317,6 +397,16 @@ const Clients: React.FC = () => {
           </p>
         </div>
       )}
+
+      {/* Add Client Modal */}
+      <AddClientModal
+        open={openAddClient}
+        onClose={() => setOpenAddClient(false)}
+        onCreated={(newClient: any) => {
+          setClients(prev => [newClient, ...prev]);
+          console.log('New client created:', newClient);
+        }}
+      />
     </div>
   )
 }

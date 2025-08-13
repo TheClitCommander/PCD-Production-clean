@@ -78,12 +78,23 @@ const LeadsTable: React.FC<LeadsTableProps> = ({ onLeadSelect }) => {
         params.append('city', cityFilter.trim());
       }
 
+      console.log('🔍 Fetching leads from:', `/leads?${params.toString()}`);
       const response = await api.get(`/leads?${params.toString()}`);
+      console.log('📊 API Response:', response.data);
       
-      setLeads(response.data.leads || []);
-      setTotal(response.data.total || 0);
+      const leadsData = response.data.leads || [];
+      const totalData = response.data.total || 0;
+      
+      console.log(`📋 Setting ${leadsData.length} leads, total: ${totalData}`);
+      setLeads(leadsData);
+      setTotal(totalData);
+      
+      if (leadsData.length === 0) {
+        console.log('⚠️ No leads found - check if scraper has run and saved data');
+      }
     } catch (err: any) {
-      console.error('Failed to fetch leads:', err);
+      console.error('❌ Failed to fetch leads:', err);
+      console.error('❌ Error details:', err.response?.data);
       setError(err.response?.data?.error || 'Failed to load leads');
     } finally {
       setLoading(false);

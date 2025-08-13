@@ -406,21 +406,31 @@ export async function registerRoutes(app: Express, io: any) {
             }
           });
           
-          // Create table if it doesn't exist
+          // Create table if it doesn't exist (EXACT SAME SCHEMA AS /api/leads expects)
           db.run(`CREATE TABLE IF NOT EXISTS businesses (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             business_name TEXT NOT NULL,
             business_type TEXT,
+            category TEXT,
             address TEXT,
             location TEXT,
             phone TEXT,
             website TEXT,
-            has_website INTEGER DEFAULT 0,
+            has_website BOOLEAN,
             rating REAL,
-            reviews INTEGER,
-            maps_url TEXT,
+            reviews TEXT,
+            years_in_business TEXT,
+            maps_url TEXT UNIQUE,
+            project_id TEXT,
+            scraped_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             search_session_id TEXT,
-            scraped_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            phone_valid BOOLEAN DEFAULT NULL,
+            phone_formatted TEXT,
+            phone_carrier TEXT,
+            phone_country TEXT,
+            phone_line_type TEXT,
+            phone_error TEXT,
+            email_format_valid BOOLEAN DEFAULT NULL
           )`, (err) => {
             if (err) {
               console.error('❌ Table creation error:', err);
@@ -444,16 +454,17 @@ export async function registerRoutes(app: Express, io: any) {
           
           for (const business of businesses) {
             db.run(`INSERT INTO businesses (
-              business_name, business_type, address, location, phone, website, 
+              business_name, business_type, category, address, location, phone, website, 
               has_website, rating, reviews, maps_url, search_session_id
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, [
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, [
               business.name,
               category,
+              category, // category field
               `${Math.floor(Math.random() * 500) + 100} Main St`,
               `${city}, Maine`,
               business.phone,
               business.website,
-              business.hasWebsite ? 1 : 0,
+              business.hasWebsite, // Use boolean directly
               (Math.random() * 2 + 3).toFixed(1), // 3.0 to 5.0
               Math.floor(Math.random() * 100) + 10,
               `https://maps.google.com/?cid=${Math.floor(Math.random() * 1000000)}`,

@@ -12,9 +12,29 @@ import { registerDemoRoutes } from './routes/demo-routes';
 import leadsRouter from './routes/leads';
 import scrapeRouter from './routes/scrape';
 import verifyRouter from './routes/verify';
+import { pool } from './lib/db';
 
 // Load environment variables FIRST before importing anything else
-dotenv.config({ path: resolve(process.cwd(), '.env') });
+// First, try environment-specific config
+const nodeEnv = process.env.NODE_ENV || 'development';
+const envFiles = [
+  // Try environment-specific file first
+  resolve(process.cwd(), `.env.${nodeEnv}`),
+  // Then try environment-specific local overrides
+  resolve(process.cwd(), `.env.${nodeEnv}.local`),
+  // Then fall back to default .env
+  resolve(process.cwd(), '.env'),
+  // Finally, try .env.local
+  resolve(process.cwd(), '.env.local')
+];
+
+// Try loading each file in order
+envFiles.forEach(envFile => {
+  if (fs.existsSync(envFile)) {
+    console.log(`🔧 Loading .env from: ${envFile}`);
+    dotenv.config({ path: envFile });
+  }
+});
 
 // Debug: Log environment variable loading - Railway deployment fix
 console.log('🔧 Environment variables loaded - nanoid ESM fix applied');
@@ -434,17 +454,45 @@ app.get('/api/image-proxy/:filename', async (req, res) => {
   }
 });
 
-// Health check endpoint
+// Health check endpoints
 app.get('/health', (req, res) => {
   res.json({ 
     status: 'healthy', 
     timestamp: new Date().toISOString(),
     version: '1.1',
+    uptime: process.uptime(),
     services: {
       database: 'connected',
       webhooks: 'active'
     }
   });
+});
+
+// Standard Kubernetes-style health endpoints
+app.get('/healthz', (_req, res) => {
+  res.json({ ok: true, uptime: process.uptime() });
+});
+
+// Readiness probe - checks if the database is actually connected
+app.get('/readyz', async (_req, res) => {
+  try {
+    const { assertDb } = await import('./lib/db');
+    const db = await assertDb();
+    res.status(db ? 200 : 503).json({ 
+      ok: db,
+      timestamp: new Date().toISOString(),
+      services: {
+        database: db ? 'connected' : 'disconnected'
+      }
+    });
+  } catch (e) {
+    console.error('❌ Readiness check failed:', e);
+    res.status(503).json({ 
+      ok: false, 
+      error: 'db',
+      timestamp: new Date().toISOString()
+    });
+  }
 });
 
 // Diagnostic endpoint for Railway debugging
@@ -690,27 +738,42 @@ async function startServer() {
       console.log('⚠️  Run build script or set Railway build command to create it.');
     }
     
-    server.listen(PORT, "0.0.0.0", () => {
+    try {
+      server.listen(PORT, "0.0.0.0", () => {
         console.log('✅ In-memory database initialized (empty - ready for real data)');
-  console.log(`🚀 Pleasant Cove Design v1.1 server running on port ${PORT}`);
-      console.log(`📍 Local: http://localhost:${PORT}`);
-      console.log(`🔗 Webhook endpoint: http://localhost:${PORT}/api/new-lead`);
-      console.log(`💾 Database: SQLite (websitewizard.db)`);
-      console.log(`🎯 Ready for Squarespace integration!`);
+        console.log(`🚀 Pleasant Cove Design v1.1 server running on port ${PORT}`);
+        console.log(`📍 Local: http://localhost:${PORT}`);
+        console.log(`🔗 Webhook endpoint: http://localhost:${PORT}/api/new-lead`);
+        console.log(`💾 Database: ${pool ? 'PostgreSQL' : 'In-memory (development only)'}`);
+        console.log(`🎯 Ready for Squarespace integration!`);
+        
+        // Railway Pro WebSocket info
+        if (process.env.NODE_ENV === 'production') {
+          console.log(`🚂 Railway Pro WebSocket support enabled`);
+          console.log(`🔌 Socket.IO transports: websocket, polling`);
+          console.log(`⚡ WebSocket upgrades supported`);
+        } else {
+          console.log(`🏠 Local development - WebSocket support active`);
+        }
+        
+        console.log(`🚀 Server ready and waiting for webhooks!`);
+      });
       
-      // Railway Pro WebSocket info
-      if (process.env.NODE_ENV === 'production') {
-        console.log(`🚂 Railway Pro WebSocket support enabled`);
-        console.log(`🔌 Socket.IO transports: websocket, polling`);
-        console.log(`⚡ WebSocket upgrades supported`);
-      } else {
-        console.log(`🏠 Local development - WebSocket support active`);
-      }
-      
-
-      
-      console.log(`🚀 Server ready and waiting for webhooks!`);
-    });
+      // Handle port conflicts gracefully
+      server.on('error', (error: any) => {
+        if (error.code === 'EADDRINUSE') {
+          console.error(`❌ [server] Port ${PORT} is already in use. Is another instance running?`);
+          console.error(`💡 Try: pkill -f "node|nodemon|ts-node|vite" to kill all Node processes`);
+          process.exit(1);
+        } else {
+          console.error('❌ Server error:', error);
+          process.exit(1);
+        }
+      });
+    } catch (error) {
+      console.error('❌ Failed to start server:', error);
+      process.exit(1);
+    }
   } catch (error) {
     console.error('Failed to start server:', error);
     process.exit(1);
@@ -740,31 +803,31 @@ process.on('unhandledRejection', (reason, promise) => {
 });
 
 // Graceful shutdown
-process.on('SIGTERM', () => {
-  console.log('SIGTERM received, shutting down gracefully');
+const shutdown = async (sig: string) => {
+  console.log(`[server] ${sig} received, shutting down…`);
+  try { 
+    if (pool) await pool.end(); 
+  } catch (error) {
+    console.error('Error closing database pool:', error);
+  }
+  
   if (server) {
     server.close(() => {
-      console.log('Server closed');
+      console.log("[server] closed"); 
       process.exit(0);
     });
   } else {
-    console.log('Server closed');
+    console.log("[server] closed"); 
     process.exit(0);
   }
-});
+  
+  // Force exit after 10 seconds if graceful shutdown fails
+  setTimeout(() => process.exit(1), 10_000).unref();
+};
 
-process.on('SIGINT', () => {
-  console.log('SIGINT received, shutting down gracefully');
-  if (server) {
-    server.close(() => {
-      console.log('Server closed');
-      process.exit(0);
-    });
-  } else {
-    console.log('Server closed');
-    process.exit(0);
-  }
-});
+["SIGINT", "SIGTERM"].forEach(s => process.on(s, () => shutdown(s)));
+process.on("unhandledRejection", (e) => { console.error(e); });
+process.on("uncaughtException", (e) => { console.error(e); process.exit(1); });
 
 export default app; // Force redeploy for R2 config Mon Aug  4 00:28:21 EDT 2025
 // Force redeploy for bug fix Mon Aug  4 00:40:34 EDT 2025

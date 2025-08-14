@@ -1,6 +1,4 @@
-import { Pool } from "pg";
-
-const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+import { pool } from "../lib/db";
 
 function normalizePhone(p?: string) { 
   return (p || "").replace(/\D/g,""); 
@@ -29,6 +27,10 @@ export type UpsertInput = {
 };
 
 export async function upsertLead(input: UpsertInput) {
+  if (!process.env.DATABASE_URL) {
+    console.warn('⚠️ DATABASE_URL not set - skipping Postgres upsert');
+    return null;
+  }
   const phoneKey = normalizePhone(input.phone);
   const domainKey = extractDomain(input.website_url || "");
   const bestUrl = input.website_url || null;
@@ -70,12 +72,21 @@ export async function upsertLead(input: UpsertInput) {
   ];
   
   try {
+    if (!pool) {
+      const devMemoryOK = process.env.ALLOW_NO_DB === "true" && process.env.NODE_ENV !== "production";
+      if (!devMemoryOK) {
+        console.error('❌ Cannot upsert lead: Database not available');
+        throw new Error('Database not available');
+      }
+      console.warn('⚠️ No Postgres connection available - skipping upsert (dev mode)');
+      return null;
+    }
     const { rows } = await pool.query(q, vals);
     console.log(`✅ Upserted lead: ${input.name} → ID: ${rows[0].id}`);
     return rows[0];
   } catch (error) {
     console.error(`❌ Failed to upsert lead ${input.name}:`, error);
-    throw error;
+    throw error; // Rethrow to ensure proper error handling upstream
   }
 }
 
@@ -85,6 +96,15 @@ export async function upsertLead(input: UpsertInput) {
 export async function initializeLeadsTable(): Promise<void> {
   try {
     console.log('🔧 Initializing leads table in Postgres...');
+    if (!pool) {
+      const devMemoryOK = process.env.ALLOW_NO_DB === "true" && process.env.NODE_ENV !== "production";
+      if (!devMemoryOK) {
+        console.error('❌ Cannot initialize leads table: Database not available');
+        throw new Error('Database not available');
+      }
+      console.warn('⚠️ No Postgres connection available - skipping table initialization (dev mode)');
+      return;
+    }
     
     // Enable UUID extension
     await pool.query(`CREATE EXTENSION IF NOT EXISTS pgcrypto;`);

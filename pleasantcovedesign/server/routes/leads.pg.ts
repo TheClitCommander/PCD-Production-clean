@@ -1,10 +1,5 @@
 import { Router } from "express";
-import { Pool } from "pg";
-
-// Handle missing DATABASE_URL gracefully
-const pool = process.env.DATABASE_URL 
-  ? new Pool({ connectionString: process.env.DATABASE_URL })
-  : null;
+import { pool } from "../lib/db";
 
 const r = Router();
 
@@ -13,11 +8,21 @@ r.get("/", async (req, res) => {
   try {
     // Check if Postgres is available
     if (!pool) {
-      return res.status(503).json({ 
-        error: 'Database not configured', 
-        message: 'Please set DATABASE_URL environment variable',
+      const devMemoryOK = process.env.ALLOW_NO_DB === "true" && process.env.NODE_ENV !== "production";
+      if (!devMemoryOK) {
+        return res.status(503).json({ 
+          error: 'Database not available', 
+          message: 'Database connection required for this operation',
+          leads: [],
+          total: 0
+        });
+      }
+      // In development with ALLOW_NO_DB=true, we can return mock data
+      console.warn('⚠️ Using mock data in development mode (ALLOW_NO_DB=true)');
+      return res.json({
         leads: [],
-        total: 0
+        total: 0,
+        message: 'No database connection - using mock data (development only)'
       });
     }
 
@@ -96,11 +101,21 @@ r.get("/", async (req, res) => {
 r.get("/count", async (_req, res) => {
   try {
     if (!pool) {
-      return res.status(503).json({ 
-        error: 'Database not configured', 
-        message: 'Please set DATABASE_URL environment variable',
+      const devMemoryOK = process.env.ALLOW_NO_DB === "true" && process.env.NODE_ENV !== "production";
+      if (!devMemoryOK) {
+        return res.status(503).json({ 
+          error: 'Database not available', 
+          message: 'Database connection required for this operation',
+          total: 0,
+          source: 'error'
+        });
+      }
+      // In development with ALLOW_NO_DB=true, we can return mock data
+      console.warn('⚠️ Using mock data in development mode (ALLOW_NO_DB=true)');
+      return res.json({
         total: 0,
-        source: 'error'
+        source: 'mock',
+        timestamp: new Date().toISOString()
       });
     }
 

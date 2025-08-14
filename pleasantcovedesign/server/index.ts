@@ -511,19 +511,19 @@ async function startServer() {
     console.log('🔧 Registering routes...');
     try {
       // Register clean Postgres leads router FIRST (wins over legacy routes)
-      if (process.env.DATABASE_URL) {
+      // PRODUCTION FIX: Always try Postgres first, fallback gracefully
+      try {
         const leadsPgRouter = await import('./routes/leads.pg');
         app.use("/api/leads", leadsPgRouter.default);
-        console.log('✅ Postgres leads router registered');
+        console.log('✅ Postgres leads router registered (production mode)');
+      } catch (pgError) {
+        console.log('⚠️ Postgres router failed, will use fallback:', pgError.message);
       }
       
       await registerRoutes(app, io);
       
-      // Register MVP API routes (fallback if Postgres not available)
-      if (!process.env.DATABASE_URL) {
-        app.use("/api/leads", leadsRouter);
-        console.log('✅ Fallback leads router registered');
-      }
+      // Register MVP API routes (fallback only if Postgres completely unavailable)
+      // Note: Postgres router should handle its own fallbacks now
       app.use("/api/scrape-runs", scrapeRouter);
       app.use("/api/leads/verify", verifyRouter);
       

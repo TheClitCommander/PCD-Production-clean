@@ -1,12 +1,26 @@
 import { Router } from "express";
 import { Pool } from "pg";
 
-const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+// Handle missing DATABASE_URL gracefully
+const pool = process.env.DATABASE_URL 
+  ? new Pool({ connectionString: process.env.DATABASE_URL })
+  : null;
+
 const r = Router();
 
 // GET /api/leads?query=&website_status=&city=&limit=&offset=
 r.get("/", async (req, res) => {
   try {
+    // Check if Postgres is available
+    if (!pool) {
+      return res.status(503).json({ 
+        error: 'Database not configured', 
+        message: 'Please set DATABASE_URL environment variable',
+        leads: [],
+        total: 0
+      });
+    }
+
     const { query, website_status, city, limit = "200", offset = "0" } = req.query as any;
     const where: string[] = [];
     const params: any[] = [];
@@ -81,6 +95,15 @@ r.get("/", async (req, res) => {
 // GET /api/leads/count
 r.get("/count", async (_req, res) => {
   try {
+    if (!pool) {
+      return res.status(503).json({ 
+        error: 'Database not configured', 
+        message: 'Please set DATABASE_URL environment variable',
+        total: 0,
+        source: 'error'
+      });
+    }
+
     const { rows } = await pool.query(`SELECT COUNT(*)::int AS total FROM leads`);
     console.log(`📊 Postgres leads count: ${rows[0].total}`);
     res.json({ 

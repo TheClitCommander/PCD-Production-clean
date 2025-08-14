@@ -46,6 +46,13 @@ export class Storage {
     await memoryDb.markMessageAsRead(messageId, readAt);
   }
 
+  // Direct query method for compatibility with PostgreSQLStorage
+  async query(text: string, params?: any[]): Promise<any> {
+    // For in-memory storage, we can't execute raw SQL, so return empty results
+    console.warn('Raw SQL query not supported in in-memory storage:', text);
+    return { rows: [] };
+  }
+
   // Orders operations
   // Compatibility shim for in-memory mode; delegate to memoryDb
   async getOrdersByCompanyId(companyId: number): Promise<Order[]> {

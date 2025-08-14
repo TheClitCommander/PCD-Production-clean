@@ -9,6 +9,9 @@ import { storage } from './storage';
 import { Server } from 'socket.io';
 import { registerTeamRoutes } from './routes/team-routes';
 import { registerDemoRoutes } from './routes/demo-routes';
+import leadsRouter from './routes/leads';
+import scrapeRouter from './routes/scrape';
+import verifyRouter from './routes/verify';
 
 // Load environment variables FIRST before importing anything else
 dotenv.config({ path: resolve(process.cwd(), '.env') });
@@ -484,12 +487,21 @@ async function startServer() {
   try {
     console.log('🔧 Starting server initialization...');
     
-    // Test database connection first
+    // Test database connection and initialize leads table
     try {
       console.log('🔧 Testing storage initialization...');
       // Simple test to see if storage is working
       await storage.getCompanies();
       console.log('✅ Storage test successful');
+      
+      // Initialize leads table for production Postgres pipeline
+      if (process.env.DATABASE_URL) {
+        const { initializeLeadsTable } = await import('./services/lead.upsert');
+        await initializeLeadsTable();
+        console.log('✅ Leads table initialized in Postgres');
+      } else {
+        console.log('⚠️ No DATABASE_URL - skipping Postgres leads table initialization');
+      }
     } catch (storageError) {
       console.error('⚠️  Storage test failed:', storageError);
       console.log('🔄 Server will continue with limited functionality');
@@ -498,7 +510,49 @@ async function startServer() {
     // Register all routes
     console.log('🔧 Registering routes...');
     try {
+      // Register clean Postgres leads router FIRST (wins over legacy routes)
+      if (process.env.DATABASE_URL) {
+        const leadsPgRouter = await import('./routes/leads.pg');
+        app.use("/api/leads", leadsPgRouter.default);
+        console.log('✅ Postgres leads router registered');
+      }
+      
       await registerRoutes(app, io);
+      
+      // Register MVP API routes (fallback if Postgres not available)
+      if (!process.env.DATABASE_URL) {
+        app.use("/api/leads", leadsRouter);
+        console.log('✅ Fallback leads router registered');
+      }
+      app.use("/api/scrape-runs", scrapeRouter);
+      app.use("/api/leads/verify", verifyRouter);
+      
+      // Health endpoint
+      app.get("/api/health", async (req, res) => {
+        try {
+          // Quick health checks
+          const dbOk = await storage.query('SELECT 1').then(() => true).catch(() => false);
+          const stripeOk = !!process.env.STRIPE_SECRET_KEY;
+          const r2Ok = !!process.env.R2_BUCKET;
+          const googleOk = !!process.env.GOOGLE_PLACES_API_KEY;
+          
+          res.json({ 
+            ok: true, 
+            dbOk, 
+            stripeOk, 
+            r2Ok, 
+            googleOk,
+            timestamp: new Date().toISOString()
+          });
+        } catch (error) {
+          res.status(500).json({ 
+            ok: false, 
+            error: 'Health check failed',
+            timestamp: new Date().toISOString()
+          });
+        }
+      });
+      
       console.log('✅ Routes registered successfully');
     } catch (routeError) {
       console.error('❌ Failed to register routes:', routeError);

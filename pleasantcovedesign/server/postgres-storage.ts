@@ -21,6 +21,11 @@ export class PostgreSQLStorage {
     return this.pool;
   }
 
+  // Direct query method for raw SQL queries
+  async query(text: string, params?: any[]): Promise<any> {
+    return await this.pool.query(text, params);
+  }
+
   async forceMigration() {
     try {
       console.log('🔧 FORCE MIGRATION: Adding missing columns...');

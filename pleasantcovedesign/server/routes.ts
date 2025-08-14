@@ -34,6 +34,7 @@ import { sendProposal, acceptProposal, rejectProposal, ProposalServiceError, val
 import { insertProposalSchema, updateProposalSchema } from './shared/schema';
 import { scraperService } from './scraper-service';
 import { generateToken, verifyToken } from './middleware/auth';
+import { startScrapeRun } from './services/scrape-service';
 
 // Use CommonJS compatible approach - avoid import.meta.url
 const __routes_dirname = path.dirname(__filename);
@@ -609,21 +610,74 @@ export async function registerRoutes(app: Express, io: any) {
     }
   });
   
+  // DISABLED: Replaced by clean Postgres router in routes/leads.pg.ts
+  // DISABLED: Replaced by clean Postgres router in routes/leads.pg.ts
+  /*
   app.get('/api/leads', requireAdmin, async (req: Request, res: Response) => {
     console.log('🔍 GET /api/leads called with filters:', req.query);
     
     try {
-      // Read real scraped data from SQLite database
-      const sqlite3 = require('sqlite3').verbose();
-      const path = require('path');
+      // Read leads from Postgres database (production pipeline)
+      const { query, website_status, city } = req.query as any;
+      const where: string[] = [];
+      const params: any[] = [];
+
+      if (query) {
+        params.push(`%${query}%`);
+        where.push(`(LOWER(name) LIKE LOWER($${params.length}) OR LOWER(address_raw) LIKE LOWER($${params.length}))`);
+      }
+      if (website_status && website_status !== 'all') {
+        params.push(website_status);
+        where.push(`website_status = $${params.length}`);
+      }
+      if (city) {
+        params.push(`%${city}%`);
+        where.push(`LOWER(city) LIKE LOWER($${params.length})`);
+      }
+
+      const sql = `
+        SELECT 
+          id, name, category, source, phone_raw, phone_normalized, 
+          email_raw, email_normalized, address_raw, address_line1, 
+          city, region, postal_code, country, lat, lng,
+          website_url, website_status, website_confidence, 
+          website_last_checked_at, social_urls, contact_emails, 
+          has_contact_form, verification_evidence, created_at, updated_at
+        FROM leads 
+        ${where.length ? `WHERE ${where.join(' AND ')}` : ""} 
+        ORDER BY updated_at DESC 
+        LIMIT 500
+      `;
       
-      // Path to the scraper's SQLite database
-      const dbPath = path.join(__dirname, '../scrapers/scraper_results.db');
-      console.log(`📁 Looking for database at: ${dbPath}`);
+      console.log('🔍 Querying Postgres for leads...');
+      const result = await storage.query(sql, params);
       
-      // First, try to create the database and table if they don't exist
-      const fs = require('fs');
-      const scraperDir = path.dirname(dbPath);
+      // Transform to match UI expectations
+      const leads = result.rows.map((row: any) => ({
+        id: row.id.toString(),
+        name: row.name,
+        category: row.category,
+        source: row.source,
+        phoneNormalized: row.phone_normalized,
+        city: row.city,
+        region: row.region,
+        websiteUrl: row.website_url,
+        websiteStatus: row.website_status === 'HAS_SITE' ? 'HAS_SITE' : 'NO_SITE',
+        websiteConfidence: row.website_confidence,
+        mapsRating: 4.2 + Math.random() * 0.8, // Placeholder
+        mapsReviews: Math.floor(Math.random() * 50) + 10, // Placeholder
+        mapsUrl: `https://maps.google.com/?cid=${Math.floor(Math.random() * 999999)}`,
+        tags: row.website_status === 'HAS_SITE' ? ['has_website', 'has_phone', 'scraped'] : ['no_website', 'has_phone', 'scraped'],
+        createdAt: row.created_at,
+        updatedAt: row.updated_at
+      }));
+
+      console.log(`📊 Found ${leads.length} leads in Postgres`);
+      res.json({ 
+        leads, 
+        total: leads.length,
+        message: `Showing ${leads.length} leads from Postgres`
+      });
       
       // Ensure the scrapers directory exists
       if (!fs.existsSync(scraperDir)) {
@@ -838,6 +892,7 @@ export async function registerRoutes(app: Express, io: any) {
       });
     }
   });
+  */
   
   // Save a scraped business as a lead (move from scraper DB to main leads DB)
   app.post('/api/leads/save-from-scraper', requireAdmin, async (req: Request, res: Response) => {
@@ -8355,6 +8410,42 @@ Booked via: ${source}
     } catch (error) {
       console.error('❌ [SCRAPER] Error exporting leads:', error);
       res.status(500).json({ error: 'Failed to export leads' });
+    }
+  });
+
+  // POST /api/bot/scrape - Legacy endpoint for Leads.tsx compatibility
+  app.post('/api/bot/scrape', requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const { location, businessType, maxResults } = req.body;
+      
+      console.log(`🤖 [BOT] Legacy scrape request: ${businessType} in ${location} (max: ${maxResults})`);
+      
+      // Use the working scrape-service instead of broken Python scraper
+      const result = await startScrapeRun({
+        city: location || 'Maine',
+        category: businessType || 'restaurant',
+        limit: maxResults || 50
+      });
+      
+      if (result.status === 'completed') {
+        res.json({
+          success: true,
+          count: result.leadsFound,
+          newLeads: result.leadsFound,
+          message: result.message
+        });
+      } else {
+        res.status(500).json({
+          success: false,
+          error: result.error || 'Scraping failed'
+        });
+      }
+    } catch (error) {
+      console.error('❌ [BOT] Error in legacy scrape endpoint:', error);
+      res.status(500).json({ 
+        success: false,
+        error: 'Failed to scrape leads. Please try again.'
+      });
     }
   });
 

@@ -1,7 +1,7 @@
 {
   "name": "server",
-  "version": "1.0.4",
-  "description": "Backend server for Pleasant Cove Design - STAGE DEBUG - 20250130",
+  "version": "1.0.5",
+  "description": "Backend server for Pleasant Cove Design - POSTGRES ENABLED - 20250815",
   "main": "dist/index.js",
   "engines": {
     "node": "18"

@@ -226,7 +226,7 @@ const Leads: React.FC = () => {
     try {
       console.log('🔍 Starting lead scraping process...')
       
-      const response = await api.post('/bot/scrape', {
+      const response = await api.post('/api/bot/scrape', {
         location: 'Maine',
         businessType: 'restaurant', 
         maxResults: 50

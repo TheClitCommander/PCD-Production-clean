@@ -16,6 +16,7 @@ import GroupIcon from '@mui/icons-material/Group';
 import Dashboard from './pages/Dashboard';
 import Leads from './pages/Leads';
 import SimpleLeads from './pages/SimpleLeads'; // Import the SimpleLeads component
+import SuperSimpleLeads from './pages/SuperSimpleLeads'; // Import the SuperSimpleLeads component
 import LeadScraper from './pages/LeadScraper';
 import Conversations from './pages/Conversations';
 import Settings from './pages/Settings';
@@ -78,6 +79,13 @@ function App() {
             <BusinessIcon />
           </ListItemIcon>
           <ListItemText primary="Simple Leads" />
+        </ListItem>
+        
+        <ListItem button component={Link} to="/super-simple-leads">
+          <ListItemIcon>
+            <BusinessIcon />
+          </ListItemIcon>
+          <ListItemText primary="Super Simple Leads" />
         </ListItem>
         
         <ListItem button component={Link} to="/lead-scraper">
@@ -201,6 +209,7 @@ function App() {
                 <Route path="/" element={<Dashboard />} />
                 <Route path="/leads" element={<Leads />} />
                 <Route path="/simple-leads" element={<SimpleLeads />} />
+                <Route path="/super-simple-leads" element={<SuperSimpleLeads />} />
                 <Route path="/lead-scraper" element={<LeadScraper />} />
                 <Route path="/conversations" element={<Conversations />} />
                 <Route path="/settings" element={<Settings />} />

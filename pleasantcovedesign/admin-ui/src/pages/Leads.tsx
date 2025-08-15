@@ -226,13 +226,13 @@ const Leads: React.FC = () => {
     try {
       console.log('🔍 Starting lead scraping process...')
       
-      const response = await api.post('/api/bot/scrape', {
-        location: 'Maine',
-        businessType: 'restaurant', 
-        maxResults: 50
+      const response = await api.post('/api/scrape-runs', {
+        city: 'Maine',
+        category: 'restaurant', 
+        limit: 50
       })
       
-      if (response.data && response.data.success) {
+      if (response.data && response.data.runId) {
         // Refresh using existing fetchData logic - just re-trigger the useEffect
         window.location.reload() // Simple refresh for now, can be optimized later
         

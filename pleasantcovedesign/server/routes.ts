@@ -794,7 +794,9 @@ export async function registerRoutes(app: Express, io: any) {
             reviews,
             maps_url,
             scraped_at,
-            search_session_id
+            search_session_id,
+            'sqlite' as data_source,
+            '' as google_place_id
           FROM businesses 
           WHERE 1=1
         `;

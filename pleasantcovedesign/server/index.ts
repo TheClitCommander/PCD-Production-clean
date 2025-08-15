@@ -835,4 +835,7 @@ process.on("uncaughtException", (e) => { console.error(e); process.exit(1); });
 
 export default app; // Force redeploy for R2 config Mon Aug  4 00:28:21 EDT 2025
 // Force redeploy for bug fix Mon Aug  4 00:40:34 EDT 2025
-console.log('🚨 EMERGENCY DEPLOYMENT TRIGGER Mon Aug  4 00:44:14 EDT 2025');
+// Force redeploy for UI path fixes Thu Aug 15 00:55:00 EDT 2025
+console.log('🚨 EMERGENCY DEPLOYMENT TRIGGER Thu Aug 15 00:55:00 EDT 2025');
+console.log('🔄 Postgres leads router mounted at BOTH /api/leads AND /leads');
+console.log('🔄 Legacy /bot/scrape endpoint added for UI compatibility');

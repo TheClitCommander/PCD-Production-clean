@@ -8449,5 +8449,18 @@ Booked via: ${source}
     }
   });
 
+  // Alias legacy path without /api prefix that some UIs call
+  app.post('/bot/scrape', requireAdmin, async (req: Request, res: Response) => {
+    try {
+      // Delegate to the canonical handler
+      const { location, businessType, maxResults } = req.body;
+      const result = await startScrapeRun({ city: location, category: businessType, limit: maxResults });
+      return res.json({ ok: true, runId: result.runId, inserted: result.inserted || 0 });
+    } catch (error: any) {
+      console.error('❌ Legacy /bot/scrape failed:', error);
+      return res.status(500).json({ ok: false, error: error?.message || 'scrape_failed' });
+    }
+  });
+
   console.log('✅ Scraper routes registered successfully');
 }

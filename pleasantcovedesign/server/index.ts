@@ -562,8 +562,12 @@ async function startServer() {
       // PRODUCTION FIX: Always try Postgres first, fallback gracefully
       try {
         const leadsPgRouter = await import('./routes/leads.pg');
+        // Primary Postgres-backed leads API
         app.use("/api/leads", leadsPgRouter.default);
-        console.log('✅ Postgres leads router registered (production mode)');
+        // Alias for legacy frontend calls that hit "/leads" (no /api prefix)
+        // Mounting before registerRoutes ensures it takes precedence over any legacy handlers
+        app.use("/leads", leadsPgRouter.default);
+        console.log('✅ Postgres leads router registered (production mode) with /leads alias');
       } catch (pgError) {
         console.log('⚠️ Postgres router failed, will use fallback:', pgError.message);
       }

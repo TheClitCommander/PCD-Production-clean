@@ -58,7 +58,7 @@ if (!pool && isProd) {
     console.log('🔄 Attempting connection with hardcoded Railway credentials...');
     pool = new Pool({
       user: 'postgres',
-      password: 'maaGXJLImQPrQHTDyXGsVOQZIMxQsFdO',
+      password: 'maaGXJLImQPrQHTDyXGsVOQZIMxQsFdO', // Hardcoded password from user's Railway logs
       host: 'postgres.railway.internal',
       port: 5432,
       database: 'railway',

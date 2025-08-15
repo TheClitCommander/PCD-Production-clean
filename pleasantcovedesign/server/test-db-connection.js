@@ -1,71 +1,137 @@
-// Simple script to test PostgreSQL connection
+// server/test-db-connection.js
+require('dotenv').config({ path: require('path').resolve(process.cwd(), '.env.production') });
+require('dotenv').config({ path: require('path').resolve(process.cwd(), '.env.development.local') });
+require('dotenv').config();
+
+const fs = require('fs');
+const path = require('path');
 const { Pool } = require('pg');
 
-// Get the connection string from environment or use the one from Railway
-const connectionString = process.env.DATABASE_URL || 'postgresql://postgres:maaGXJLImQPrQHTDyXGsVOQZIMxQsFdO@postgres.railway.internal:5432/railway';
-
-console.log('🔌 Testing connection to PostgreSQL...');
-console.log(`🔑 Using connection string: ${connectionString.replace(/postgres:\/\/[^:]+:([^@]+)@/, 'postgres://[USER]:[PASSWORD]@')}`);
-
-// Create a new pool with SSL enabled
-const pool = new Pool({
-  connectionString,
-  ssl: { rejectUnauthorized: false },
-  connectionTimeoutMillis: 10000,
-});
-
-async function testConnection() {
+async function runDbTest() {
   try {
-    console.log('🔍 Attempting to connect...');
-    const client = await pool.connect();
-    console.log('✅ Successfully connected to PostgreSQL!');
-    
-    const result = await client.query('SELECT current_database() as db, current_user as user, version() as version');
-    console.log('📊 Database info:', result.rows[0]);
-    
-    // Test if the leads table exists
+    console.log('--- Database Connection Test ---');
+    console.log('NODE_ENV:', process.env.NODE_ENV);
+    console.log('DATABASE_URL:', process.env.DATABASE_URL ? process.env.DATABASE_URL.substring(0, 20) + '...' : 'NOT SET');
+    console.log('PGUSER:', process.env.PGUSER || 'NOT SET');
+    console.log('PGHOST:', process.env.PGHOST || 'NOT SET');
+    console.log('PGPORT:', process.env.PGPORT || 'NOT SET');
+    console.log('PGDATABASE:', process.env.PGDATABASE || 'NOT SET');
+    console.log('ALLOW_NO_DB:', process.env.ALLOW_NO_DB || 'NOT SET');
+
+    // Try different connection methods
+    let pool = null;
+    let connectionMethod = '';
+
+    // Method 1: Try connection string
+    const cn = process.env.DATABASE_URL;
+    if (cn) {
+      try {
+        console.log('🔄 Attempting connection via DATABASE_URL...');
+        pool = new Pool({
+          connectionString: cn,
+          ssl: { rejectUnauthorized: false },
+          max: 10,
+          idleTimeoutMillis: 30_000,
+          connectionTimeoutMillis: 10_000,
+        });
+        connectionMethod = 'DATABASE_URL';
+      } catch (error) {
+        console.error('❌ Failed to create pool with DATABASE_URL:', error);
+      }
+    }
+
+    // Method 2: Try individual credentials if no pool yet
+    if (!pool) {
+      const pgUser = process.env.PGUSER;
+      const pgPassword = process.env.PGPASSWORD;
+      const pgHost = process.env.PGHOST;
+      const pgPort = process.env.PGPORT ? parseInt(process.env.PGPORT, 10) : 5432;
+      const pgDatabase = process.env.PGDATABASE || 'railway';
+
+      if (pgUser && pgPassword && pgHost) {
+        try {
+          console.log('🔄 Attempting connection via individual credentials...');
+          pool = new Pool({
+            user: pgUser,
+            password: pgPassword,
+            host: pgHost,
+            port: pgPort,
+            database: pgDatabase,
+            ssl: { rejectUnauthorized: false },
+            max: 10,
+            idleTimeoutMillis: 30_000,
+            connectionTimeoutMillis: 10_000,
+          });
+          connectionMethod = 'PG* variables';
+        } catch (error) {
+          console.error('❌ Failed to create pool with individual credentials:', error);
+        }
+      }
+    }
+
+    // Method 3: Try hardcoded Railway credentials as last resort
+    if (!pool) {
+      try {
+        console.log('🔄 Attempting connection with hardcoded Railway credentials...');
+        pool = new Pool({
+          user: 'postgres',
+          password: 'maaGXJLImQPrQHTDyXGsVOQZIMxQsFdO', // Hardcoded password from logs
+          host: 'postgres.railway.internal',
+          port: 5432,
+          database: 'railway',
+          ssl: { rejectUnauthorized: false },
+          max: 10,
+          idleTimeoutMillis: 30_000,
+          connectionTimeoutMillis: 10_000,
+        });
+        connectionMethod = 'Hardcoded credentials';
+      } catch (error) {
+        console.error('❌ Failed to create pool with hardcoded credentials:', error);
+      }
+    }
+
+    if (!pool) {
+      console.error('❌ Could not establish database connection with any method.');
+      process.exit(1);
+    }
+
+    // Test connection
     try {
-      const tablesResult = await client.query(`
+      console.log('🔍 Testing database connection...');
+      const result = await pool.query('SELECT NOW() as current_time');
+      console.log('✅ Database connection successful via ' + connectionMethod);
+      console.log('✅ Current DB time:', result.rows[0].current_time);
+      
+      // Create leads table
+      console.log('🔧 Creating leads table...');
+      const schemaPath = path.join(__dirname, 'leads-schema.sql');
+      const schema = fs.readFileSync(schemaPath, 'utf8');
+      await pool.query(schema);
+      console.log('✅ Leads table created/updated successfully');
+      
+      // Check if table exists
+      const tableCheck = await pool.query(`
         SELECT EXISTS (
           SELECT FROM information_schema.tables 
           WHERE table_schema = 'public' 
           AND table_name = 'leads'
-        ) as table_exists
+        ) as exists;
       `);
+      console.log('✅ Leads table exists:', tableCheck.rows[0].exists);
       
-      if (tablesResult.rows[0].table_exists) {
-        console.log('✅ The "leads" table exists');
-        
-        // Count rows in the leads table
-        const countResult = await client.query('SELECT COUNT(*) as count FROM leads');
-        console.log(`📊 The "leads" table has ${countResult.rows[0].count} rows`);
-      } else {
-        console.log('⚠️ The "leads" table does not exist yet');
-        console.log('ℹ️ You may need to run the schema creation SQL');
-      }
-    } catch (tableError) {
-      console.error('❌ Error checking tables:', tableError.message);
+      // Count rows
+      const countResult = await pool.query('SELECT COUNT(*) FROM leads');
+      console.log('✅ Leads count:', countResult.rows[0].count);
+      
+    } catch (error) {
+      console.error('❌ Database operation failed:', error);
+    } finally {
+      await pool.end();
+      console.log('✅ Database pool closed');
     }
-    
-    client.release();
-    await pool.end();
   } catch (error) {
-    console.error('❌ Connection failed:', error.message);
-    if (error.code) {
-      console.error('Error code:', error.code);
-    }
-    
-    if (error.code === '28P01') {
-      console.error('🔑 Authentication failed. Check your DATABASE_URL password.');
-    } else if (error.code === 'ENOTFOUND') {
-      console.error('🌐 Host not found. Check your DATABASE_URL hostname.');
-      console.error('ℹ️ If using Railway, make sure the PostgreSQL service is linked to your app.');
-    } else if (error.code === 'ECONNREFUSED') {
-      console.error('🔌 Connection refused. Check if PostgreSQL is running and accessible.');
-    }
-    
-    process.exit(1);
+    console.error('❌ Script error:', error);
   }
 }
 
-testConnection();
+runDbTest();

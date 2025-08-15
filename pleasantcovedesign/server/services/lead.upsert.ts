@@ -1,76 +1,23 @@
 import { pool } from "../lib/db";
 
-function normalizePhone(p?: string) { 
-  return (p || "").replace(/\D/g,""); 
-}
-
-function extractDomain(u?: string) {
-  try { 
-    return (new URL(u!)).hostname.toLowerCase(); 
-  } catch { 
-    return ""; 
-  }
-}
-
-export type UpsertInput = {
+interface UpsertInput {
   name?: string;
   phone?: string;
   email?: string;
   address?: string;
-  city?: string; 
-  state?: string; 
+  city?: string;
+  state?: string;
   postal?: string;
   website_url?: string;
-  website_status?: "HAS_SITE"|"NO_SITE"|"SOCIAL_ONLY"|"UNSURE";
+  website_status?: 'HAS_SITE' | 'NO_SITE' | 'SOCIAL_ONLY' | 'UNSURE';
   website_confidence?: number;
-  raw?: any;
-};
+  social_urls?: Record<string, string>;
+  contact_emails?: string[];
+  has_contact_form?: boolean;
+  raw?: Record<string, any>;
+}
 
 export async function upsertLead(input: UpsertInput) {
-  if (!process.env.DATABASE_URL) {
-    console.warn('⚠️ DATABASE_URL not set - skipping Postgres upsert');
-    return null;
-  }
-  const phoneKey = normalizePhone(input.phone);
-  const domainKey = extractDomain(input.website_url || "");
-  const bestUrl = input.website_url || null;
-
-  console.log(`📝 Upserting lead: ${input.name} (phone: ${phoneKey}, domain: ${domainKey})`);
-
-  const q = `
-    INSERT INTO leads (name, phone, email, address, city, state, postal,
-                       website_url, website_status, website_confidence, raw)
-    VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
-    ON CONFLICT (COALESCE(NULLIF(regexp_replace(phone, '\\D','','g'),''), split_part(lower(COALESCE(website_url,'')), '/', 3)))
-    DO UPDATE SET
-      name = COALESCE(EXCLUDED.name, leads.name),
-      email = COALESCE(EXCLUDED.email, leads.email),
-      address = COALESCE(EXCLUDED.address, leads.address),
-      city = COALESCE(EXCLUDED.city, leads.city),
-      state = COALESCE(EXCLUDED.state, leads.state),
-      postal = COALESCE(EXCLUDED.postal, leads.postal),
-      website_url = COALESCE(EXCLUDED.website_url, leads.website_url),
-      website_status = EXCLUDED.website_status,
-      website_confidence = EXCLUDED.website_confidence,
-      raw = EXCLUDED.raw,
-      updated_at = now()
-    RETURNING *;
-  `;
-  
-  const vals = [
-    input.name ?? null,
-    input.phone ?? null,
-    input.email ?? null,
-    input.address ?? null,
-    input.city ?? null,
-    input.state ?? null,
-    input.postal ?? null,
-    bestUrl,
-    input.website_status ?? null,
-    input.website_confidence ?? null,
-    input.raw ?? null,
-  ];
-  
   try {
     if (!pool) {
       const devMemoryOK = process.env.ALLOW_NO_DB === "true" && process.env.NODE_ENV !== "production";
@@ -81,18 +28,76 @@ export async function upsertLead(input: UpsertInput) {
       console.warn('⚠️ No Postgres connection available - skipping upsert (dev mode)');
       return null;
     }
-    const { rows } = await pool.query(q, vals);
-    console.log(`✅ Upserted lead: ${input.name} → ID: ${rows[0].id}`);
-    return rows[0];
+
+    // Normalize phone by removing non-digits
+    const phone = input.phone ? input.phone.replace(/\D/g, '') : null;
+    
+    // Extract domain from website URL if present
+    const websiteUrl = input.website_url || null;
+    
+    // Prepare values for insertion
+    const values = [
+      input.name || null,
+      phone,
+      input.email || null,
+      input.address || null,
+      input.city || null,
+      input.state || null,
+      input.postal || null,
+      websiteUrl,
+      input.website_status || 'UNSURE',
+      input.website_confidence || 0,
+      JSON.stringify(input.social_urls || {}),
+      JSON.stringify(input.contact_emails || []),
+      input.has_contact_form || false,
+      JSON.stringify(input.raw || {})
+    ];
+
+    // Upsert query using the unique index on phone or domain
+    const result = await pool.query(`
+      INSERT INTO leads (
+        name, 
+        phone, 
+        email, 
+        address, 
+        city, 
+        state, 
+        postal, 
+        website_url, 
+        website_status, 
+        website_confidence,
+        social_urls,
+        contact_emails,
+        has_contact_form,
+        raw
+      )
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+      ON CONFLICT ON CONSTRAINT leads_unique_key_idx
+      DO UPDATE SET
+        name = COALESCE(EXCLUDED.name, leads.name),
+        email = COALESCE(EXCLUDED.email, leads.email),
+        address = COALESCE(EXCLUDED.address, leads.address),
+        city = COALESCE(EXCLUDED.city, leads.city),
+        state = COALESCE(EXCLUDED.state, leads.state),
+        postal = COALESCE(EXCLUDED.postal, leads.postal),
+        website_url = COALESCE(EXCLUDED.website_url, leads.website_url),
+        website_status = EXCLUDED.website_status,
+        website_confidence = EXCLUDED.website_confidence,
+        social_urls = EXCLUDED.social_urls,
+        contact_emails = EXCLUDED.contact_emails,
+        has_contact_form = EXCLUDED.has_contact_form,
+        raw = EXCLUDED.raw,
+        updated_at = NOW()
+      RETURNING id
+    `, values);
+
+    return result.rows[0]?.id;
   } catch (error) {
-    console.error(`❌ Failed to upsert lead ${input.name}:`, error);
-    throw error; // Rethrow to ensure proper error handling upstream
+    console.error('❌ Error upserting lead:', error);
+    throw error;
   }
 }
 
-/**
- * Initialize the leads table in Postgres with proper schema
- */
 export async function initializeLeadsTable(): Promise<void> {
   try {
     console.log('🔧 Initializing leads table in Postgres...');
@@ -105,11 +110,11 @@ export async function initializeLeadsTable(): Promise<void> {
       console.warn('⚠️ No Postgres connection available - skipping table initialization (dev mode)');
       return;
     }
-    
-    // Enable UUID extension
+
+    // Create UUID extension
     await pool.query(`CREATE EXTENSION IF NOT EXISTS pgcrypto;`);
-    
-    // Create the leads table
+
+    // Create leads table
     await pool.query(`
       CREATE TABLE IF NOT EXISTS leads (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -132,22 +137,22 @@ export async function initializeLeadsTable(): Promise<void> {
         updated_at TIMESTAMPTZ DEFAULT now()
       )
     `);
-    
-    // Create helpful indexes
+
+    // Create indexes
     await pool.query(`CREATE INDEX IF NOT EXISTS leads_status_idx ON leads (website_status);`);
     await pool.query(`CREATE INDEX IF NOT EXISTS leads_city_idx ON leads (city);`);
     await pool.query(`CREATE INDEX IF NOT EXISTS leads_name_idx ON leads (lower(name));`);
     
-    // Best-effort dedupe: one row per phone (normalized) else per domain
+    // Create unique index for deduplication
     await pool.query(`
       CREATE UNIQUE INDEX IF NOT EXISTS leads_unique_key_idx ON leads (
         COALESCE(NULLIF(regexp_replace(phone, '\\D','','g'),''), split_part(lower(COALESCE(website_url,'')), '/', 3))
       )
     `);
-    
-    console.log('✅ Leads table initialized successfully in Postgres');
+
+    console.log('✅ Leads table initialized successfully');
   } catch (error) {
-    console.error('❌ Failed to initialize leads table:', error);
+    console.error('❌ Error initializing leads table:', error);
     throw error;
   }
 }

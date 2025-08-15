@@ -8450,6 +8450,28 @@ Booked via: ${source}
   });
 
   // Alias legacy path without /api prefix that some UIs call
+  // POST /api/bot/scrape - Legacy endpoint for Leads.tsx compatibility
+  app.post('/api/bot/scrape', requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const { location, businessType, maxResults } = req.body;
+      const result = await startScrapeRun({ city: location, category: businessType, limit: maxResults });
+      res.json({ 
+        success: true, 
+        message: 'Scrape started successfully',
+        runId: result.runId,
+        leadsFound: result.leadsFound
+      });
+    } catch (error) {
+      console.error('Error starting scrape:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Error starting scrape',
+        error: error.message 
+      });
+    }
+  });
+
+  // Alias for UI calls that hit "/bot/scrape" directly
   app.post('/bot/scrape', requireAdmin, async (req: Request, res: Response) => {
     try {
       // Delegate to the canonical handler

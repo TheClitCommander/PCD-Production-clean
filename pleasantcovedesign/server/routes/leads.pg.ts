@@ -10,8 +10,8 @@ r.get("/", async (req, res) => {
     if (!pool) {
       const devMemoryOK = process.env.ALLOW_NO_DB === "true" && process.env.NODE_ENV !== "production";
       if (!devMemoryOK) {
-        return res.status(503).json({ 
-          error: 'Database not available', 
+        return res.status(503).json({
+          error: 'Database not available',
           message: 'Database connection required for this operation',
           leads: [],
           total: 0
@@ -26,73 +26,84 @@ r.get("/", async (req, res) => {
       });
     }
 
-    const { query, website_status, city, limit = "200", offset = "0" } = req.query as any;
-    const where: string[] = [];
-    const params: any[] = [];
+    // Parse query parameters
+    const search = req.query.query as string || '';
+    const websiteStatus = req.query.website_status as string || '';
+    const city = req.query.city as string || '';
+    const limit = parseInt(req.query.limit as string || '50', 10);
+    const offset = parseInt(req.query.offset as string || '0', 10);
 
-    if (query) {
-      params.push(`%${query}%`);
-      where.push(`(lower(name) LIKE lower($${params.length}) OR lower(address) LIKE lower($${params.length}))`);
+    // Build WHERE clause
+    const conditions = ['1=1']; // Always true condition to start
+    const params: any[] = [];
+    let paramIndex = 1;
+
+    if (search) {
+      conditions.push(`(name ILIKE $${paramIndex} OR phone LIKE $${paramIndex} OR email ILIKE $${paramIndex})`);
+      params.push(`%${search}%`);
+      paramIndex++;
     }
-    if (website_status && website_status !== 'all') {
-      params.push(website_status);
-      where.push(`website_status = $${params.length}`);
+
+    if (websiteStatus) {
+      conditions.push(`website_status = $${paramIndex}`);
+      params.push(websiteStatus);
+      paramIndex++;
     }
+
     if (city) {
+      conditions.push(`city ILIKE $${paramIndex}`);
       params.push(`%${city}%`);
-      where.push(`lower(COALESCE(city,'')) LIKE lower($${params.length})`);
+      paramIndex++;
     }
-    params.push(Number(limit));
-    params.push(Number(offset));
+
+    // Build the query
+    const whereClause = conditions.join(' AND ');
     
-    const sql = `
+    // Get total count
+    const countQuery = `SELECT COUNT(*) as total FROM leads WHERE ${whereClause}`;
+    const countResult = await pool.query(countQuery, params);
+    const total = parseInt(countResult.rows[0].total, 10);
+
+    // Get leads with pagination
+    const query = `
       SELECT 
-        id, name, phone, email, address, city, state, postal,
-        website_url, website_status, website_confidence, 
-        website_last_checked_at, social_urls, contact_emails, 
-        has_contact_form, raw, created_at, updated_at
-      FROM leads
-      ${where.length ? `WHERE ${where.join(' AND ')}` : ""}
-      ORDER BY updated_at DESC
-      LIMIT $${params.length-1} OFFSET $${params.length}
+        id,
+        name,
+        phone,
+        email,
+        address,
+        city,
+        state,
+        postal,
+        website_url,
+        website_status,
+        website_confidence,
+        social_urls,
+        contact_emails,
+        has_contact_form,
+        created_at,
+        updated_at
+      FROM leads 
+      WHERE ${whereClause}
+      ORDER BY created_at DESC 
+      LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
     `;
     
-    console.log(`🔍 Postgres query: ${sql.replace(/\s+/g, ' ')}`);
-    console.log(`📊 Params: [${params.join(', ')}]`);
-    
-    const { rows } = await pool.query(sql, params);
-    
-    // Transform to match UI expectations
-    const leads = rows.map((row: any) => ({
-      id: row.id,
-      name: row.name,
-      category: 'business', // Default category
-      source: 'scraper',
-      phoneNormalized: row.phone,
-      city: row.city,
-      region: row.state || 'Maine',
-      websiteUrl: row.website_url,
-      websiteStatus: row.website_status || 'UNSURE',
-      websiteConfidence: row.website_confidence || 0,
-      mapsRating: 4.2 + Math.random() * 0.8, // Placeholder
-      mapsReviews: Math.floor(Math.random() * 50) + 10, // Placeholder
-      mapsUrl: `https://maps.google.com/?cid=${Math.floor(Math.random() * 999999)}`,
-      tags: row.website_status === 'HAS_SITE' ? ['has_website', 'has_phone', 'scraped'] : ['no_website', 'has_phone', 'scraped'],
-      createdAt: row.created_at,
-      updatedAt: row.updated_at
-    }));
-    
-    console.log(`✅ Found ${leads.length} leads in Postgres`);
-    res.json({ 
-      leads, 
-      total: leads.length,
-      message: `Showing ${leads.length} leads from Postgres`
+    params.push(limit, offset);
+    const result = await pool.query(query, params);
+
+    return res.json({
+      leads: result.rows,
+      total,
+      source: 'postgres'
     });
   } catch (error) {
-    console.error('❌ Postgres leads query failed:', error);
-    res.status(500).json({ 
-      error: 'Failed to fetch leads from Postgres', 
-      details: error.message 
+    console.error('Error fetching leads:', error);
+    return res.status(500).json({
+      error: 'Database error',
+      message: 'An error occurred while fetching leads',
+      leads: [],
+      total: 0
     });
   }
 });
@@ -103,8 +114,8 @@ r.get("/count", async (_req, res) => {
     if (!pool) {
       const devMemoryOK = process.env.ALLOW_NO_DB === "true" && process.env.NODE_ENV !== "production";
       if (!devMemoryOK) {
-        return res.status(503).json({ 
-          error: 'Database not available', 
+        return res.status(503).json({
+          error: 'Database not available',
           message: 'Database connection required for this operation',
           total: 0,
           source: 'error'
@@ -119,18 +130,22 @@ r.get("/count", async (_req, res) => {
       });
     }
 
-    const { rows } = await pool.query(`SELECT COUNT(*)::int AS total FROM leads`);
-    console.log(`📊 Postgres leads count: ${rows[0].total}`);
-    res.json({ 
-      total: rows[0].total,
+    const query = 'SELECT COUNT(*) as total FROM leads';
+    const result = await pool.query(query);
+    const total = parseInt(result.rows[0].total, 10);
+
+    return res.json({
+      total,
       source: 'postgres',
       timestamp: new Date().toISOString()
     });
   } catch (error) {
-    console.error('❌ Postgres count query failed:', error);
-    res.status(500).json({ 
-      error: 'Failed to count leads in Postgres', 
-      details: error.message 
+    console.error('Error counting leads:', error);
+    return res.status(500).json({
+      error: 'Database error',
+      message: 'An error occurred while counting leads',
+      total: 0,
+      source: 'error'
     });
   }
 });

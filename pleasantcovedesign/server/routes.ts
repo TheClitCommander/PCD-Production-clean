@@ -538,68 +538,108 @@ export async function registerRoutes(app: Express, io: any) {
     const runId = req.params.id;
     
     try {
-      // Get REAL count from the SQLite database
-      const sqlite3 = require('sqlite3').verbose();
-      const path = require('path');
-      const dbPath = path.join(__dirname, '../scrapers/scraper_results.db');
+      // Check if we should use SQLite (dev only)
+      const useSqlite = process.env.USE_SQLITE_RESULTS === 'true' && process.env.NODE_ENV !== 'production';
       
-      const realData = await new Promise((resolve, reject) => {
-        const db = new sqlite3.Database(dbPath, (err: Error) => {
-          if (err) {
-            console.log('📂 SQLite database not found, will be created on first scrape');
-            return resolve({ count: 0, latest: [] });
-          }
-        });
+      if (useSqlite) {
+        // Dev-only SQLite path
+        const sqlite3 = require('sqlite3').verbose();
+        const path = require('path');
+        const dbPath = path.join(__dirname, '../scrapers/scraper_results.db');
+        
+        const realData = await new Promise((resolve, reject) => {
+          const db = new sqlite3.Database(dbPath, (err: Error) => {
+            if (err) {
+              console.log('📂 SQLite database not found, will be created on first scrape');
+              return resolve({ count: 0, latest: [] });
+            }
+          });
 
-        // Get total count and latest businesses
-        db.all(`
-          SELECT 
-            COUNT(*) as total_count,
-            business_name,
-            business_type,
-            location,
-            has_website,
-            scraped_at
-          FROM businesses 
-          ORDER BY scraped_at DESC 
-          LIMIT 5
-        `, [], (err: Error, rows: any[]) => {
-          if (err) {
-            reject(err);
-          } else {
-            const totalCount = rows[0]?.total_count || 0;
-            resolve({
-              count: totalCount,
-              latest: rows.map(row => ({
-                name: row.business_name,
-                type: row.business_type,
-                location: row.location,
-                hasWebsite: row.has_website,
-                scrapedAt: row.scraped_at
-              }))
-            });
-          }
+          // Get total count and latest businesses (without problematic columns)
+          db.all(`
+            SELECT 
+              COUNT(*) as total_count,
+              business_name,
+              business_type,
+              location,
+              has_website,
+              scraped_at
+            FROM businesses 
+            ORDER BY scraped_at DESC 
+            LIMIT 5
+          `, [], (err: Error, rows: any[]) => {
+            if (err) {
+              console.log('⚠️ SQLite query failed, using empty result:', err.message);
+              resolve({ count: 0, latest: [] });
+            } else {
+              const totalCount = rows[0]?.total_count || 0;
+              resolve({
+                count: totalCount,
+                latest: rows.map(row => ({
+                  name: row.business_name,
+                  type: row.business_type,
+                  location: row.location,
+                  hasWebsite: row.has_website,
+                  scrapedAt: row.scraped_at
+                }))
+              });
+            }
+          });
+          
+          db.close();
         });
         
-        db.close();
-      });
-      
-      // For now, assume scraping is completed if we have any data
-      const status = realData.count > 0 ? 'completed' : 'running';
-      
-      res.json({
-        id: runId,
-        status,
-        leadsFound: realData.count,
-        leadsProcessed: realData.count,
-        latest: realData.latest,
-        message: status === 'completed' ? 
-          `Found ${realData.count} real businesses in database` : 
-          'Scraping in progress...'
-      });
+        // For now, assume scraping is completed if we have any data
+        const status = realData.count > 0 ? 'completed' : 'running';
+        
+        res.json({
+          id: runId,
+          status,
+          leadsFound: realData.count,
+          leadsProcessed: realData.count,
+          latest: realData.latest,
+          message: status === 'completed' ? 
+            `Found ${realData.count} real businesses in database` : 
+            'Scraping in progress...'
+        });
+      } else {
+        // Production path: read from Postgres leads table
+        const result = await storage.query(`
+          SELECT COUNT(*) as count FROM leads WHERE source = 'scraper'
+        `);
+        const count = parseInt(result.rows[0]?.count || 0);
+        
+        // Get latest leads
+        const latestResult = await storage.query(`
+          SELECT name, category, city, website_url, created_at
+          FROM leads 
+          WHERE source = 'scraper'
+          ORDER BY created_at DESC 
+          LIMIT 5
+        `);
+        
+        const status = count > 0 ? 'completed' : 'running';
+        
+        res.json({
+          id: runId,
+          status,
+          leadsFound: count,
+          leadsProcessed: count,
+          latest: latestResult.rows.map(row => ({
+            name: row.name,
+            type: row.category,
+            location: row.city,
+            hasWebsite: !!row.website_url,
+            scrapedAt: row.created_at
+          })),
+          message: status === 'completed' ? 
+            `Found ${count} businesses from Postgres` : 
+            'Scraping in progress...'
+        });
+      }
       
     } catch (error) {
-      console.error('❌ Failed to get real scrape data:', error);
+      console.error('❌ Failed to get scrape data:', error);
       res.json({
         id: runId,
         status: 'failed',

@@ -83,35 +83,102 @@ class ScraperService {
       job.status = 'running';
       job.progress = 10;
 
-      console.log(`🔍 Running reliable Node.js scraper for ${businessType} in ${location}`);
+      // Check if we should use the real Python scraper
+      const useRealScraper = process.env.USE_REAL_SCRAPER === 'true';
+      const limit = Number(process.env.SCRAPE_LIMIT || 50);
       
-      // Use the working Node.js scraper instead of unreliable Python
-      const { startScrapeRun } = await import('./services/scrape-service');
-      
-      job.progress = 50;
-      
-      const result = await startScrapeRun({
-        city: location,
-        category: businessType,
-        limit: Number(process.env.SCRAPE_LIMIT || 50)
-      });
-      
-      job.progress = 80;
-
-      if (result.status === 'completed') {
-        job.totalFound = Number(result.leadsFound) || 0;
-        job.primeProspects = Math.floor(job.totalFound * 0.3); // Estimate 30% are prime prospects
+      if (useRealScraper && process.env.GOOGLE_MAPS_API_KEY) {
+        console.log(`🐍 [REAL SCRAPER] Running Python scraper for ${businessType} in ${location}`);
+        
+        // Use Python scraper
+        const { spawn } = await import('child_process');
+        const pythonScriptPath = path.join(__dirname, '../../scrapers/real_business_scraper_clean.py');
+        
+        job.progress = 20;
+        
+        const pythonProcess = spawn('python3', [
+          pythonScriptPath,
+          '--type', businessType,
+          '--location', location,
+          '--limit', String(limit),
+          '--api-key', process.env.GOOGLE_MAPS_API_KEY
+        ], {
+          env: { ...process.env }
+        });
+        
+        job.progress = 40;
+        
+        // Collect output from Python script
+        let output = '';
+        let errorOutput = '';
+        
+        pythonProcess.stdout.on('data', (data) => {
+          output += data.toString();
+          // Update progress based on output
+          if (output.includes('Fetching')) job.progress = 50;
+          if (output.includes('Processing')) job.progress = 70;
+          if (output.includes('Saving')) job.progress = 90;
+        });
+        
+        pythonProcess.stderr.on('data', (data) => {
+          errorOutput += data.toString();
+          console.error(`Python stderr: ${data}`);
+        });
+        
+        await new Promise<void>((resolve, reject) => {
+          pythonProcess.on('close', (code) => {
+            if (code === 0) {
+              resolve();
+            } else {
+              reject(new Error(`Python process exited with code ${code}: ${errorOutput}`));
+            }
+          });
+        });
+        
+        job.progress = 95;
+        
+        // Parse results from Python output or read from DB
+        // The Python script should save results to the database
+        const results = await this.getScrapingResults();
+        job.totalFound = results.length;
+        job.primeProspects = Math.floor(job.totalFound * 0.3);
         job.progress = 100;
         job.status = 'completed';
         job.completedAt = new Date();
         
-        console.log(`Scraping job ${jobId} completed: ${job.totalFound} businesses found`);
+        console.log(`✅ [REAL SCRAPER] Job ${jobId} completed: ${job.totalFound} businesses found`);
+        
       } else {
-        throw new Error(result.error || 'Scraping failed');
+        // Fallback to Node.js scraper
+        console.log(`🔍 [NODE SCRAPER] Running Node.js scraper for ${businessType} in ${location}`);
+        
+        const { startScrapeRun } = await import('./services/scrape-service');
+        
+        job.progress = 50;
+        
+        const result = await startScrapeRun({
+          city: location,
+          category: businessType,
+          limit: limit
+        });
+        
+        job.progress = 80;
+
+        if (result.status === 'completed') {
+          job.totalFound = Number(result.leadsFound) || 0;
+          job.primeProspects = Math.floor(job.totalFound * 0.3); // Estimate 30% are prime prospects
+          job.progress = 100;
+          job.status = 'completed';
+          job.completedAt = new Date();
+          
+          console.log(`✅ [NODE SCRAPER] Job ${jobId} completed: ${job.totalFound} businesses found`);
+        } else {
+          throw new Error(result.error || 'Scraping failed');
+        }
       }
 
     } catch (error) {
-      console.error(`Scraping job ${jobId} failed:`, error);
+      console.error(`❌ Scraping job ${jobId} failed:`, error);
       job.status = 'failed';
       job.errorMessage = error instanceof Error ? error.message : 'Unknown error';
       job.completedAt = new Date();

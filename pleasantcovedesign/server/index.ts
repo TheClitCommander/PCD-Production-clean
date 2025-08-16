@@ -555,6 +555,16 @@ async function startServer() {
       console.log('🔄 Server will continue with limited functionality');
     }
     
+    // Run SQLite migration if needed (dev only)
+    if (process.env.USE_SQLITE_RESULTS === 'true' && process.env.NODE_ENV !== 'production') {
+      try {
+        const { runSqliteMigrationIfNeeded } = await import('./lib/sqlite-migrate');
+        await runSqliteMigrationIfNeeded();
+      } catch (migrationError) {
+        console.warn('⚠️ SQLite migration failed (non-critical):', migrationError.message);
+      }
+    }
+    
     // Register all routes
     console.log('🔧 Registering routes...');
     try {

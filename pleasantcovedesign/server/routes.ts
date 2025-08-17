@@ -650,39 +650,21 @@ export async function registerRoutes(app: Express, io: any) {
     }
   });
   // DISABLED: Replaced by clean Postgres router in routes/leads.pg.ts
-  // DISABLED: Replaced by clean Postgres router in routes/leads.pg.ts
   app.get('/api/leads', requireAdmin, async (req: Request, res: Response) => {
     console.log('🔍 GET /api/leads called with filters:', req.query);
     
     try {
       const isProd = process.env.NODE_ENV === 'production';
-      const hasPg = !!process.env.DATABASE_URL;
-      const usePg = isProd && hasPg && process.env.FORCE_SQLITE !== '1';
+      const hasPg  = !!process.env.DATABASE_URL;
+      const usePg  = isProd && hasPg && process.env.FORCE_SQLITE !== '1';
+
       console.log(`[DB] Using: ${usePg ? 'Postgres' : 'SQLite'} (NODE_ENV=${process.env.NODE_ENV})`);
 
-      if (isProd && !usePg) {
-        throw new Error('Production requires Postgres (DATABASE_URL missing or FORCE_SQLITE=1)');
-      }
+      const { limit = 50, offset = 0 } = req.query as any;
 
       if (usePg) {
-        // --- Postgres path ---
-        const { query, website_status, city, limit = 50, offset = 0 } = req.query as any;
-        const where: string[] = [];
-        const params: any[] = [];
-
-        if (query) {
-          params.push(`%${query}%`);
-          where.push(`(LOWER(name) LIKE LOWER($${params.length}) OR LOWER(address_raw) LIKE LOWER($${params.length}))`);
-        }
-        if (website_status && website_status !== 'all') {
-          params.push(website_status);
-          where.push(`website_status = $${params.length}`);
-        }
-        if (city) {
-          params.push(`%${city}%`);
-          where.push(`LOWER(city) LIKE LOWER($${params.length})`);
-        }
-
+        // ---- Postgres path ----
+        // Use your existing pg pool if you have one, e.g. `pgPool`
         const { rows } = await pgPool.query(
           `
           SELECT
@@ -706,49 +688,42 @@ export async function registerRoutes(app: Express, io: any) {
           `,
           [limit, offset]
         );
+      
+        return res.json({ ok: true, items: rows });
+      } else {
+        // ---- SQLite path (with hotfix SELECT) ----
+        const rows = await sqliteDb.all(
+          `
+          SELECT 
+            id,
+            business_name AS name,
+            business_type AS category,
+            address,
+            location,
+            phone,
+            website,
+            has_website,
+            rating,
+            reviews,
+            maps_url,
+            scraped_at,
+            NULL AS data_source,
+            NULL AS google_place_id
+          FROM businesses
+          WHERE 1=1
+          ORDER BY scraped_at DESC
+          LIMIT ? OFFSET ?
+          `,
+          [limit, offset]
+        );
+      
         return res.json({ ok: true, items: rows });
       }
-
-
-      // Read leads from Postgres database (production pipeline)
-      const { query, website_status, city, limit = 50, offset = 0 } = req.query as any;
-      
-      // Now read the data
-      // --- SQLite path (HOTFIX) ---
-      // Use NULL for columns that don't exist in the local SQLite file
-      const rows = await sqliteDb.all(
-        `
-        SELECT 
-          id,
-          business_name AS name,
-          business_type AS category,
-          address,
-          location,
-          phone,
-          website,
-          has_website,
-          rating,
-          reviews,
-          maps_url,
-          scraped_at,
-          NULL AS data_source,
-          NULL AS google_place_id
-        FROM businesses
-        WHERE 1=1
-        ORDER BY scraped_at DESC
-        LIMIT ? OFFSET ?
-        `,
-        [limit, offset]
-      );
-      res.json({ ok: true, items: rows });
-      
     } catch (err) {
       console.error('GET /api/leads failed:', err);
       return res.status(500).json({ ok: false, error: 'Failed to load leads' });
     }
   });
-  
-  
   // Save a scraped business as a lead (move from scraper DB to main leads DB)
   app.post('/api/leads/save-from-scraper', requireAdmin, async (req: Request, res: Response) => {
     try {
@@ -2124,7 +2099,6 @@ export async function registerRoutes(app: Express, io: any) {
       });
     }
   });
-
   // ===================
   // FILE UPLOAD API (PUBLIC - for messaging attachments)
   // ===================
@@ -2910,7 +2884,6 @@ export async function registerRoutes(app: Express, io: any) {
       throw new Error('Failed to send welcome email');
     }
   }
-
   // Create a project in the fulfillment system
   async function createFulfillmentProject(order: any, company: any) {
     try {
@@ -3312,7 +3285,6 @@ ${meetingNotes.out_of_scope_notes ? '- **Additional Notes:** ' + meetingNotes.ou
 - **Performance Monitoring:** Ben handles ongoing monitoring
 ---
 ## 🚨 IMPORTANT NOTES & SPECIAL INSTRUCTIONS
-
 ${meetingNotes.special_instructions}
 
 ---
@@ -6029,7 +6001,6 @@ Timeline: ${timeline || 'Not specified'}
 Meeting Type: ${meetingType === 'zoom' ? 'Zoom Video Call' : meetingType === 'phone' ? 'Phone Call' : meetingType === 'facetime' ? 'FaceTime' : 'Zoom Video Call'}
 Project Description:
 ${projectDescription}
-
 ${additionalNotes ? `Additional Notes:\n${additionalNotes}` : ''}
 
 Contact Information:

@@ -658,7 +658,7 @@ export async function registerRoutes(app: Express, io: any) {
       const hasPg  = !!process.env.DATABASE_URL;
       const usePg  = isProd && hasPg && process.env.FORCE_SQLITE !== '1';
 
-      console.log(`[DB] Using: ${usePg ? 'Postgres' : 'SQLite'} (NODE_ENV=${process.env.NODE_ENV}, hasPg=${hasPg}, FORCE_SQLITE=${process.env.FORCE_SQLITE})`);
+      console.log(`[DB] Using: ${usePg ? 'Postgres' : 'SQLite'} (prod=${isProd}, hasPg=${hasPg}, forceSqlite=${process.env.FORCE_SQLITE})`);
 
       const { limit = 50, offset = 0 } = req.query as any;
 
@@ -2100,7 +2100,6 @@ export async function registerRoutes(app: Express, io: any) {
   // FILE UPLOAD API (PUBLIC - for messaging attachments)
   // ===================
   // Simplified file upload configuration (no multer crashes)
-  
   // File upload endpoint (PUBLIC) - Simplified to avoid crashes
   // Order Management Endpoints
   app.post('/api/orders', async (req: Request, res: Response) => {
@@ -2901,7 +2900,6 @@ export async function registerRoutes(app: Express, io: any) {
       throw error;
     }
   }
-
   // Notify team of new paid project
   async function notifyTeamOfNewProject(order: any, company: any) {
     const notification = {
@@ -3270,7 +3268,6 @@ ${meetingNotes.out_of_scope_notes ? '- **Additional Notes:** ' + meetingNotes.ou
 - **Staging URL:** ${meetingNotes.staging_url || 'TBD - Will be provided'}
 - **Repository Access:** GitHub repo link if applicable
 - **API Keys & Credentials:** Provided separately via secure channel
-
 ### Deployment Process
 - **Platform:** ${meetingNotes.deployment_platform || 'Railway'}
 - **Domain Setup:** Ben handles domain pointing
@@ -6001,7 +5998,6 @@ Contact Information:
 - Email: ${email}
 - Phone: ${phone}
 ${businessName ? `- Business: ${businessName}` : ''}
-
 Booked via: ${source}
         `.trim(),
         serviceType: typeof services === 'string' ? services : services.join(', '),

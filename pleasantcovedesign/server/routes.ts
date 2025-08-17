@@ -649,14 +649,65 @@ export async function registerRoutes(app: Express, io: any) {
       });
     }
   });
-  
   // DISABLED: Replaced by clean Postgres router in routes/leads.pg.ts
   // DISABLED: Replaced by clean Postgres router in routes/leads.pg.ts
-  /*
   app.get('/api/leads', requireAdmin, async (req: Request, res: Response) => {
     console.log('🔍 GET /api/leads called with filters:', req.query);
     
     try {
+      const isProd = process.env.NODE_ENV === 'production';
+      const hasPg = !!process.env.DATABASE_URL;
+      const usePg = isProd && hasPg && process.env.FORCE_SQLITE !== '1';
+
+      if (usePg) {
+        // --- Postgres path ---
+        const { query, website_status, city, limit = 50, offset = 0 } = req.query as any;
+        const where: string[] = [];
+        const params: any[] = [];
+
+        if (query) {
+          params.push(`%${query}%`);
+          where.push(`(LOWER(name) LIKE LOWER($${params.length}) OR LOWER(address_raw) LIKE LOWER($${params.length}))`);
+        }
+        if (website_status && website_status !== 'all') {
+          params.push(website_status);
+          where.push(`website_status = $${params.length}`);
+        }
+        if (city) {
+          params.push(`%${city}%`);
+          where.push(`LOWER(city) LIKE LOWER($${params.length})`);
+        }
+
+        const sql = `
+          SELECT
+            id,
+            name,
+            category,
+            address,
+            location,
+            phone,
+            website,
+            has_website,
+            rating,
+            reviews,
+            maps_url,
+            scraped_at,
+            data_source,
+            google_place_id
+          FROM leads
+          ${where.length ? `WHERE ${where.join(' AND ')}` : ""}
+          ORDER BY scraped_at DESC
+          LIMIT $${params.length + 1} OFFSET $${params.length + 2}
+        `;
+        params.push(limit, offset);
+
+        console.log('🔍 Querying Postgres for leads...');
+        const { rows } = await pgPool.query(sql, params);
+        
+        return res.json({ ok: true, items: rows });
+      }
+
+
       // Read leads from Postgres database (production pipeline)
       const { query, website_status, city } = req.query as any;
       const where: string[] = [];
@@ -798,14 +849,14 @@ export async function registerRoutes(app: Express, io: any) {
                   ('Coastal Roofing Co', 'roofing', '321 Union St', 'Freeport, ME', '(207) 865-1111', 'https://coastalroofing.biz', 1, 4.6, '34', 'https://maps.google.com/?cid=321', 'railway_init'),
                   ('Down East Landscaping', 'landscaping', '654 Park Ave', 'Damariscotta, ME', '(207) 563-7777', NULL, 0, 4.4, '12', 'https://maps.google.com/?cid=654', 'railway_init'),
                   ('Tidewater Electric', 'electricians', '987 Water St', 'Wiscasset, ME', '(207) 882-3333', 'https://tidewaterelectric.com', 1, 4.7, '67', 'https://maps.google.com/?cid=987', 'railway_init')`, (err) => {
-                  if (err) {
-                    console.error('Failed to insert sample data:', err);
-                    reject(err);
-                    return;
-                  }
-                  console.log('✅ Sample data inserted successfully');
-                  resolve(true);
-                });
+                    if (err) {
+                      console.error('Failed to insert sample data:', err);
+                      reject(err);
+                      return;
+                    }
+                    console.log('✅ Sample data inserted successfully');
+                    resolve(true);
+                  });
               } else {
                 console.log(`📊 Database already has ${row.count} businesses`);
                 resolve(true);
@@ -817,89 +868,32 @@ export async function registerRoutes(app: Express, io: any) {
       initDb.close();
       
       // Now read the data
-      const leads = await new Promise((resolve, reject) => {
-        const db = new sqlite3.Database(dbPath);
-
-        let query = `
-          SELECT 
-            id,
-            business_name as name,
-            business_type as category,
-            address,
-            location,
-            phone,
-            website,
-            has_website,
-            rating,
-            reviews,
-            maps_url,
-            scraped_at,
-            search_session_id,
-            'sqlite' as data_source,
-            '' as google_place_id
-          FROM businesses 
-          WHERE 1=1
-        `;
-        
-        const params: any[] = [];
-        const { websiteStatus, city, query: searchQuery } = req.query;
-        
-        // Apply filters
-        if (websiteStatus && websiteStatus !== 'all') {
-          if (websiteStatus === 'HAS_SITE') {
-            query += ' AND has_website = 1';
-          } else if (websiteStatus === 'NO_SITE') {
-            query += ' AND (has_website = 0 OR has_website IS NULL)';
-          }
-        }
-        
-        if (city) {
-          query += ' AND location LIKE ?';
-          params.push(`%${city}%`);
-        }
-        
-        if (searchQuery) {
-          query += ' AND (business_name LIKE ? OR business_type LIKE ?)';
-          params.push(`%${searchQuery}%`, `%${searchQuery}%`);
-        }
-        
-        query += ' ORDER BY scraped_at DESC LIMIT 100';
-        
-        db.all(query, params, (err: Error, rows: any[]) => {
-          if (err) {
-            reject(err);
-            return;
-          }
-          
-          // Transform SQLite data to our Lead format
-          const transformedLeads = rows.map(row => ({
-            id: row.id.toString(),
-            name: row.name || 'Unknown Business',
-            category: row.category || 'unknown',
-            source: 'scraper',
-            phoneNormalized: row.phone,
-            city: row.location?.split(',')[0]?.trim(),
-            region: 'Maine',
-            websiteUrl: row.website,
-            websiteStatus: row.has_website ? 'HAS_SITE' : 'NO_SITE',
-            websiteConfidence: row.has_website ? 0.85 : 0.15,
-            mapsRating: parseFloat(row.rating) || null,
-            mapsReviews: parseInt(row.reviews) || null,
-            mapsUrl: row.maps_url,
-            tags: [
-              row.has_website ? 'has_website' : 'no_website',
-              row.phone ? 'has_phone' : 'no_phone',
-              'scraped'
-            ].filter(Boolean),
-            createdAt: new Date(row.scraped_at || Date.now()),
-            updatedAt: new Date(row.scraped_at || Date.now())
-          }));
-          
-          resolve(transformedLeads);
-        });
-        
-        db.close();
-      });
+      // --- SQLite path (HOTFIX) ---
+      // Note: NULL AS data_source / google_place_id avoids the "no such column" error
+      const rows = await sqliteDb.all(
+        `
+        SELECT 
+          id,
+          business_name AS name,
+          business_type AS category,
+          address,
+          location,
+          phone,
+          website,
+          has_website,
+          rating,
+          reviews,
+          maps_url,
+          scraped_at,
+          NULL AS data_source,
+          NULL AS google_place_id
+        FROM businesses
+        WHERE 1=1
+        ORDER BY scraped_at DESC
+        LIMIT ? OFFSET ?
+        `,
+        [limit, offset]
+      );
 
       res.json({ 
         leads, 
@@ -907,34 +901,12 @@ export async function registerRoutes(app: Express, io: any) {
         message: leads.length > 0 ? `Showing ${leads.length} real scraped businesses` : 'No scraped data found - run a scrape first' 
       });
       
-    } catch (error) {
-      console.error('❌ Failed to read scraped data:', error);
-      
-      // Fallback to mock data if SQLite fails
-      const mockLeads = [
-        {
-          id: 'mock-1',
-          name: 'No scraped data available',
-          category: 'demo',
-          source: 'mock',
-          city: 'Brunswick',
-          region: 'Maine',
-          websiteStatus: 'UNKNOWN',
-          websiteConfidence: 0.0,
-          tags: ['demo'],
-          createdAt: new Date(),
-          updatedAt: new Date()
-        }
-      ];
-      
-      res.json({ 
-        leads: mockLeads, 
-        total: mockLeads.length,
-        message: 'Error reading scraped data - using demo data' 
-      });
+    } catch (err) {
+      console.error('GET /api/leads failed:', err);
+      return res.status(500).json({ ok: false, error: 'Failed to load leads' });
     }
   });
-  */
+  
   
   // Save a scraped business as a lead (move from scraper DB to main leads DB)
   app.post('/api/leads/save-from-scraper', requireAdmin, async (req: Request, res: Response) => {
@@ -1171,7 +1143,6 @@ export async function registerRoutes(app: Express, io: any) {
       });
     });
   });
-  
   // ===================
   // APPOINTMENT BOOKING ROUTES (from appointment-server.js)
   // ===================
@@ -1465,7 +1436,6 @@ export async function registerRoutes(app: Express, io: any) {
   // ===================
   // EXISTING ROUTES (continued)
   // ===================
-
   // Root webhook endpoint for Squarespace widget customer project creation (PUBLIC - no auth required)
   app.post("/", async (req: Request, res: Response) => {
     try {
@@ -1655,7 +1625,6 @@ export async function registerRoutes(app: Express, io: any) {
       res.status(500).json({ error: "Failed to retrieve member conversation" });
     }
   });
-
   // Enhanced new lead handler with better processing (PUBLIC - no auth required)
   app.post("/api/new-lead", rateLimitConversations, securityLoggingMiddleware, async (req: Request, res: Response) => {
     const ipAddress = req.ip || req.connection.remoteAddress || 'unknown';
@@ -2082,7 +2051,6 @@ export async function registerRoutes(app: Express, io: any) {
       res.status(500).json({ error: "Failed to fetch project data" });
     }
   });
-
   // Create message in project (PUBLIC - for client replies) - supports both multer and presigned URL uploads
   app.post("/api/public/project/:token/messages", (req: Request, res: Response, next: NextFunction) => {
     // Add CORS headers for widget access
@@ -2275,7 +2243,6 @@ export async function registerRoutes(app: Express, io: any) {
       });
     }
   });
-
   // Presigned URL endpoint for direct R2 uploads (PUBLIC)
   app.get("/api/public/project/:token/upload-url", async (req: Request, res: Response) => {
     try {
@@ -2837,7 +2804,6 @@ export async function registerRoutes(app: Express, io: any) {
       res.status(500).json({ error: 'Failed to record payment' });
     }
   });
-
   // Stripe webhook handler for payment updates
   app.post('/api/stripe/webhook', express.raw({ type: 'application/json' }), async (req: Request, res: Response) => {
     try {
@@ -2898,7 +2864,6 @@ export async function registerRoutes(app: Express, io: any) {
       res.status(400).send('Webhook error');
     }
   });
-
   // Helper functions for webhook handlers
   async function handleCheckoutSessionCompleted(session: any) {
     try {
@@ -3501,12 +3466,10 @@ ${meetingNotes.out_of_scope_notes ? '- **Additional Notes:** ' + meetingNotes.ou
 - **Platform:** ${meetingNotes.deployment_platform || 'Railway'}
 - **Domain Setup:** Ben handles domain pointing
 - **Go-Live Approval:** Required from Ben before production deployment
-
 ### Post-Launch Support
 - **Immediate Issues:** Contractor handles first 48 hours
 - **Bug Fixes:** Included for 7 days post-launch
 - **Performance Monitoring:** Ben handles ongoing monitoring
-
 ---
 
 ## 🚨 IMPORTANT NOTES & SPECIAL INSTRUCTIONS
@@ -4150,7 +4113,6 @@ ${meetingNotes.special_instructions}
       res.status(500).json({ error: "Failed to update project status" });
     }
   });
-
   // ===================
   // PROJECT MESSAGING OPERATIONS (Admin)
   // ===================
@@ -4229,7 +4191,6 @@ ${meetingNotes.special_instructions}
       res.status(500).json({ error: "Failed to fetch messages" });
     }
   });
-
   // Create new message in project (Admin) - now handles files!
   app.post("/api/projects/:id/messages", requireAdmin, upload.array('files'), async (req: Request, res: Response) => {
     try {
@@ -4749,7 +4710,6 @@ ${meetingNotes.special_instructions}
   // ===================
   // SQUARESPACE WEBHOOK INTEGRATION
   // ===================
-
   // Webhook to push client messages to Squarespace
   app.post("/api/push-client-message", async (req: Request, res: Response) => {
     try {
@@ -4835,7 +4795,6 @@ ${meetingNotes.special_instructions}
       res.status(500).json({ error: "Failed to push message" });
     }
   });
-
   // Enhanced admin message creation with automatic Squarespace push - now handles files!
   app.post("/api/projects/:id/messages/with-push", requireAdmin, upload.array('files'), async (req: Request, res: Response) => {
     try {
@@ -5362,7 +5321,6 @@ ${meetingNotes.special_instructions}
       res.status(500).json({ error: "Failed to update appointment" });
     }
   });
-
   // Delete appointment
   app.delete("/api/appointments/:id", async (req: Request, res: Response) => {
     try {
@@ -5622,7 +5580,6 @@ ${meetingNotes.special_instructions}
       res.status(500).json({ error: "Failed to load client dashboard" });
     }
   });
-  
   // Client cancel appointment page (PUBLIC - accessed via email link)
   app.get("/cancel-appointment/:id", async (req: Request, res: Response) => {
     try {
@@ -6008,7 +5965,6 @@ ${meetingNotes.special_instructions}
     }
     return next();
   });
-
   // Helper function to create properly timezone-aware appointment datetime
   function createAppointmentDateTime(appointmentDate: string, appointmentTime: string): string {
     // Pleasant Cove Design is in Maine (Eastern Time)
@@ -6228,7 +6184,6 @@ ${meetingNotes.special_instructions}
         status: 'scheduled',
         notes: `
 Initial Consultation Appointment
-
 Services Requested: ${typeof services === 'string' ? services : services.join(', ')}
 Budget: ${budget}
 Timeline: ${timeline || 'Not specified'}
@@ -6639,7 +6594,6 @@ Booked via: ${source}
       res.status(500).json({ error: "Failed to send message" });
     }
   });
-
   // 🔒 USER AUTHENTICATION ENDPOINTS - Dynamic Token Resolution
   
   // Get existing token for user or create new conversation
@@ -6834,7 +6788,6 @@ Booked via: ${source}
       res.status(500).json({ success: false, error: error.message });
     }
   });
-
   app.post('/api/token', async (req: Request, res: Response) => {
     try {
       const { email, name, projectId, type = 'member' } = req.body;
@@ -7180,7 +7133,6 @@ Booked via: ${source}
   });
 
   // ===================
-
   // NEW, RELIABLE ENDPOINT FOR ADMIN INBOX
   app.get("/api/admin/conversations", requireAdmin, async (req: Request, res: Response) => {
     try {
@@ -7545,7 +7497,6 @@ Booked via: ${source}
       });
     }
   });
-
   // ===================
   // PAYMENT SUCCESS PAGE
   // ===================
@@ -7790,7 +7741,6 @@ Booked via: ${source}
       return false;
     }
   }
-  
   // Create a new project brief
   app.post('/api/project-briefs', async (req: Request, res: Response) => {
     try {
@@ -8346,7 +8296,6 @@ Booked via: ${source}
       res.status(500).json({ error: 'Failed to fetch campaigns' });
     }
   });
-
   // 🔍 Lead Scraper API Routes
   console.log('🔧 Registering scraper routes...');
   
@@ -8434,7 +8383,6 @@ Booked via: ${source}
       res.status(500).json({ error: 'Failed to fetch scraping results' });
     }
   });
-
   // POST /api/scraper/export - Export scraped leads
   app.post('/api/scraper/export', requireAdmin, async (req: Request, res: Response) => {
     try {

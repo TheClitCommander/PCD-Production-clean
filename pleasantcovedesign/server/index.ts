@@ -19,7 +19,7 @@ import { ExpressAdapter } from '@bull-board/express';
 
 console.log(
   `[BOOT] commit=${process.env.RAILWAY_GIT_COMMIT_SHA || 'local'} ` +
-  `node_env=${process.env.NODE_ENV} db=${process.env.DATABASE_URL ? 'pg' : 'sqlite'}`
+  `env=${process.env.NODE_ENV} db=${process.env.DATABASE_URL ? 'pg' : 'sqlite'}`
 );
 
 // Load environment variables FIRST before importing anything else

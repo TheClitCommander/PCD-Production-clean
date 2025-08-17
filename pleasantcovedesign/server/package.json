@@ -10,10 +10,11 @@
     "start": "node dist/index.js",
     "start:direct": "node index.ts",
     "start:simple": "tsx index.ts",
-    "build": "tsc",
+    "start:prod": "node dist/index.js",
+    "build": "rm -rf dist && tsc -p tsconfig.json",
     "build:with-admin": "tsc && cd ../admin-ui && npm ci && VITE_API_URL=/api VITE_WS_URL= npm run build && cd ../server && mkdir -p dist/public/admin && cp -R ../admin-ui/dist/client/* dist/public/admin/",
-    "dev": "nodemon index.ts",
-    "test": "jest"
+    "dev": "nodemon --watch 'src/**/*.ts' --exec 'ts-node' src/index.ts",
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.57.0",

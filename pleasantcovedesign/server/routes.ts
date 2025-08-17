@@ -658,6 +658,11 @@ export async function registerRoutes(app: Express, io: any) {
       const isProd = process.env.NODE_ENV === 'production';
       const hasPg = !!process.env.DATABASE_URL;
       const usePg = isProd && hasPg && process.env.FORCE_SQLITE !== '1';
+      console.log(`[DB] Using: ${usePg ? 'Postgres' : 'SQLite'} (NODE_ENV=${process.env.NODE_ENV})`);
+
+      if (isProd && !usePg) {
+        throw new Error('Production requires Postgres (DATABASE_URL missing or FORCE_SQLITE=1)');
+      }
 
       if (usePg) {
         // --- Postgres path ---
@@ -678,7 +683,8 @@ export async function registerRoutes(app: Express, io: any) {
           where.push(`LOWER(city) LIKE LOWER($${params.length})`);
         }
 
-        const sql = `
+        const { rows } = await pgPool.query(
+          `
           SELECT
             id,
             name,
@@ -695,181 +701,21 @@ export async function registerRoutes(app: Express, io: any) {
             data_source,
             google_place_id
           FROM leads
-          ${where.length ? `WHERE ${where.join(' AND ')}` : ""}
           ORDER BY scraped_at DESC
-          LIMIT $${params.length + 1} OFFSET $${params.length + 2}
-        `;
-        params.push(limit, offset);
-
-        console.log('🔍 Querying Postgres for leads...');
-        const { rows } = await pgPool.query(sql, params);
-        
+          LIMIT $1 OFFSET $2
+          `,
+          [limit, offset]
+        );
         return res.json({ ok: true, items: rows });
       }
 
 
       // Read leads from Postgres database (production pipeline)
-      const { query, website_status, city } = req.query as any;
-      const where: string[] = [];
-      const params: any[] = [];
-
-      if (query) {
-        params.push(`%${query}%`);
-        where.push(`(LOWER(name) LIKE LOWER($${params.length}) OR LOWER(address_raw) LIKE LOWER($${params.length}))`);
-      }
-      if (website_status && website_status !== 'all') {
-        params.push(website_status);
-        where.push(`website_status = $${params.length}`);
-      }
-      if (city) {
-        params.push(`%${city}%`);
-        where.push(`LOWER(city) LIKE LOWER($${params.length})`);
-      }
-
-      const sql = `
-        SELECT 
-          id, name, category, source, phone_raw, phone_normalized, 
-          email_raw, email_normalized, address_raw, address_line1, 
-          city, region, postal_code, country, lat, lng,
-          website_url, website_status, website_confidence, 
-          website_last_checked_at, social_urls, contact_emails, 
-          has_contact_form, verification_evidence, created_at, updated_at
-        FROM leads 
-        ${where.length ? `WHERE ${where.join(' AND ')}` : ""} 
-        ORDER BY updated_at DESC 
-        LIMIT 500
-      `;
-      
-      console.log('🔍 Querying Postgres for leads...');
-      const result = await storage.query(sql, params);
-      
-      // Transform to match UI expectations
-      const leads = result.rows.map((row: any) => ({
-        id: row.id.toString(),
-        name: row.name,
-        category: row.category,
-        source: row.source,
-        phoneNormalized: row.phone_normalized,
-        city: row.city,
-        region: row.region,
-        websiteUrl: row.website_url,
-        websiteStatus: row.website_status === 'HAS_SITE' ? 'HAS_SITE' : 'NO_SITE',
-        websiteConfidence: row.website_confidence,
-        mapsRating: 4.2 + Math.random() * 0.8, // Placeholder
-        mapsReviews: Math.floor(Math.random() * 50) + 10, // Placeholder
-        mapsUrl: `https://maps.google.com/?cid=${Math.floor(Math.random() * 999999)}`,
-        tags: row.website_status === 'HAS_SITE' ? ['has_website', 'has_phone', 'scraped'] : ['no_website', 'has_phone', 'scraped'],
-        createdAt: row.created_at,
-        updatedAt: row.updated_at
-      }));
-
-      console.log(`📊 Found ${leads.length} leads in Postgres`);
-      res.json({ 
-        leads, 
-        total: leads.length,
-        message: `Showing ${leads.length} leads from Postgres`
-      });
-      
-      // Ensure the scrapers directory exists
-      if (!fs.existsSync(scraperDir)) {
-        fs.mkdirSync(scraperDir, { recursive: true });
-        console.log(`📁 Created scrapers directory: ${scraperDir}`);
-      } else {
-        console.log(`📁 Scrapers directory exists: ${scraperDir}`);
-      }
-      
-      // Check if database file exists
-      if (fs.existsSync(dbPath)) {
-        console.log(`✅ Database file exists: ${dbPath}`);
-      } else {
-        console.log(`❌ Database file does not exist: ${dbPath}`);
-      }
-      
-      // Create database and initialize with sample data if needed
-      const initDb = new sqlite3.Database(dbPath);
-      await new Promise((resolve, reject) => {
-        initDb.serialize(() => {
-          // Create table first
-          initDb.run(`CREATE TABLE IF NOT EXISTS businesses (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            business_name TEXT NOT NULL,
-            business_type TEXT,
-            category TEXT,
-            address TEXT,
-            location TEXT,
-            phone TEXT,
-            website TEXT,
-            has_website BOOLEAN,
-            rating REAL,
-            reviews TEXT,
-            years_in_business TEXT,
-            maps_url TEXT UNIQUE,
-            project_id TEXT,
-            scraped_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            search_session_id TEXT,
-            phone_valid BOOLEAN DEFAULT NULL,
-            phone_formatted TEXT,
-            phone_carrier TEXT,
-            phone_country TEXT,
-            phone_line_type TEXT,
-            phone_error TEXT,
-            email_format_valid BOOLEAN DEFAULT NULL,
-            email_discovered TEXT,
-            validation_date TIMESTAMP,
-            email_valid BOOLEAN DEFAULT NULL,
-            email_confidence_score REAL,
-            email_type TEXT,
-            email_risk_score REAL,
-            email_mx_valid BOOLEAN DEFAULT NULL,
-            email_is_disposable BOOLEAN DEFAULT NULL,
-            email_discovery_source TEXT,
-            email_discovery_confidence REAL,
-            email_enrichment_date TIMESTAMP
-          )`, (err) => {
-            if (err) {
-              console.error('Failed to create table:', err);
-              reject(err);
-              return;
-            }
-            
-            // Check if we have any data, if not add sample data
-            initDb.get('SELECT COUNT(*) as count FROM businesses', [], (err, row) => {
-              if (err) {
-                console.error('Failed to count businesses:', err);
-                reject(err);
-                return;
-              }
-              
-              if (row.count === 0) {
-                console.log('📂 Adding sample data to empty database');
-                initDb.run(`INSERT INTO businesses (business_name, business_type, address, location, phone, website, has_website, rating, reviews, maps_url, search_session_id) VALUES
-                  ('Atlantic Electric LLC', 'electricians', '123 Main St', 'Brunswick, ME', '(207) 729-5555', 'https://atlanticelectric.me', 1, 4.8, '45', 'https://maps.google.com/?cid=123', 'railway_init'),
-                  ('Midcoast Plumbing Services', 'plumbing', '456 Bath Rd', 'Bath, ME', '(207) 443-2222', NULL, 0, 4.2, '23', 'https://maps.google.com/?cid=456', 'railway_init'),
-                  ('Pine State HVAC', 'hvac', '789 Federal St', 'Portland, ME', '(207) 775-9999', 'https://pinestateheating.com', 1, 4.9, '78', 'https://maps.google.com/?cid=789', 'railway_init'),
-                  ('Coastal Roofing Co', 'roofing', '321 Union St', 'Freeport, ME', '(207) 865-1111', 'https://coastalroofing.biz', 1, 4.6, '34', 'https://maps.google.com/?cid=321', 'railway_init'),
-                  ('Down East Landscaping', 'landscaping', '654 Park Ave', 'Damariscotta, ME', '(207) 563-7777', NULL, 0, 4.4, '12', 'https://maps.google.com/?cid=654', 'railway_init'),
-                  ('Tidewater Electric', 'electricians', '987 Water St', 'Wiscasset, ME', '(207) 882-3333', 'https://tidewaterelectric.com', 1, 4.7, '67', 'https://maps.google.com/?cid=987', 'railway_init')`, (err) => {
-                    if (err) {
-                      console.error('Failed to insert sample data:', err);
-                      reject(err);
-                      return;
-                    }
-                    console.log('✅ Sample data inserted successfully');
-                    resolve(true);
-                  });
-              } else {
-                console.log(`📊 Database already has ${row.count} businesses`);
-                resolve(true);
-              }
-            });
-          });
-        });
-      });
-      initDb.close();
+      const { query, website_status, city, limit = 50, offset = 0 } = req.query as any;
       
       // Now read the data
       // --- SQLite path (HOTFIX) ---
-      // Note: NULL AS data_source / google_place_id avoids the "no such column" error
+      // Use NULL for columns that don't exist in the local SQLite file
       const rows = await sqliteDb.all(
         `
         SELECT 
@@ -894,12 +740,7 @@ export async function registerRoutes(app: Express, io: any) {
         `,
         [limit, offset]
       );
-
-      res.json({ 
-        leads, 
-        total: leads.length,
-        message: leads.length > 0 ? `Showing ${leads.length} real scraped businesses` : 'No scraped data found - run a scrape first' 
-      });
+      res.json({ ok: true, items: rows });
       
     } catch (err) {
       console.error('GET /api/leads failed:', err);
@@ -1432,7 +1273,6 @@ export async function registerRoutes(app: Express, io: any) {
       });
     }
   });
-  
   // ===================
   // EXISTING ROUTES (continued)
   // ===================
@@ -3471,7 +3311,6 @@ ${meetingNotes.out_of_scope_notes ? '- **Additional Notes:** ' + meetingNotes.ou
 - **Bug Fixes:** Included for 7 days post-launch
 - **Performance Monitoring:** Ben handles ongoing monitoring
 ---
-
 ## 🚨 IMPORTANT NOTES & SPECIAL INSTRUCTIONS
 
 ${meetingNotes.special_instructions}
@@ -6188,7 +6027,6 @@ Services Requested: ${typeof services === 'string' ? services : services.join(',
 Budget: ${budget}
 Timeline: ${timeline || 'Not specified'}
 Meeting Type: ${meetingType === 'zoom' ? 'Zoom Video Call' : meetingType === 'phone' ? 'Phone Call' : meetingType === 'facetime' ? 'FaceTime' : 'Zoom Video Call'}
-
 Project Description:
 ${projectDescription}
 
@@ -7500,7 +7338,6 @@ Booked via: ${source}
   // ===================
   // PAYMENT SUCCESS PAGE
   // ===================
-  
   // Payment success page (serves HTML page with order information)
   app.get('/payment/success', async (req: Request, res: Response) => {
     try {
@@ -8298,7 +8135,6 @@ Booked via: ${source}
   });
   // 🔍 Lead Scraper API Routes
   console.log('🔧 Registering scraper routes...');
-  
   // GET /api/scraper/stats - Get scraping statistics
   app.get('/api/scraper/stats', requireAdmin, async (req: Request, res: Response) => {
     try {

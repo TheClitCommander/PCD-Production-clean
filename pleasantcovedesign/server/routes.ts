@@ -658,13 +658,13 @@ export async function registerRoutes(app: Express, io: any) {
       const hasPg  = !!process.env.DATABASE_URL;
       const usePg  = isProd && hasPg && process.env.FORCE_SQLITE !== '1';
 
-      console.log(`[DB] Using: ${usePg ? 'Postgres' : 'SQLite'} (NODE_ENV=${process.env.NODE_ENV})`);
+      console.log(`[DB] Using: ${usePg ? 'Postgres' : 'SQLite'} (NODE_ENV=${process.env.NODE_ENV}, hasPg=${hasPg}, FORCE_SQLITE=${process.env.FORCE_SQLITE})`);
 
       const { limit = 50, offset = 0 } = req.query as any;
 
       if (usePg) {
-        // ---- Postgres path ----
-        // Use your existing pg pool if you have one, e.g. `pgPool`
+        // Postgres path
+        // make sure you have a pg Pool somewhere: new Pool({ connectionString: process.env.DATABASE_URL })
         const { rows } = await pgPool.query(
           `
           SELECT
@@ -688,10 +688,9 @@ export async function registerRoutes(app: Express, io: any) {
           `,
           [limit, offset]
         );
-      
         return res.json({ ok: true, items: rows });
       } else {
-        // ---- SQLite path (with hotfix SELECT) ----
+        // SQLite path (HOTFIX SELECT from Step 1)
         const rows = await sqliteDb.all(
           `
           SELECT 
@@ -716,7 +715,6 @@ export async function registerRoutes(app: Express, io: any) {
           `,
           [limit, offset]
         );
-      
         return res.json({ ok: true, items: rows });
       }
     } catch (err) {
@@ -797,7 +795,6 @@ export async function registerRoutes(app: Express, io: any) {
       res.status(500).json({ error: 'Failed to save lead' });
     }
   });
-  
   // Delete a lead from the SQLite database
   app.delete('/api/leads/:id', requireAdmin, async (req: Request, res: Response) => {
     try {
@@ -2102,7 +2099,6 @@ export async function registerRoutes(app: Express, io: any) {
   // ===================
   // FILE UPLOAD API (PUBLIC - for messaging attachments)
   // ===================
-  
   // Simplified file upload configuration (no multer crashes)
   
   // File upload endpoint (PUBLIC) - Simplified to avoid crashes
@@ -3286,7 +3282,6 @@ ${meetingNotes.out_of_scope_notes ? '- **Additional Notes:** ' + meetingNotes.ou
 ---
 ## 🚨 IMPORTANT NOTES & SPECIAL INSTRUCTIONS
 ${meetingNotes.special_instructions}
-
 ---
 
 **Project Brief Generated:** ${new Date().toISOString().split('T')[0]}
@@ -3298,7 +3293,6 @@ ${meetingNotes.special_instructions}
 *This brief contains all requirements gathered through client meetings, messaging system interactions, and order specifications. Please confirm receipt and ask questions before beginning development.*`;
 
       res.json({ brief });
-      
     } catch (error) {
       console.error('Error generating Upwork brief:', error);
       res.status(500).json({ error: 'Failed to generate brief' });
@@ -6002,7 +5996,6 @@ Meeting Type: ${meetingType === 'zoom' ? 'Zoom Video Call' : meetingType === 'ph
 Project Description:
 ${projectDescription}
 ${additionalNotes ? `Additional Notes:\n${additionalNotes}` : ''}
-
 Contact Information:
 - Name: ${firstName} ${lastName}
 - Email: ${email}

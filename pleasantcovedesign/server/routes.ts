@@ -3296,41 +3296,7 @@ ${meetingNotes.special_instructions}
     }
   });
 
-  // Simple file upload endpoint without multer - using basic file handling
-  app.post("/api/upload", async (req: Request, res: Response) => {
-    try {
-      console.log('📎 File upload requested');
-      
-      // Basic implementation to handle file uploads without ES modules conflicts
-      // This will work with Squarespace messaging widget
-      const uploadDir = path.join(process.cwd(), 'uploads');
-      
-      // Ensure uploads directory exists using import syntax
-      const fs = await import('fs');
-      if (!fs.existsSync(uploadDir)) {
-        fs.mkdirSync(uploadDir, { recursive: true });
-      }
-      
-      // For now, create a simple response that works
-      // TODO: Implement proper file handling later
-      const timestamp = Date.now();
-      const filename = `upload-${timestamp}.txt`;
-      const fileUrl = `/uploads/${filename}`;
-      
-      console.log('📎 File upload successful:', { filename, fileUrl });
-      
-      res.json({
-        success: true,
-        fileUrl: fileUrl,
-        filename: filename,
-        size: 1024,
-        mimetype: "application/octet-stream"
-      });
-    } catch (error) {
-      console.error("File upload error:", error);
-      res.status(500).json({ error: "Failed to upload file" });
-    }
-  });
+  // Legacy simple upload endpoint removed. All uploads are handled by `uploadRoutes` using R2 storage.
 
   // ===================
   // ACUITY SCHEDULING WEBHOOK (PUBLIC - no auth required)

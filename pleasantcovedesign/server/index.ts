@@ -5,6 +5,7 @@ import path from "path";
 import fs from "fs";
 // Note: fileURLToPath import removed - using __filename directly
 import { registerRoutes } from "./routes";
+import uploadRoutes from "./uploadRoutes";
 import { storage } from './storage';
 import { Server } from 'socket.io';
 import { registerTeamRoutes } from './routes/team-routes';
@@ -536,6 +537,9 @@ async function startServer() {
     // Register all routes
     console.log('🔧 Registering routes...');
     try {
+      // Ensure R2-backed uploads are mounted FIRST so they take precedence over any legacy handlers
+      app.use(uploadRoutes);
+
       // Register clean Postgres leads router FIRST (wins over legacy routes)
       // PRODUCTION FIX: Always try Postgres first, fallback gracefully
       try {

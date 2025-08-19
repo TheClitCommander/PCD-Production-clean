@@ -1,7 +1,10 @@
-import { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
+import {
+  S3Client,
+  PutObjectCommand,
+  GetObjectCommand,
+  HeadObjectCommand,
+} from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
-import fs from 'fs';
-import path from 'path';
 
 export interface R2Config {
   bucket: string;
@@ -15,73 +18,72 @@ export class R2Storage {
   private client: S3Client;
   private bucket: string;
 
-  constructor(config: R2Config) {
-    this.bucket = config.bucket;
+  constructor(cfg: R2Config) {
+    this.bucket = cfg.bucket;
     this.client = new S3Client({
-      region: config.region,
-      endpoint: config.endpoint,
+      region: cfg.region || 'auto',
+      endpoint: cfg.endpoint,          // Cloudflare R2 S3 endpoint
+      forcePathStyle: true,            // REQUIRED for R2
       credentials: {
-        accessKeyId: config.accessKeyId,
-        secretAccessKey: config.secretAccessKey,
+        accessKeyId: cfg.accessKeyId,
+        secretAccessKey: cfg.secretAccessKey,
       },
     });
   }
 
-  async uploadFile(filename: string, buffer: Buffer, contentType: string): Promise<string> {
-    const key = `uploads/${filename}`;
-    
-    const command = new PutObjectCommand({
-      Bucket: this.bucket,
-      Key: key,
-      Body: buffer,
-      ContentType: contentType,
-      CacheControl: 'public, max-age=31536000', // 1 year cache
-    });
-
-    await this.client.send(command);
-    
-    // Return the public URL
-    return `https://${this.bucket}.${this.getR2Domain()}/uploads/${filename}`;
+  private keyFor(filename: string) {
+    // Standardize all objects under "uploads/"
+    return filename.startsWith('uploads/')
+      ? filename
+      : `uploads/${filename}`;
   }
 
-  async getFileUrl(filename: string): Promise<string> {
-    const key = `uploads/${filename}`;
-    
-    const command = new GetObjectCommand({
-      Bucket: this.bucket,
-      Key: key,
-    });
-
-    // Generate a signed URL valid for 1 hour
-    const signedUrl = await getSignedUrl(this.client, command, { expiresIn: 3600 });
-    return signedUrl;
+  async putBuffer(filename: string, buf: Buffer, contentType?: string) {
+    const Key = this.keyFor(filename);
+    await this.client.send(
+      new PutObjectCommand({
+        Bucket: this.bucket,
+        Key,
+        Body: buf,
+        ContentType: contentType,
+      })
+    );
+    return Key;
   }
 
-  async deleteFile(filename: string): Promise<void> {
-    const key = `uploads/${filename}`;
-    
-    const command = new DeleteObjectCommand({
-      Bucket: this.bucket,
-      Key: key,
-    });
-
-    await this.client.send(command);
-  }
-
-  private getR2Domain(): string {
-    // Extract domain from endpoint
-    const endpoint = this.client.config.endpoint;
-    if (!endpoint) {
-      throw new Error('R2 endpoint not configured');
+  async head(filename: string): Promise<boolean> {
+    try {
+      const Key = this.keyFor(filename);
+      await this.client.send(new HeadObjectCommand({
+        Bucket: this.bucket,
+        Key,
+      }));
+      return true;
+    } catch {
+      return false;
     }
-    const url = new URL(endpoint as unknown as string);
-    return url.hostname;
+  }
+
+  async getFileUrl(filename: string, ttlSeconds = 300): Promise<string> {
+    const Key = this.keyFor(filename);
+    const cmd = new GetObjectCommand({
+      Bucket: this.bucket,
+      Key,
+    });
+    return getSignedUrl(this.client, cmd, { expiresIn: ttlSeconds });
+  }
+
+  async getFileUrlRawKey(rawKey: string, ttlSeconds = 300): Promise<string> {
+    const cmd = new GetObjectCommand({
+      Bucket: this.bucket,
+      Key: rawKey,
+    });
+    return getSignedUrl(this.client, cmd, { expiresIn: ttlSeconds });
   }
 }
 
-// Factory function to create R2 storage from environment variables
-export function createR2Storage(): R2Storage | null {
-  const config = {
+export function createR2Storage() {
+  const cfg: Partial<R2Config> = {
     bucket: process.env.R2_BUCKET,
     endpoint: process.env.R2_ENDPOINT,
     region: process.env.R2_REGION || 'auto',
@@ -89,11 +91,9 @@ export function createR2Storage(): R2Storage | null {
     secretAccessKey: process.env.R2_SECRET_ACCESS_KEY,
   };
 
-  // Check if all required config is present
-  if (!config.bucket || !config.endpoint || !config.accessKeyId || !config.secretAccessKey) {
+  if (!cfg.bucket || !cfg.endpoint || !cfg.accessKeyId || !cfg.secretAccessKey) {
     console.log('⚠️ R2 storage not configured, falling back to local storage');
     return null;
   }
-
-  return new R2Storage(config as R2Config);
+  return new R2Storage(cfg as R2Config);
 } 

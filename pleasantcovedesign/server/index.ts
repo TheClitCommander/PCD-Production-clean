@@ -16,6 +16,10 @@ import { pool } from './lib/db';
 import { createBullBoard } from '@bull-board/api';
 import { BullAdapter } from '@bull-board/api/bullAdapter';
 import { ExpressAdapter } from '@bull-board/express';
+import { createClient } from 'redis';
+import { createAdapter } from '@socket.io/redis-adapter';
+import { instrument } from '@socket.io/admin-ui';
+import { createR2Storage } from './storage/r2-storage';
 
 console.log(
   `[BOOT] commit=${process.env.RAILWAY_GIT_COMMIT_SHA || 'local'} ` +
@@ -49,7 +53,6 @@ console.log('🔧 Environment variables loaded - nanoid ESM fix applied');
 
 import express, { type Express } from "express";
 import cors from "cors";
-import { createR2Storage } from './storage/r2-storage';
 import { requestLogger, errorHandler, performanceMonitor } from './middleware/logging';
 import { createCorsMiddleware } from './middleware/cors';
 import demoRoutes from './demo-routes';
@@ -60,62 +63,21 @@ import { sendSMS, smsProviderStatus } from './sms-service';
 const __main_dirname = path.dirname(__filename);
 
 const app = express();
-const server = createServer(app);
+const httpServer = createServer(app);
 
-// Initialize Socket.io with Railway Pro WebSocket support
-const io = new Server(server, {
-  path: '/socket.io',
-  transports: ['websocket', 'polling'],
-  allowEIO3: true,
-  pingTimeout: 60000,
+const io = new Server(httpServer, {
+  transports: ['websocket'],
   pingInterval: 25000,
-  upgradeTimeout: 30000,
-  maxHttpBufferSize: 1e6,
+  pingTimeout: 120000,
   cors: {
-    origin: (() => {
-      // Default development origins
-      const defaultOrigins = [
-        'http://localhost:3000',
-        'http://localhost:5173',
-        'https://localhost:5173', 
-        'http://localhost:5174',
-        'https://localhost:5174',
-        // SquareSpace domains
-        /\.squarespace\.com$/,
-        /\.squarespace-cdn\.com$/,
-        'https://www.pleasantcovedesign.com',
-        'http://www.pleasantcovedesign.com',
-        'https://pleasantcovedesign.com',
-        'http://pleasantcovedesign.com',
-        /pleasantcove/,
-        // ngrok support for development
-        /\.ngrok-free\.app$/,
-        /\.ngrok\.io$/,
-      ];
-
-      // Add environment-specified origins
-      if (process.env.CORS_ORIGINS) {
-        const envOrigins = process.env.CORS_ORIGINS.split(',').map(origin => origin.trim());
-        console.log('🌐 Adding CORS origins from environment:', envOrigins);
-        defaultOrigins.push(...envOrigins);
-      }
-
-      // Add Railway production URL if available
-      if (process.env.RAILWAY_PUBLIC_DOMAIN) {
-        const railwayUrl = `https://${process.env.RAILWAY_PUBLIC_DOMAIN}`;
-        console.log('🚂 Adding Railway CORS origin:', railwayUrl);
-        defaultOrigins.push(railwayUrl);
-      }
-
-      return defaultOrigins;
-    })(),
-    methods: ['GET', 'POST'],
-    credentials: true,
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin']
+    origin: [
+      'https://www.pleasantcovedesign.com',
+      'https://pleasantcovedesign.com',
+      /squarespace\.com$/,
+      'http://localhost:5174',
+    ],
+    methods: ['GET','POST'],
   },
-  // Railway Pro specific settings
-  serveClient: false,
-  cookie: false
 });
 
 const PORT = Number(process.env.PORT) || 3000;
@@ -333,16 +295,102 @@ if (fs.existsSync(widgetPath)) {
 }
 
 // Serve uploaded files from uploads directory with proper headers
-const uploadsPath = path.join(__main_dirname, '../uploads');
-app.use('/uploads', (req, res, next) => {
-  // Add headers for cross-origin image access
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Methods', 'GET');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
-  res.header('Cross-Origin-Resource-Policy', 'cross-origin');
-  res.header('Cache-Control', 'public, max-age=31536000'); // 1 year cache
-  next();
-}, express.static(uploadsPath));
+const uploadsPath = path.join(process.cwd(), 'uploads');
+if (!fs.existsSync(uploadsPath)) {
+  fs.mkdirSync(uploadsPath, { recursive: true });
+}
+
+// Initialize R2 storage once
+const r2Storage = createR2Storage();
+
+// Helper to migrate a local file up to R2
+async function migrateLocalToR2IfNeeded(localPath: string, filename: string, contentType: string) {
+  if (!r2Storage) return;
+  try {
+    const buf = fs.readFileSync(localPath);
+    await r2Storage.putBuffer(filename, buf, contentType);
+    console.log(`☁️  Migrated ${filename} to R2`);
+  } catch (e) {
+    console.warn('R2 migrate failed:', e);
+  }
+}
+
+app.get('/api/image-proxy/:filename', async (req, res) => {
+  const filename = req.params.filename;
+
+  try {
+    // CORS for images
+    const origin = req.headers.origin || '';
+    const allow =
+      /pleasantcovedesign\.com$/.test(origin) ||
+      /squarespace\.com$/.test(origin) ||
+      /localhost/.test(origin);
+    res.header('Access-Control-Allow-Origin', allow ? origin : '*');
+    res.header('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+    res.header('Cross-Origin-Resource-Policy', 'cross-origin');
+    res.header('Cache-Control', 'public, max-age=31536000');
+    res.header('X-Content-Type-Options', 'nosniff');
+
+    // 1) Local first (if present)
+    const imagePath = path.join(uploadsPath, filename);
+    if (fs.existsSync(imagePath) && imagePath.startsWith(uploadsPath)) {
+      const contentType = getMimeType(filename);
+      res.header('Content-Type', contentType);
+      console.log(`📁 Serving from local: ${filename}`);
+      // Stream AND migrate in background
+      res.sendFile(imagePath);
+      migrateLocalToR2IfNeeded(imagePath, filename, contentType);
+      return;
+    }
+
+    // 2) R2 (standard key)
+    if (r2Storage) {
+      const tryR2 = async (keyVariant: 'standard' | 'raw') => {
+        const url = (keyVariant === 'standard')
+          ? await r2Storage.getFileUrl(filename)
+          : await r2Storage.getFileUrlRawKey(filename); // rare older objects
+
+        const r = await fetch(url);
+        if (!r.ok) return null;
+        const ct = r.headers.get('content-type') || getMimeType(filename);
+        res.header('Content-Type', ct);
+        if (!r.body) return res.status(500).json({ error: 'No response body from R2' });
+        const reader = r.body.getReader();
+        const pump = async () => {
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            res.write(value);
+          }
+          res.end();
+        };
+        await pump();
+        return true;
+      };
+
+      // standard uploads/<filename>
+      const ok = await tryR2('standard');
+      if (ok) return;
+
+      // raw <filename> (old uploads)
+      const okRaw = await tryR2('raw');
+      if (okRaw) return;
+
+      return res.status(404).json({ error: 'Image not found in R2 storage' });
+    }
+
+    // Neither local nor R2
+    return res.status(404).json({ error: 'Image not found' });
+
+  } catch (e) {
+    console.error('❌ Error serving image:', e);
+    res.status(500).json({ error: 'Failed to serve image' });
+  }
+});
+
+// Serve uploaded files directly from the 'uploads' directory
+app.use('/uploads', express.static(uploadsPath));
 
 // Helper function to get MIME type from filename
 const getMimeType = (filename: string) => {
@@ -372,94 +420,6 @@ app.options('/api/image-proxy/:filename', (req, res) => {
   res.header('ngrok-skip-browser-warning', 'true');
   res.header('X-Ngrok-Skip-Browser-Warning', 'true');
   res.status(200).end();
-});
-
-// Initialize R2 storage for production
-const r2Storage = createR2Storage();
-
-// Add a mobile-friendly image proxy endpoint with R2 support
-app.get('/api/image-proxy/:filename', async (req, res) => {
-  const filename = req.params.filename;
-  
-  try {
-    // Set CORS headers first (for both R2 and local)
-    res.header('Access-Control-Allow-Origin', 'https://www.pleasantcovedesign.com');
-    res.header('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, ngrok-skip-browser-warning');
-    res.header('Cross-Origin-Resource-Policy', 'cross-origin');
-    res.header('Cache-Control', 'public, max-age=31536000');
-    res.header('X-Content-Type-Options', 'nosniff');
-    res.header('ngrok-skip-browser-warning', 'true');
-    res.header('X-Ngrok-Skip-Browser-Warning', 'true');
-    
-    // First, always check local storage
-    const imagePath = path.join(uploadsPath, filename);
-    
-    if (fs.existsSync(imagePath) && imagePath.startsWith(uploadsPath)) {
-      // Serve from local storage if file exists
-      const mimeType = getMimeType(filename);
-      res.header('Content-Type', mimeType);
-      
-      console.log(`📁 Serving image from local storage: ${filename}`);
-      res.sendFile(imagePath);
-      return;
-    }
-    
-    // If not found locally and R2 is configured, try R2 storage
-    if (r2Storage) {
-      console.log(`📁 Attempting to stream image from R2: ${filename}`);
-      
-      try {
-        const signedUrl = await r2Storage.getFileUrl(filename);
-        
-        // Fetch the image from R2 server-side
-        const response = await fetch(signedUrl);
-        if (!response.ok) {
-          console.error(`❌ R2 fetch failed for ${filename}:`, response.status, response.statusText);
-          return res.status(404).json({ error: 'Image not found in R2 storage' });
-        }
-        
-        // Set content type from R2 response
-        const contentType = response.headers.get('content-type') || getMimeType(filename);
-        res.header('Content-Type', contentType);
-        
-        // Stream the image bytes directly to the browser
-        if (response.body) {
-          console.log(`✅ Streaming ${filename} from R2 with CORS headers`);
-          // Convert ReadableStream to Node.js readable stream
-          const reader = response.body.getReader();
-          const pump = async () => {
-            try {
-              while (true) {
-                const { done, value } = await reader.read();
-                if (done) break;
-                res.write(value);
-              }
-              res.end();
-            } catch (error) {
-              console.error('❌ Error streaming from R2:', error);
-              res.status(500).end();
-            }
-          };
-          pump();
-        } else {
-          return res.status(500).json({ error: 'No response body from R2' });
-        }
-        return;
-      } catch (r2Error) {
-        console.error(`❌ R2 error for ${filename}:`, r2Error);
-        return res.status(404).json({ error: 'Image not found' });
-      }
-    }
-    
-    // If neither local nor R2 has the file
-    console.error(`❌ Image not found anywhere: ${filename}`);
-    return res.status(404).json({ error: 'Image not found' });
-    
-  } catch (error) {
-    console.error('❌ Error serving image:', error);
-    res.status(500).json({ error: 'Failed to serve image' });
-  }
 });
 
 // Health check endpoints
@@ -761,7 +721,7 @@ async function startServer() {
     }
     
     try {
-      server.listen(PORT, "0.0.0.0", () => {
+      httpServer.listen(PORT, "0.0.0.0", () => {
         console.log('✅ In-memory database initialized (empty - ready for real data)');
         console.log(`🚀 Pleasant Cove Design v1.1 server running on port ${PORT}`);
         console.log(`📍 Local: http://localhost:${PORT}`);
@@ -782,7 +742,7 @@ async function startServer() {
       });
       
       // Handle port conflicts gracefully
-      server.on('error', (error: any) => {
+      httpServer.on('error', (error: any) => {
         if (error.code === 'EADDRINUSE') {
           console.error(`❌ [server] Port ${PORT} is already in use. Is another instance running?`);
           console.error(`💡 Try: pkill -f "node|nodemon|ts-node|vite" to kill all Node processes`);
@@ -808,8 +768,8 @@ startServer();
 // Enhanced error handling
 process.on('uncaughtException', (error) => {
   console.error('Uncaught Exception:', error);
-  if (server) {
-    server.close(() => process.exit(1));
+  if (httpServer) {
+    httpServer.close(() => process.exit(1));
   } else {
     process.exit(1);
   }
@@ -817,8 +777,8 @@ process.on('uncaughtException', (error) => {
 
 process.on('unhandledRejection', (reason, promise) => {
   console.error('Unhandled Rejection at:', promise, 'reason:', reason);
-  if (server) {
-    server.close(() => process.exit(1));
+  if (httpServer) {
+    httpServer.close(() => process.exit(1));
   } else {
     process.exit(1);
   }
@@ -833,8 +793,8 @@ const shutdown = async (sig: string) => {
     console.error('Error closing database pool:', error);
   }
   
-  if (server) {
-    server.close(() => {
+  if (httpServer) {
+    httpServer.close(() => {
       console.log("[server] closed"); 
       process.exit(0);
     });

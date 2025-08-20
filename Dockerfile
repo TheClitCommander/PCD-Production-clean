@@ -13,8 +13,8 @@ RUN npm ci --legacy-peer-deps
 # --- Add Python for scraper ---
 RUN apk add --no-cache python3 py3-pip bash
 
-# Install minimal Python deps used by your scraper
-RUN pip3 install --no-cache-dir requests pandas
+# Install minimal Python deps using apk instead of pip
+RUN apk add --no-cache py3-pandas py3-requests
 
 # Copy TypeScript config and source code
 COPY pleasantcovedesign/server/tsconfig.json ./

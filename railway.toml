@@ -3,11 +3,11 @@
 
 [build]
 builder = "NIXPACKS"
-buildCommand = "cd pleasantcovedesign/server && npm install && npm run build"
+buildCommand = "cd pleasantcovedesign/server && npm ci && npm run build:with-admin"
 
 [deploy]
 startCommand = "cd pleasantcovedesign/server && node dist/index.js"
-healthcheckPath = "/healthz"
+healthcheckPath = "/api/health"
 healthcheckTimeout = 300
 restartPolicyType = "ON_FAILURE"
 

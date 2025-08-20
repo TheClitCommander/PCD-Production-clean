@@ -6,6 +6,7 @@ import fs from "fs";
 // Note: fileURLToPath import removed - using __filename directly
 import { registerRoutes } from "./routes";
 import uploadRoutes from "./uploadRoutes";
+import { overrideUploadHandler } from "./override-upload-handler";
 import { storage } from './storage';
 import { Server } from 'socket.io';
 import { registerTeamRoutes } from './routes/team-routes';
@@ -539,6 +540,9 @@ async function startServer() {
     try {
       // Ensure R2-backed uploads are mounted FIRST so they take precedence over any legacy handlers
       app.use(uploadRoutes);
+      
+      // Override any legacy upload handlers
+      overrideUploadHandler(app);
 
       // Register clean Postgres leads router FIRST (wins over legacy routes)
       // PRODUCTION FIX: Always try Postgres first, fallback gracefully

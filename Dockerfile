@@ -18,6 +18,7 @@ RUN pip3 install --no-cache-dir requests pandas
 
 # Copy TypeScript config and source code
 COPY pleasantcovedesign/server/tsconfig.json ./
+# Force rebuild with latest code - timestamp: 2025-08-19-00:40
 COPY pleasantcovedesign/server/ ./
 
 # Copy client-widget for serving static files
@@ -46,7 +47,7 @@ EXPOSE 3000
 
 # Health check (match server's /health endpoint)
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:3000/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"
+  CMD node -e "require('http').get('http://localhost:3000/api/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"
 
 # Start the application
-CMD ["npm", "start"] 
+CMD ["npm", "start"]

@@ -1,15 +1,11 @@
-# Railway configuration
-# This file forces Railway to rebuild the application
-
 [build]
 builder = "NIXPACKS"
-buildCommand = "cd pleasantcovedesign/server && npm ci && npm run build:with-admin"
+buildCommand = "cd pleasantcovedesign/server && npm ci && npm run build"
 
 [deploy]
-startCommand = "cd pleasantcovedesign/server && node index.js"
+startCommand = "cd pleasantcovedesign/server && node dist/index.js"
 healthcheckPath = "/api/health"
 healthcheckTimeout = 300
-restartPolicyType = "ON_FAILURE"
 
 [service]
 port = 3000

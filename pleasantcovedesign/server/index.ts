@@ -320,6 +320,16 @@ async function migrateLocalToR2IfNeeded(localPath: string, filename: string, con
 app.get('/api/image-proxy/:filename', async (req, res) => {
   const filename = req.params.filename;
 
+  // Basic key validation to avoid traversal and ensure flat keys
+  if (
+    !filename ||
+    filename.includes('..') ||
+    filename.includes('/') ||
+    filename.includes('\\')
+  ) {
+    return res.status(400).json({ error: 'invalid key' });
+  }
+
   try {
     // CORS for images
     const origin = req.headers.origin || '';
@@ -391,8 +401,10 @@ app.get('/api/image-proxy/:filename', async (req, res) => {
   }
 });
 
-// Serve uploaded files directly from the 'uploads' directory
-app.use('/uploads', express.static(uploadsPath));
+// Serve uploaded files from disk only in development
+if (process.env.NODE_ENV !== 'production') {
+  app.use('/uploads', express.static(uploadsPath));
+}
 
 // Helper function to get MIME type from filename
 const getMimeType = (filename: string) => {

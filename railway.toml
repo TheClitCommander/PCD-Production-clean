@@ -6,7 +6,7 @@ builder = "NIXPACKS"
 buildCommand = "cd pleasantcovedesign/server && npm ci && npm run build:with-admin"
 
 [deploy]
-startCommand = "cd pleasantcovedesign/server && node dist/index.js"
+startCommand = "cd pleasantcovedesign/server && node -e \"require('./EMERGENCY_DEPLOY.js')\" && node dist/index.js"
 healthcheckPath = "/api/health"
 healthcheckTimeout = 300
 restartPolicyType = "ON_FAILURE"
